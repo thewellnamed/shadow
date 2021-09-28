@@ -8,7 +8,7 @@ import { LogsService } from 'src/app/logs/logs.service';
   imports: [
     CommonModule
   ],
-  exports: [
+  providers: [
     LogsService
   ]
 })
