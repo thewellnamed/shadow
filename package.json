@@ -3,18 +3,18 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "serve": "ng serve"
   },
   "private": true,
   "dependencies": {
     "@angular/animations": "~12.2.0",
+    "@angular/cdk": "12.2.7",
     "@angular/common": "~12.2.0",
     "@angular/compiler": "~12.2.0",
     "@angular/core": "~12.2.0",
     "@angular/forms": "~12.2.0",
+    "@angular/material": "12.2.7",
     "@angular/platform-browser": "~12.2.0",
     "@angular/platform-browser-dynamic": "~12.2.0",
     "@angular/router": "~12.2.0",
@@ -35,8 +35,5 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.7.0",
     "typescript": "~4.3.5"
-  },
-  "scripts": {
-    "ng": "ng"
   }
 }
