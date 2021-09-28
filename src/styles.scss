@@ -1,4 +1,22 @@
-/* You can add global styles to this file, and also import other style files */
+@use '~@angular/material' as mat;
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: mat.get-color-from-palette(mat.$dark-theme-background-palette, 'background');
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 0.25em 0.25em;
+}
+
+form mat-form-field {
+  &.fill {
+    width: 100%;
+  }
+}

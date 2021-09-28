@@ -1,1 +1,29 @@
-<p>home works!</p>
+<div class="home">
+  <div class="content">
+    <div class="header">
+      <div><img src="assets/shadowform.jpg" /></div>
+      <h1>Shadow Priest Analyzer</h1>
+    </div>
+
+    <mat-card>
+      <mat-card-content>
+        <form class="report-form">
+          <mat-form-field class="fill" appearance="standard">
+            <mat-label>Enter Report ID or URL</mat-label>
+            <input type="text" matInput placeholder="e.g. https://classic.warcraftlogs.com/reports/WLkZ1TmdcJD76Aty" value="">
+          </mat-form-field>
+
+          <mat-form-field class="fill" appearance="standard">
+            <mat-label>Select Encounter</mat-label>
+            <mat-select name="encounter">
+              <mat-option *ngFor="let option of encounters" [value]="option.value">
+                {{option.label}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+

@@ -1,0 +1,18 @@
+.home {
+  display: flex;
+  min-height: 100vh;
+  justify-content: center;
+  align-items: center;
+
+  .content {
+    margin-top: -30vh;
+
+    .header {
+      text-align: center;
+    }
+
+    .report-form {
+      min-width: 500px;
+    }
+  }
+}
