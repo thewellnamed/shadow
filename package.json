@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "build": "ng build",
-    "serve": "ng serve"
+    "serve": "ng serve",
+    "postinstall": "ngcc"
   },
   "private": true,
   "dependencies": {
