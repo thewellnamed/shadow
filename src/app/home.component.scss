@@ -12,7 +12,13 @@
     }
 
     .report-form {
-      min-width: 500px;
+      width: 500px;
     }
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .home .content .report-form {
+    width: 100%;
   }
 }
