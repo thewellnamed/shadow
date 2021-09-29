@@ -97,6 +97,8 @@ export class HomeComponent {
   }
 
   private filterEncounters() {
+    // todo - filter this list based on player selected
+    // need to extract more player data from the fight information
     this.encounters = this.summary?.encounters as EncounterSummary[];
   }
 
