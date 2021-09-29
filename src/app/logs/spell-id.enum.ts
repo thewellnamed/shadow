@@ -10,4 +10,3 @@ export enum SpellId {
   VAMPIRIC_EMBRACE = 15286,
   VAMPIRIC_TOUCH = 34917
 }
-
