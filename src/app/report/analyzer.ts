@@ -1,14 +1,30 @@
 import { CastDetails } from 'src/app/report/cast-details';
-import { IEventData } from 'src/app/logs/logs.service';
+import { CastSummary } from 'src/app/report/cast-summary';
+import { ICastData, IDamageData } from 'src/app/logs/logs.service';
 import { SpellId } from 'src/app/logs/spell-id.enum';
 
 export class Analyzer {
-  static run(castData: IEventData[], damageData: IEventData[]) {
-    const casts: CastDetails[] = [];
-    let next: IEventData;
-    let damageIndex = 0;
+  private static EVENT_LEEWAY = 50 // ms. allow damage to occur just slightly later than "should" be possible given
+                                   // strict debuff times. Blah blah server doesn't keep time exactly.
 
-    const events: {[spell: number]: any[]} = {
+  /**
+   * Perform analysis on a given set of cast and damage data from WCL
+   * @param {ICastData[]} castData
+   * @param {IDamageData[]} damageData
+   * @returns {CastDetails[]}
+   */
+  static run(castData: ICastData[], damageData: IDamageData[]): AnalysisResults {
+    let currentCast: ICastData, startingCast: ICastData|null = null;
+    let nextCast: ICastData|null, nextDamage: IDamageData|null;
+
+    const castsBySpell: {[spellId: number]: CastSummary} = {
+      [SpellId.DEATH]: new CastSummary(),
+      [SpellId.PAIN]: new CastSummary(),
+      [SpellId.MIND_BLAST]: new CastSummary(),
+      [SpellId.MIND_FLAY]: new CastSummary(),
+      [SpellId.VAMPIRIC_TOUCH]: new CastSummary()
+    };
+    const damageBySpell: {[spellId: number]: IDamageData[]} = {
       [SpellId.DEATH]: [],
       [SpellId.PAIN]: [],
       [SpellId.MIND_BLAST]: [],
@@ -16,23 +32,122 @@ export class Analyzer {
       [SpellId.VAMPIRIC_TOUCH]: []
     };
 
+    // partition damage data by spell ID to make it easier
+    // to associate instances of damage with casts.
     for (const event of damageData) {
-      if (events.hasOwnProperty(event.ability.guid)) {
-        events[event.ability.guid].push(event);
+      if (damageBySpell.hasOwnProperty(event.ability.guid)) {
+        damageBySpell[event.ability.guid].push(event);
       }
     }
 
-    // eslint-disable-next-line no-console
-    console.log(events);
-
     while (castData.length > 0) {
-      next = castData.shift() as IEventData;
+      currentCast = castData.shift() as ICastData;
 
-      // if we're beginning to cast, remember and move on
-      // if we see a new "begincast" on the same spell, just overwrite
-      // when we see a cast, then we can create the CastDetails
-      // at that point, we shift() from damage
-      // but it's not purely linear, so we're going to have to look in a window in damage?
+      if (currentCast.type === 'begincast') {
+        startingCast = currentCast;
+        continue;
+      }
+
+      // if the completed cast isn't the one we started, remove starting info
+      if (startingCast && currentCast.ability.guid != startingCast.ability.guid) {
+        startingCast = null;
+      }
+
+      const spellId = currentCast.ability.guid;
+      const damageQueue = damageBySpell[spellId];
+
+      if (damageBySpell.hasOwnProperty(spellId)) {
+        const spellData = Analyzer.SPELL_DATA[spellId] as ISpellData;
+
+        const details = new CastDetails({
+          ability: currentCast.ability,
+          targetId: currentCast.targetID,
+          targetInstance: currentCast.targetInstance,
+          castStart: startingCast?.timestamp || currentCast.timestamp,
+          castEnd: currentCast.timestamp
+        });
+
+        // for dots, we need to associate damage ticks with the appropriate cast
+        // we know how far into the future this cast could tick, but we need to
+        // look for a future cast on the same target, because the current cast can only
+        // be responsible for ticks up until the next cast on a given target
+        if (spellData.maxInstances > 1) {
+          let i = 0;
+          let maxDamageTimestamp = currentCast.timestamp + (spellData.maxDuration * 1000) + this.EVENT_LEEWAY;
+
+          do {
+            nextCast = castData.length > i ? castData[i] : null;
+            if (nextCast === null || this.castIsReplacement(details, nextCast)) {
+              maxDamageTimestamp = (nextCast && nextCast?.timestamp + this.EVENT_LEEWAY) || maxDamageTimestamp;
+              break;
+            }
+            i++;
+          } while (nextCast.timestamp <= maxDamageTimestamp);
+
+          // Process damage instances for this spell for the duration of the window
+          nextDamage = damageQueue[0];
+          let totalDamage = 0, instances = 0;
+
+          i = 0;
+          while (nextDamage && nextDamage.timestamp <= maxDamageTimestamp && instances < spellData.maxInstances) {
+            if (!nextDamage.read && this.targetMatch(details, nextDamage)) {
+              totalDamage += nextDamage.amount;
+              nextDamage.read = true;
+              ++instances;
+            }
+            nextDamage = damageQueue[++i];
+          }
+
+          details.totalDamage = totalDamage;
+          details.ticks = instances;
+        } else {
+          // find the next instance of damage for this spell for this target.
+          const damage = damageQueue.find((d) => !d.read && this.targetMatch(details, d));
+
+          if (damage) {
+            details.totalDamage = damage.amount;
+            details.ticks = 1;
+            damage.read = true;
+          } else {
+            details.totalDamage = 0;
+            details.ticks = 0;
+          }
+        }
+
+        castsBySpell[spellId].addCast(details);
+      }
     }
+
+    return castsBySpell;
+  }
+
+  private static castIsReplacement(cast: CastDetails, next: ICastData) {
+    // next replaces current if ALL of these conditions are true
+    // -- the cast completed (type is 'cast', not 'begincast')
+    // -- on the same kind of mob (targetID)
+    // -- on the same instance of that mob (e.g. in WCL "Spellbinder 3" is a different instance from "Spellbinder 2"
+    return next.type === 'cast' &&
+      next.ability.guid === cast.spellId &&
+      next.targetID === cast.targetId &&
+      next.targetInstance === cast.targetInstance;
+  }
+
+  private static targetMatch(cast: CastDetails, next: IDamageData) {
+    return next.targetID === cast.targetId && next.targetInstance === cast.targetInstance;
+  }
+
+  private static SPELL_DATA: {[spellId: number]: ISpellData} = {
+    [SpellId.DEATH]: { maxInstances: 1, maxDuration: 0 },
+    [SpellId.PAIN]: { maxInstances: 8, maxDuration: 24 },
+    [SpellId.MIND_BLAST]: { maxInstances: 1, maxDuration: 0 },
+    [SpellId.MIND_FLAY]: { maxInstances: 3, maxDuration: 3 },
+    [SpellId.VAMPIRIC_TOUCH]: { maxInstances: 5, maxDuration: 15 }
   }
 }
+
+interface ISpellData {
+  maxInstances: number;
+  maxDuration: number;
+}
+
+export type AnalysisResults = {[spellId: number]: CastSummary };

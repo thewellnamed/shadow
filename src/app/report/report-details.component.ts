@@ -3,9 +3,11 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
-import { Analyzer } from 'src/app/report/analyzer';
+import { AnalysisResults, Analyzer } from 'src/app/report/analyzer';
 import { LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/log-summary';
+import { CastDetails } from 'src/app/report/cast-details';
+import { SpellId } from 'src/app/logs/spell-id.enum';
 
 @Component({
   selector: 'report-details',
@@ -17,8 +19,7 @@ export class ReportDetailsComponent implements OnInit {
   playerName: string|null;
   encounterId: number;
   summary: LogSummary;
-
-  analysis: any;
+  results: AnalysisResults;
 
   constructor(private activatedRoute: ActivatedRoute,
               private logs: LogsService) { }
@@ -44,11 +45,16 @@ export class ReportDetailsComponent implements OnInit {
         if (this.playerName && this.encounterId) {
           return this.logs.getEvents(summary, this.playerName, this.encounterId);
         } else {
-          return of([[], []]);
+          return of(null);
         }
       })
-    ).subscribe(([casts, damage]) => {
-      this.analysis = Analyzer.run(casts, damage);
+    ).subscribe((data) => {
+      if (data) {
+        this.results = Analyzer.run(data.casts, data.damage);
+
+        // eslint-disable-next-line no-console
+        console.log(this.results);
+      }
     });
   }
 }

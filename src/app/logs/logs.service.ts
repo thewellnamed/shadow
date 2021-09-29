@@ -86,10 +86,14 @@ export class LogsService {
       filter: `source.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})`
     };
 
-    return combineLatest([
-      this.requestEvents(castsUrl, this.makeParams(params), []),
-      this.requestEvents(damageUrl, this.makeParams(params), [])
-    ]);
+    return combineLatest(
+      [
+        this.requestEvents<ICastData>(castsUrl, this.makeParams(params), []),
+        this.requestEvents<IDamageData>(damageUrl, this.makeParams(params), [])
+      ])
+      .pipe(
+        map(([casts, damage]) => ({ casts, damage })),
+      );
   }
 
   private makeParams(params: any = {}) {
@@ -104,11 +108,11 @@ export class LogsService {
    * @param depth
    * @private
    */
-  private requestEvents(url: string, params: any, events: IEventData[], depth = 1): Observable<IEventData[]> {
+  private requestEvents<T extends IEventData>(url: string, params: any, events: T[], depth = 1): Observable<T[]> {
     return this.http.get<IEventsResponse>(url, { params }).pipe(
       delay(200),
       switchMap((response) => {
-        const newEvents = events.concat(response.events);
+        const newEvents = events.concat(response.events as T[]);
 
         if (response.nextPageTimestamp && response.nextPageTimestamp < params.end && depth < LogsService.MAX_EVENT_REQUESTS) {
           const newParams = Object.assign({}, params)
@@ -152,6 +156,26 @@ export interface IEventsResponse {
   nextPageTimestamp?: number;
 }
 
+export interface IAbilityData {
+  name: string;
+  guid: number;
+}
+
 export interface IEventData {
-  ability: { guid: SpellId; };
+  type: 'cast' | 'begincast' | 'damage';
+  ability: IAbilityData;
+  timestamp: number;
+  targetID: number;
+  targetInstance: number;
+  read: boolean;
+}
+
+export interface ICastData extends IEventData {
+  type: 'cast' | 'begincast';
+}
+
+export interface IDamageData extends IEventData {
+  type: 'damage';
+  amount: number;
+  tick: boolean;
 }
