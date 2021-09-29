@@ -7,7 +7,7 @@
 > Not sure about how specifically to track cases like double 2-tick mind flay
 > or whether I need to handle each spell separately? That might be the most flexible
 
-###Report Detail
+### Report Detail
 > - Header 
 >   - Menu style
 >   - Select Encounter
@@ -19,5 +19,5 @@
  
 > - View Results
 
-###Logs Service
+### Logs Service
 > Event caching
