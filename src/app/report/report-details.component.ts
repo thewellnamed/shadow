@@ -54,7 +54,7 @@ export class ReportDetailsComponent implements OnInit {
         this.casts = new CastsAnalyzer(EventAnalyzer.createCasts(data.casts, data.damage)).run();
 
         // eslint-disable-next-line no-console
-        console.log(this.casts.getSpellSummary(SpellId.VAMPIRIC_TOUCH));
+        console.log(this.casts);
       }
     });
   }

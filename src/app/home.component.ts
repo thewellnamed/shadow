@@ -71,11 +71,12 @@ export class HomeComponent {
 
         if (summary.players.length === 1) {
           this.player!.setValue(summary.players[0].id);
-          this.filterEncounters();
           this.encounterSelect.focus();
         } else {
           this.playerSelect.focus();
         }
+
+        this.filterEncounters();
       },
       error: (err: string) => {
         this.searching = false;
