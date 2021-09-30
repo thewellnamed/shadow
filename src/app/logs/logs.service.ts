@@ -64,6 +64,8 @@ export class LogsService {
     const url = `${LogsService.API_URL}/report/fights/${id}`;
     return this.http.get<IEncountersResponse>(url, { params: this.makeParams() }).pipe(
       map((response) => {
+        // eslint-disable-next-line no-console
+        console.log(response);
         const summary = new LogSummary(id, response);
         this.summaryCache[id] = summary;
         return summary;
@@ -75,11 +77,7 @@ export class LogsService {
   }
 
   getEvents(log: LogSummary, playerName: string, encounterId: number) {
-    const castsUrl = `${LogsService.API_URL}/report/events/casts/${log.id}`,
-      damageUrl = `${LogsService.API_URL}/report/events/damage-done/${log.id}`;
-
     const encounter = log.getEncounter(encounterId);
-
     const params = {
       start: encounter!.start,
       end: encounter!.end,
@@ -88,8 +86,8 @@ export class LogsService {
 
     return combineLatest(
       [
-        this.requestEvents<ICastData>(castsUrl, this.makeParams(params), []),
-        this.requestEvents<IDamageData>(damageUrl, this.makeParams(params), [])
+        this.requestEvents<ICastData>(log.id,'casts', this.makeParams(params)),
+        this.requestEvents<IDamageData>(log.id,'damage-done', this.makeParams(params))
       ])
       .pipe(
         map(([casts, damage]) => ({ casts, damage })),
@@ -102,13 +100,22 @@ export class LogsService {
 
   /**
    * Recursively fetch event data while more exists, up to MAX_EVENT_REQUESTS
-   * @param url
-   * @param params
-   * @param events
-   * @param depth
+   * @param {string} Log ID
+   * @param {string} type event type to fetch
+   * @param {any} query params
+   * @param {IEventData[]} events array to append fetch events to (for recursion)
+   * @param {number} depth Max recursion depth
    * @private
    */
-  private requestEvents<T extends IEventData>(url: string, params: any, events: T[], depth = 1): Observable<T[]> {
+  private requestEvents<T extends IEventData>(
+    id: string,
+    type: string,
+    params: any,
+    events: T[] = [],
+    depth = 1): Observable<T[]>
+  {
+    const url = `${LogsService.API_URL}/report/events/${type}/${id}`;
+
     return this.http.get<IEventsResponse>(url, { params }).pipe(
       delay(200),
       switchMap((response) => {
@@ -118,7 +125,7 @@ export class LogsService {
           const newParams = Object.assign({}, params)
           newParams.start = response.nextPageTimestamp;
 
-          return this.requestEvents(url, newParams, newEvents, depth + 1);
+          return this.requestEvents(id, type, newParams, newEvents, depth + 1);
         } else {
           // todo -- caching
           return of(newEvents);
@@ -131,6 +138,8 @@ export class LogsService {
 export interface IEncountersResponse {
   friendlies: IPlayerData[];
   fights: IEncounterData[];
+  enemies: IEnemyData[];
+  enemyPets: IEnemyData[];
 }
 
 export interface IEncounterData {
@@ -148,6 +157,11 @@ export interface IPlayerData {
   name: string;
   type: string;
   icon: string;
+}
+
+export interface IEnemyData {
+  id: number;
+  name: string;
 }
 
 export interface IEventsResponse {

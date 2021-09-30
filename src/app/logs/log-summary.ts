@@ -7,6 +7,7 @@ import { EncounterSummary } from 'src/app/logs/encounter-summary';
 export class LogSummary {
   public encounters: EncounterSummary[];
   public players: Array<{ id: number, name: string }>
+  public enemies: {[id: number]: string};
 
   constructor(public id: string, data: IEncountersResponse) {
     this.encounters = data.fights
@@ -20,6 +21,13 @@ export class LogSummary {
     this.players = data.friendlies
       .filter((f) => f.icon === 'Priest-Shadow')
       .map((f) => ({ id: f.id, name: f.name }));
+
+    this.enemies = data.enemies
+      .concat(data.enemyPets)
+      .reduce((enemies, next) => {
+        enemies[next.id] = next.name;
+        return enemies;
+      }, {} as {[id: number]: string});
   }
 
   getEncounter(id: number) {
@@ -28,5 +36,9 @@ export class LogSummary {
 
   getPlayer(id: number) {
     return this.players.find((p) => p.id === id);
+  }
+
+  getEnemy(id: number) {
+    return this.enemies[id];
   }
 }

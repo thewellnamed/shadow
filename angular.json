@@ -20,7 +20,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "baseHref": "/shadow",
+            "baseHref": "/shadow/",
             "outputPath": "dist/shadow",
             "index": "src/index.html",
             "main": "src/main.ts",

@@ -53,45 +53,47 @@ export class HomeComponent {
 
   loadReport() {
     const logId = this.logs.extractLogId(this.log?.value);
-
-    if (logId) {
-      this.searching = true;
-      this.logs.getSummary(logId).subscribe({
-        next: (summary) => {
-          this.searching = false;
-          this.logId = logId;
-
-          this.summary = summary;
-          this.log?.markAsPristine();
-
-          this.encounter?.enable();
-          this.player?.enable();
-
-          if (summary.players.length === 1) {
-            this.player!.setValue(summary.players[0].id);
-            this.filterEncounters();
-            this.encounterSelect.focus();
-          } else {
-            this.playerSelect.focus();
-          }
-        },
-        error: (err: string) => {
-          this.searching = false;
-          this.logId = undefined;
-
-          this.summary = undefined;
-          this.log?.setErrors({ wcl: err });
-          this.log?.markAsTouched();
-        }
-      });
+    if (!logId) {
+      return;
     }
+
+    this.searching = true;
+    this.logs.getSummary(logId).subscribe({
+      next: (summary) => {
+        this.searching = false;
+        this.logId = logId;
+
+        this.summary = summary;
+        this.log?.markAsPristine();
+
+        this.encounter?.enable();
+        this.player?.enable();
+
+        if (summary.players.length === 1) {
+          this.player!.setValue(summary.players[0].id);
+          this.filterEncounters();
+          this.encounterSelect.focus();
+        } else {
+          this.playerSelect.focus();
+        }
+      },
+      error: (err: string) => {
+        this.searching = false;
+        this.logId = undefined;
+
+        this.summary = undefined;
+        this.log?.setErrors({ wcl: err });
+        this.log?.markAsTouched();
+      }
+    });
   }
 
   get formComplete() {
     return this.summary && this.encounter?.value && this.player?.value;
   }
 
-  analyze() {
+  analyze(event: Event) {
+    event.preventDefault();
     const playerName = this.summary?.getPlayer(this.player?.value)?.name;
     this.router.navigateByUrl(`report/${this.logId}/${playerName}/${this.encounter?.value}`);
   }

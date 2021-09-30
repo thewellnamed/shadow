@@ -10,14 +10,23 @@
         <form class="report-form" [formGroup]="form">
           <mat-form-field class="fill" appearance="standard">
             <mat-label>Enter WCL report ID or URL</mat-label>
-            <input type="text" formControlName="log" matInput placeholder="e.g. https://classic.warcraftlogs.com/reports/WLkZ1TmdcJD76Aty" value="">
+            <input type="text"
+                   formControlName="log"
+                   placeholder="e.g. https://classic.warcraftlogs.com/reports/WLkZ1TmdcJD76Aty"
+                   value=""
+                   (keydown.enter)="loadReport()"
+                   matInput />
             <mat-error *ngIf="log?.hasError('invalid')">
               Enter a valid WCL report ID or URL
             </mat-error>
             <mat-error *ngIf="log?.hasError('wcl')">
               {{log?.getError('wcl')}}
             </mat-error>
-            <button *ngIf="log?.dirty && log?.valid && !searching" matSuffix mat-icon-button aria-label="Load Report" color="primary" (click)="loadReport()">
+            <button *ngIf="log?.dirty && log?.valid && !searching"
+                    aria-label="Load Report"
+                    color="primary"
+                    (click)="loadReport()"
+                    matSuffix mat-icon-button>
               <mat-icon>search</mat-icon>
             </button>
             <mat-spinner *ngIf="searching" matSuffix color="accent" diameter="16"></mat-spinner>
@@ -43,7 +52,7 @@
           </mat-form-field>
 
           <div style="text-align: center">
-            <button mat-flat-button color="primary" [disabled]="!formComplete" (click)="analyze()">Analyze</button>
+            <button mat-flat-button color="primary" [disabled]="!formComplete" (click)="analyze($event)">Analyze</button>
           </div>
         </form>
       </mat-card-content>
