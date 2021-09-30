@@ -2,6 +2,7 @@ import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { ICastData, IDamageData } from 'src/app/logs/logs.service';
 import { SpellData, SpellId } from 'src/app/logs/models/spell-id.enum';
+import { DamageInstance } from 'src/app/report/models/damage-instance';
 
 export class EventAnalyzer {
   private static EVENT_LEEWAY = 50 // ms. allow damage to occur just slightly later than "should" be possible given
@@ -65,9 +66,10 @@ export class EventAnalyzer {
         // we know how far into the future this cast could tick, but we need to
         // look for a future cast on the same target, because the current cast can only
         // be responsible for ticks up until the next cast on a given target
-        if (spellData.maxInstances > 1) {
+        if (spellData.maxDamageInstances > 1) {
           let i = 0;
           let maxDamageTimestamp = currentCast.timestamp + (spellData.maxDuration * 1000) + this.EVENT_LEEWAY;
+          let instances: DamageInstance[] = [];
 
           do {
             nextCast = castData.length > i ? castData[i] : null;
@@ -80,25 +82,28 @@ export class EventAnalyzer {
 
           // Process damage instances for this spell within the window
           nextDamage = damageEvents[0];
-          let totalDamage = 0, instances = 0;
+          let totalDamage = 0, count = 0;
           i = 0;
-          while (nextDamage && nextDamage.timestamp <= maxDamageTimestamp && instances < spellData.maxInstances) {
+          while (nextDamage && nextDamage.timestamp <= maxDamageTimestamp && count < spellData.maxDamageInstances) {
             if (!nextDamage.read && this.targetMatch(details, nextDamage)) {
+              instances.push(new DamageInstance(nextDamage));
               totalDamage += nextDamage.amount;
               nextDamage.read = true;
-              ++instances;
+              ++count;
             }
             nextDamage = damageEvents[++i];
           }
 
           details.totalDamage = totalDamage;
-          details.ticks = instances;
+          details.ticks = count;
+          details.instances = instances;
         } else {
           // find the next instance of damage for this spell for this target.
           const damage = damageEvents.find((d) => !d.read && this.targetMatch(details, d));
 
           if (damage) {
             details.totalDamage = damage.amount;
+            details.instances = [new DamageInstance(damage)];
             damage.read = true;
           } else {
             details.totalDamage = 0;

@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
+import { CastsAnalyzer } from 'src/app/report/analysis/casts-analyzer';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
 import { LogsService } from 'src/app/logs/logs.service';
@@ -49,7 +50,9 @@ export class ReportDetailsComponent implements OnInit {
       })
     ).subscribe((data) => {
       if (data) {
-        this.casts = EventAnalyzer.createCasts(data.casts, data.damage);
+        this.casts = CastsAnalyzer.run(
+          EventAnalyzer.createCasts(data.casts, data.damage)
+        );
 
         // eslint-disable-next-line no-console
         console.log(this.casts);

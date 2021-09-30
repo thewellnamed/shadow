@@ -33,15 +33,22 @@ export const DamageSpells = [
 ];
 
 export const SpellData: {[spellId: number]: ISpellData} = {
-  [SpellId.DEATH]: { maxInstances: 1, maxDuration: 0 },
-  [SpellId.PAIN]: { maxInstances: 8, maxDuration: 24 },
-  [SpellId.MIND_BLAST]: { maxInstances: 1, maxDuration: 0 },
-  [SpellId.MIND_FLAY]: { maxInstances: 3, maxDuration: 3 },
-  [SpellId.VAMPIRIC_TOUCH]: { maxInstances: 5, maxDuration: 15 }
+  [SpellId.DEATH]: { damage: true, maxDamageInstances: 1, maxDuration: 0, cooldown: 12 },
+  [SpellId.FADE]: { damage: false, maxDamageInstances: 0, maxDuration: 10, cooldown: 30 },
+  [SpellId.FEAR_WARD]: { damage: false, maxDamageInstances: 0, maxDuration: 180, cooldown: 180 },
+  [SpellId.MIND_BLAST]: { damage: true, maxDamageInstances: 1, maxDuration: 0, cooldown: 5.5 },
+  [SpellId.MIND_FLAY]: { damage: true, maxDamageInstances: 3, maxDuration: 3, cooldown: 0 },
+  [SpellId.PAIN]: { damage: true, maxDamageInstances: 8, maxDuration: 24, cooldown: 0 },
+  [SpellId.SHADOW_FIEND]: { damage: false, maxDamageInstances: 0, maxDuration: 15, cooldown: 300 },
+  [SpellId.SHIELD]: { damage: false, maxDamageInstances: 0, maxDuration: 30, cooldown: 4 },
+  [SpellId.VAMPIRIC_EMBRACE]: { damage: false, maxDamageInstances: 0, maxDuration: 60, cooldown: 10 },
+  [SpellId.VAMPIRIC_TOUCH]: { damage: true, maxDamageInstances: 5, maxDuration: 15, cooldown: 0 }
 }
 
 export interface ISpellData {
-  maxInstances: number;
+  damage: boolean;
+  maxDamageInstances: number;
   maxDuration: number;
+  cooldown: number;
 }
 

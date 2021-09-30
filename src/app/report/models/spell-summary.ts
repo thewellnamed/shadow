@@ -6,10 +6,10 @@ export class SpellSummary {
   spellData: ISpellData;
   casts: CastDetails[] = []
 
-  private _totalDamage: number;
+  private _totalDamage = 0;
+  private _totalHits = 0;
+  private _avgHits = 0;
   private _successfulCasts: number;
-  private _totalHits: number;
-  private _avgHits: number;
   private _castsByHitCount: { [i: number]: number };
   private recalculate = false;
 
@@ -68,36 +68,38 @@ export class SpellSummary {
   }
 
   private calculate() {
-    this._totalDamage = this.casts.reduce((sum, next) => {
+    if (this.spellData.damage) {
+      this._totalDamage = this.casts.reduce((sum, next) => {
         sum += next.totalDamage;
         return sum;
       }, 0);
 
-    this._successfulCasts = this.casts.filter((c) => c.totalDamage > 0).length;
+      this._successfulCasts = this.casts.filter((c) => c.totalDamage > 0).length;
 
-    this._totalHits = this.casts
-      .filter((c) => c.totalDamage > 0)
-      .reduce((sum, next) => {
-        sum += (this.spellData.maxInstances > 1 ? next.ticks : 1);
-        return sum;
-      }, 0);
-
-    if (this.spellData.maxInstances > 1) {
-      this._avgHits = this._totalHits / this._successfulCasts;
-
-      this._castsByHitCount = this.casts
+      this._totalHits = this.casts
         .filter((c) => c.totalDamage > 0)
-        .reduce((cbt, next) => {
-          if (cbt.hasOwnProperty(next.ticks)) {
-            cbt[next.ticks]++;
-          } else {
-            cbt[next.ticks] = 1;
-          }
-          return cbt;
-        }, {} as {[n: number]: number});
-    } else {
-      this._avgHits = 1;
-      this._castsByHitCount = { [1]: this._successfulCasts };
+        .reduce((sum, next) => {
+          sum += (this.spellData.maxDamageInstances > 1 ? next.ticks : 1);
+          return sum;
+        }, 0);
+
+      if (this.spellData.maxDamageInstances > 1) {
+        this._avgHits = this._totalHits / this._successfulCasts;
+
+        this._castsByHitCount = this.casts
+          .filter((c) => c.totalDamage > 0)
+          .reduce((cbt, next) => {
+            if (cbt.hasOwnProperty(next.ticks)) {
+              cbt[next.ticks]++;
+            } else {
+              cbt[next.ticks] = 1;
+            }
+            return cbt;
+          }, {} as {[n: number]: number});
+      } else {
+        this._avgHits = 1;
+        this._castsByHitCount = { [1]: this._successfulCasts };
+      }
     }
 
     this.recalculate = false;
