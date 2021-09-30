@@ -3,7 +3,7 @@ import { CastDetails } from 'src/app/report/models/cast-details';
 import { ICastData, IDamageData } from 'src/app/logs/logs.service';
 import { SpellData, SpellId } from 'src/app/logs/models/spell-id.enum';
 
-export class LogAnalyzer {
+export class EventAnalyzer {
   private static EVENT_LEEWAY = 50 // ms. allow damage to occur just slightly later than "should" be possible given
                                    // strict debuff times. Blah blah server doesn't keep time exactly.
 
