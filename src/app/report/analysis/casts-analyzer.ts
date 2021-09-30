@@ -20,8 +20,6 @@ export class CastsAnalyzer {
         continue;
       }
 
-
-
       // for DoTs, calculate downtime
       if (spellData.maxDuration > 0) {
         const previous = this.findPreviousCast(current, i);

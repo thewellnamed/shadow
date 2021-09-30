@@ -44,7 +44,7 @@ export class EventAnalyzer {
       }
 
       // if the completed cast isn't the one we started, remove starting info
-      if (startingCast && currentCast.ability.guid != startingCast.ability.guid) {
+      if (startingCast && !this.castIsReplacement(startingCast, currentCast)) {
         startingCast = null;
       }
 
@@ -73,7 +73,7 @@ export class EventAnalyzer {
 
           do {
             nextCast = castData.length > i ? castData[i] : null;
-            if (nextCast === null || this.castIsReplacement(details, nextCast)) {
+            if (nextCast === null || this.castIsReplacement(currentCast, nextCast)) {
               maxDamageTimestamp = (nextCast && nextCast?.timestamp + this.EVENT_LEEWAY) || maxDamageTimestamp;
               break;
             }
@@ -127,10 +127,10 @@ export class EventAnalyzer {
   // -- the cast completed (type is 'cast', not 'begincast')
   // -- on the same kind of mob (targetID)
   // -- on the same instance of that mob (e.g. in WCL "Spellbinder 3" is a different instance from "Spellbinder 2"
-  private static castIsReplacement(cast: CastDetails, next: ICastData) {
+  private static castIsReplacement(cast: ICastData, next: ICastData) {
     return next.type === 'cast' &&
-      next.ability.guid === cast.spellId &&
-      next.targetID === cast.targetId &&
+      next.ability.guid === cast.ability.guid &&
+      next.targetID === cast.targetID &&
       next.targetInstance === cast.targetInstance;
   }
 
