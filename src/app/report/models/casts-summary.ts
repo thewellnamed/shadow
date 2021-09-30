@@ -21,4 +21,8 @@ export class CastsSummary {
       return spells;
     }, this.spells);
   }
+
+  getSpellSummary(spellId: number) {
+    return this.spells[spellId];
+  }
 }
