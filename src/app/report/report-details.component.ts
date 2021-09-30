@@ -50,9 +50,7 @@ export class ReportDetailsComponent implements OnInit {
       })
     ).subscribe((data) => {
       if (data) {
-        this.casts = CastsAnalyzer.run(
-          EventAnalyzer.createCasts(data.casts, data.damage)
-        );
+        this.casts = new CastsAnalyzer(EventAnalyzer.createCasts(data.casts, data.damage)).run();
 
         // eslint-disable-next-line no-console
         console.log(this.casts);

@@ -8,10 +8,14 @@ export class SpellSummary {
 
   private _totalDamage = 0;
   private _totalHits = 0;
-  private _avgHits = 0;
   private _successfulCasts: number;
   private _castsByHitCount: { [i: number]: number };
   private recalculate = false;
+
+  private _avgHits = 0;
+  private _avgClipLatency = 0;
+  private _avgDotDowntime = 0;
+  private _avgTimeOffCooldown = 0;
 
   constructor(spellId: SpellId) {
     this.spellId = spellId;
@@ -51,14 +55,6 @@ export class SpellSummary {
     return this._totalHits;
   }
 
-  get avgHits() {
-    if (this.recalculate) {
-      this.calculate();
-    }
-
-    return this._avgHits;
-  }
-
   get castsByHitCount() {
     if (this.recalculate) {
       this.calculate();
@@ -67,39 +63,74 @@ export class SpellSummary {
     return this._castsByHitCount;
   }
 
+  get avgHits() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._avgHits;
+  }
+
+  get avgClipLatency() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._avgClipLatency;
+  }
+
+  get avgDotDowntime() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._avgDotDowntime;
+  }
+
+  get avgTimeOffCooldown() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._avgTimeOffCooldown;
+  }
+
   private calculate() {
-    if (this.spellData.damage) {
-      this._totalDamage = this.casts.reduce((sum, next) => {
-        sum += next.totalDamage;
+    // aggregates only for damage spells
+    if (!this.spellData.damage) {
+      return;
+    }
+
+    this._totalDamage = this.casts.reduce((sum, next) => {
+      sum += next.totalDamage;
+      return sum;
+    }, 0);
+
+    this._successfulCasts = this.casts.filter((c) => c.totalDamage > 0).length;
+
+    this._totalHits = this.casts
+      .filter((c) => c.totalDamage > 0)
+      .reduce((sum, next) => {
+        sum += (this.spellData.maxDamageInstances > 1 ? next.ticks : 1);
         return sum;
       }, 0);
 
-      this._successfulCasts = this.casts.filter((c) => c.totalDamage > 0).length;
+    if (this.spellData.maxDamageInstances > 1) {
+      this._avgHits = this._totalHits / this._successfulCasts;
 
-      this._totalHits = this.casts
+      this._castsByHitCount = this.casts
         .filter((c) => c.totalDamage > 0)
-        .reduce((sum, next) => {
-          sum += (this.spellData.maxDamageInstances > 1 ? next.ticks : 1);
-          return sum;
-        }, 0);
-
-      if (this.spellData.maxDamageInstances > 1) {
-        this._avgHits = this._totalHits / this._successfulCasts;
-
-        this._castsByHitCount = this.casts
-          .filter((c) => c.totalDamage > 0)
-          .reduce((cbt, next) => {
-            if (cbt.hasOwnProperty(next.ticks)) {
-              cbt[next.ticks]++;
-            } else {
-              cbt[next.ticks] = 1;
-            }
-            return cbt;
-          }, {} as {[n: number]: number});
-      } else {
-        this._avgHits = 1;
-        this._castsByHitCount = { [1]: this._successfulCasts };
-      }
+        .reduce((cbt, next) => {
+          if (cbt.hasOwnProperty(next.ticks)) {
+            cbt[next.ticks]++;
+          } else {
+            cbt[next.ticks] = 1;
+          }
+          return cbt;
+        }, {} as {[n: number]: number});
+    } else {
+      this._avgHits = 1;
+      this._castsByHitCount = { [1]: this._successfulCasts };
     }
 
     this.recalculate = false;

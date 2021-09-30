@@ -1,6 +1,6 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { SpellSummary } from 'src/app/report/models/spell-summary';
-import { Spells } from 'src/app/logs/models/spell-id.enum';
+import { SpellData, Spells } from 'src/app/logs/models/spell-id.enum';
 
 export class CastsSummary {
   allCasts: CastDetails[];
@@ -9,9 +9,11 @@ export class CastsSummary {
   constructor(data: CastDetails[]) {
     this.allCasts = data;
 
-    this.spells = Spells.reduce((cbs, spellId) => {
-        cbs[spellId] = new SpellSummary(spellId);
-        return cbs;
+    this.spells = Object.keys(SpellData)
+      .map((k) => parseInt(k))
+      .reduce((spells, spellId) => {
+        spells[spellId] = new SpellSummary(spellId);
+        return spells;
       }, {} as {[spellId: number]: SpellSummary});
 
     data.reduce((spells, details) => {

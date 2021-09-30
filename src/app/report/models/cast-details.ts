@@ -12,10 +12,13 @@ export class CastDetails {
   totalDamage = 0;
   ticks = 0;
 
-  // for spells with multiple ticks, delta from point the spell clipped (or ended) until next cast
+  // for mind flay, delta from the last damage tick until next cast (of any spell)
   clipLatency = 0;
 
-  // for spells with cooldown, delta from the point the spell was off cooldown until this cast started
+  // for DoTs, downtime between last tick and first tick of this cast
+  dotDowntime = 0;
+
+  // delta from the point the spell was off cooldown until this cast started
   timeOffCooldown = 0;
 
   constructor({ ability, targetId, targetInstance, castStart, castEnd }: ICastDetailsParams) {
@@ -25,6 +28,14 @@ export class CastDetails {
     this.targetInstance = targetInstance;
     this.castStart = castStart;
     this.castEnd = castEnd;
+  }
+
+  hasSameTarget(other: CastDetails) {
+    return other.targetId === this.targetId && other.targetInstance === this.targetInstance;
+  }
+
+  get lastDamageTimestamp() {
+    return this.instances[this.instances.length - 1].timestamp;
   }
 }
 

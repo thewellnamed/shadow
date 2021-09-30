@@ -24,14 +24,6 @@ export const Spells = [
   SpellId.VAMPIRIC_TOUCH
 ];
 
-export const DamageSpells = [
-  SpellId.DEATH,
-  SpellId.PAIN,
-  SpellId.MIND_BLAST,
-  SpellId.MIND_FLAY,
-  SpellId.VAMPIRIC_TOUCH
-];
-
 export const SpellData: {[spellId: number]: ISpellData} = {
   [SpellId.DEATH]: { damage: true, maxDamageInstances: 1, maxDuration: 0, cooldown: 12 },
   [SpellId.FADE]: { damage: false, maxDamageInstances: 0, maxDuration: 10, cooldown: 30 },
