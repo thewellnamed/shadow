@@ -11,6 +11,19 @@ export enum SpellId {
   VAMPIRIC_TOUCH = 34917
 }
 
+export const Spells = [
+  SpellId.DEATH,
+  SpellId.FADE,
+  SpellId.FEAR_WARD,
+  SpellId.MIND_BLAST,
+  SpellId.MIND_FLAY,
+  SpellId.PAIN,
+  SpellId.SHADOW_FIEND,
+  SpellId.SHIELD,
+  SpellId.VAMPIRIC_EMBRACE,
+  SpellId.VAMPIRIC_TOUCH
+];
+
 export const DamageSpells = [
   SpellId.DEATH,
   SpellId.PAIN,

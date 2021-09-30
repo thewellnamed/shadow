@@ -3,9 +3,10 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
-import { Analyzer, Casts } from 'src/app/report/analyzer';
+import { CastsSummary } from 'src/app/report/models/casts-summary';
+import { LogAnalyzer } from 'src/app/report/analysis/log-analyzer';
 import { LogsService } from 'src/app/logs/logs.service';
-import { LogSummary } from 'src/app/logs/log-summary';
+import { LogSummary } from 'src/app/logs/models/log-summary';
 
 @Component({
   selector: 'report-details',
@@ -17,7 +18,7 @@ export class ReportDetailsComponent implements OnInit {
   playerName: string|null;
   encounterId: number;
   summary: LogSummary;
-  casts: Casts;
+  casts: CastsSummary;
 
   constructor(private activatedRoute: ActivatedRoute,
               private logs: LogsService) { }
@@ -48,7 +49,7 @@ export class ReportDetailsComponent implements OnInit {
       })
     ).subscribe((data) => {
       if (data) {
-        this.casts = Analyzer.createCasts(data.casts, data.damage);
+        this.casts = LogAnalyzer.createCasts(data.casts, data.damage);
 
         // eslint-disable-next-line no-console
         console.log(this.casts);

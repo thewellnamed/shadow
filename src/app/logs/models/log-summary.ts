@@ -1,5 +1,5 @@
 import { IEncountersResponse, IPlayerData } from 'src/app/logs/logs.service';
-import { EncounterSummary } from 'src/app/logs/encounter-summary';
+import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 /**
  * Model WCL data for a given log

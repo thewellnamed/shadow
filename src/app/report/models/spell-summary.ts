@@ -1,7 +1,7 @@
-import { CastDetails } from 'src/app/report/cast-details';
-import { SpellId, SpellData, ISpellData } from 'src/app/logs/spell-id.enum';
+import { CastDetails } from 'src/app/report/models/cast-details';
+import { SpellId, SpellData, ISpellData } from 'src/app/logs/models/spell-id.enum';
 
-export class CastSummary {
+export class SpellSummary {
   spellId: SpellId;
   spellData: ISpellData;
   casts: CastDetails[] = []

@@ -4,8 +4,8 @@ import { MatSelect } from '@angular/material/select';
 import { Router } from '@angular/router';
 
 import { LogsService } from 'src/app/logs/logs.service';
-import { LogSummary } from 'src/app/logs/log-summary';
-import { EncounterSummary } from 'src/app/logs/encounter-summary';
+import { LogSummary } from 'src/app/logs/models/log-summary';
+import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 @Component({
   selector: 'app-home',

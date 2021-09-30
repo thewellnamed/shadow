@@ -1,9 +1,9 @@
-import { CastDetails } from 'src/app/report/cast-details';
-import { CastSummary } from 'src/app/report/cast-summary';
+import { CastsSummary } from 'src/app/report/models/casts-summary';
+import { CastDetails } from 'src/app/report/models/cast-details';
 import { ICastData, IDamageData } from 'src/app/logs/logs.service';
-import { DamageSpells, ISpellData, SpellData, SpellId } from 'src/app/logs/spell-id.enum';
+import { SpellData, SpellId } from 'src/app/logs/models/spell-id.enum';
 
-export class Analyzer {
+export class LogAnalyzer {
   private static EVENT_LEEWAY = 50 // ms. allow damage to occur just slightly later than "should" be possible given
                                    // strict debuff times. Blah blah server doesn't keep time exactly.
 
@@ -11,17 +11,12 @@ export class Analyzer {
    * Generate basic data on casts
    * @param {ICastData[]} castData
    * @param {IDamageData[]} damageData
-   * @returns {CastDetails[]}
+   * @returns {CastsSummary}
    */
-  public static createCasts(castData: ICastData[], damageData: IDamageData[]): Casts {
+  public static createCasts(castData: ICastData[], damageData: IDamageData[]): CastsSummary {
     let currentCast: ICastData, startingCast: ICastData|null = null;
     let nextCast: ICastData|null, nextDamage: IDamageData|null;
-
-    const castsBySpell: {[spellId: number]: CastSummary} =
-      DamageSpells.reduce((cbs, spellId) => {
-        cbs[spellId] = new CastSummary(spellId);
-        return cbs;
-      }, {} as {[spellId: number]: CastSummary});
+    const casts: CastDetails[] = [];
 
     const damageBySpell: {[spellId: number]: IDamageData[]} = {
       [SpellId.DEATH]: [],
@@ -53,18 +48,18 @@ export class Analyzer {
       }
 
       const spellId = currentCast.ability.guid;
-      const damageEvents = damageBySpell[spellId];
+      const details = new CastDetails({
+        ability: currentCast.ability,
+        targetId: currentCast.targetID,
+        targetInstance: currentCast.targetInstance,
+        castStart: startingCast?.timestamp || currentCast.timestamp,
+        castEnd: currentCast.timestamp
+      });
+      casts.push(details);
 
       if (damageBySpell.hasOwnProperty(spellId)) {
-        const spellData = SpellData[spellId] as ISpellData;
-
-        const details = new CastDetails({
-          ability: currentCast.ability,
-          targetId: currentCast.targetID,
-          targetInstance: currentCast.targetInstance,
-          castStart: startingCast?.timestamp || currentCast.timestamp,
-          castEnd: currentCast.timestamp
-        });
+        const damageEvents = damageBySpell[spellId];
+        const spellData = SpellData[spellId];
 
         // for dots, we need to associate damage ticks with the appropriate cast
         // we know how far into the future this cast could tick, but we need to
@@ -110,8 +105,6 @@ export class Analyzer {
           }
         }
 
-        castsBySpell[spellId].addCast(details);
-
         // prune read events
         // this is probably unnecessary given the small size of these arrays, but whatever.
         nextDamage = damageEvents[0];
@@ -122,7 +115,7 @@ export class Analyzer {
       }
     }
 
-    return castsBySpell;
+    return new CastsSummary(casts);
   }
 
   // next replaces the current cast if ALL of these conditions are true
@@ -140,5 +133,3 @@ export class Analyzer {
     return next.targetID === cast.targetId && next.targetInstance === cast.targetInstance;
   }
 }
-
-export type Casts = {[spellId: number]: CastSummary };

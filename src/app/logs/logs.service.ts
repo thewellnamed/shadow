@@ -3,8 +3,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { combineLatest, Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, switchMap } from 'rxjs/operators';
 
-import { LogSummary } from 'src/app/logs/log-summary';
-import { SpellId } from 'src/app/logs/spell-id.enum';
+import { LogSummary } from 'src/app/logs/models/log-summary';
+import { SpellId } from 'src/app/logs/models/spell-id.enum';
 
 @Injectable()
 export class LogsService {
@@ -64,8 +64,6 @@ export class LogsService {
     const url = `${LogsService.API_URL}/report/fights/${id}`;
     return this.http.get<IEncountersResponse>(url, { params: this.makeParams() }).pipe(
       map((response) => {
-        // eslint-disable-next-line no-console
-        console.log(response);
         const summary = new LogSummary(id, response);
         this.summaryCache[id] = summary;
         return summary;
