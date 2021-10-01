@@ -1,7 +1,8 @@
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { ICastData, IDamageData } from 'src/app/logs/logs.service';
-import { SpellData, SpellId } from 'src/app/logs/models/spell-id.enum';
+import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
 
 export class EventAnalyzer {
@@ -89,7 +90,7 @@ export class EventAnalyzer {
           while (nextDamage && nextDamage.timestamp <= maxDamageTimestamp && count < spellData.maxDamageInstances) {
             if (!nextDamage.read && this.targetMatch(details, nextDamage)) {
               instances.push(new DamageInstance(nextDamage));
-              totalDamage += nextDamage.amount;
+              totalDamage += nextDamage.amount + (nextDamage.absorbed || 0);
               nextDamage.read = true;
               ++count;
             }

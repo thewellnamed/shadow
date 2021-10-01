@@ -1,6 +1,6 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { SpellSummary } from 'src/app/report/models/spell-summary';
-import { SpellData, Spells } from 'src/app/logs/models/spell-id.enum';
+import { SpellData } from 'src/app/logs/models/spell-data';
 
 export class CastsSummary {
   allCasts: CastDetails[];

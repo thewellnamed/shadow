@@ -189,5 +189,6 @@ export interface ICastData extends IEventData {
 export interface IDamageData extends IEventData {
   type: 'damage';
   amount: number;
+  absorbed?: number;
   tick: boolean;
 }

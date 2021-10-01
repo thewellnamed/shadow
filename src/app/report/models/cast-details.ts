@@ -12,13 +12,17 @@ export class CastDetails {
   totalDamage = 0;
   ticks = 0;
 
-  // for mind flay, delta from the last damage tick until next cast (of any spell)
-  clipLatency = 0;
+  // for DoTs/flay (spells with multiple damage ticks), did this cast clip a previous cast
+  clippedPreviousCast = false;
+  clippedTicks = 0;
+
+  // for channeled spells, delta from the last damage tick (effective end of channel) until next cast (of any spell)
+  nextCastLatency = 0;
 
   // for DoTs, downtime between last tick and first tick of this cast
   dotDowntime = 0;
 
-  // delta from the point the spell was off cooldown until this cast started
+  // for spells with a cooldown, delta from the point the spell was off cooldown until this cast started
   timeOffCooldown = 0;
 
   constructor({ ability, targetId, targetInstance, castStart, castEnd }: ICastDetailsParams) {

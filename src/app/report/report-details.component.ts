@@ -8,7 +8,6 @@ import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
 import { LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
 
 @Component({
   selector: 'report-details',

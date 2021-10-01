@@ -1,5 +1,6 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { ISpellData, SpellData, SpellId } from 'src/app/logs/models/spell-id.enum';
+import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 
 /**
  * Summarize performance for a single spell over an encounter
@@ -9,15 +10,18 @@ export class SpellSummary {
   spellData: ISpellData;
   casts: CastDetails[] = []
 
+  private _successfulCasts: number;
   private _totalDamage = 0;
   private _totalHits = 0;
-  private _successfulCasts: number;
-  private _castsByHitCount: IHitStats;
-  private recalculate = false;
+  private _avgDamage = 0;
+  private _avgHit = 0;
+  private _avgHitsPerCast = 0;
+  private _channelStats: IChannelStats;
+  private _downtimeStats: IDowntimeStats;
+  private _hitStats: IStatsMap;
+  private _targetStats: IStatsMap;
 
-  private _avgHits = 0;
-  private _avgDotDowntime: IAvgDotDowntimeMap = {};
-  private _avgTimeOffCooldown = 0;
+  private recalculate = false;
 
   constructor(spellId: SpellId) {
     this.spellId = spellId;
@@ -29,16 +33,8 @@ export class SpellSummary {
     this.recalculate = true;
   }
 
-  get count() {
+  get castCount() {
     return this.casts.length;
-  }
-
-  get totalDamage() {
-    if (this.recalculate) {
-      this.calculate();
-    }
-
-    return this._totalDamage;
   }
 
   get successfulCasts() {
@@ -49,6 +45,14 @@ export class SpellSummary {
     return this._successfulCasts;
   }
 
+  get totalDamage() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._totalDamage;
+  }
+
   get totalHits() {
     if (this.recalculate) {
       this.calculate();
@@ -57,49 +61,76 @@ export class SpellSummary {
     return this._totalHits;
   }
 
-  get castsByHitCount() {
+  get avgHitCount() {
     if (this.recalculate) {
       this.calculate();
     }
 
-    return this._castsByHitCount;
+    return this._avgHitsPerCast;
   }
 
-  get avgHits() {
+  get avgDamage() {
     if (this.recalculate) {
       this.calculate();
     }
 
-    return this._avgHits;
+    return this._avgDamage;
   }
 
-  avgDotDowntime(targetId?: number | 'all'): IAvgDotDowntime | IAvgDotDowntimeMap {
+  get avgHit() {
     if (this.recalculate) {
       this.calculate();
     }
 
-    if (targetId === 'all') {
-      let count = 0, downtime = 0;
-      for (const targetId in this._avgDotDowntime) {
-        const dt = this._avgDotDowntime[targetId];
-        count += dt.count;
-        downtime += dt.total;
-      }
-
-      return { count, total: downtime, avg: downtime / count };
-    } else if (targetId) {
-      return this._avgDotDowntime[targetId];
-    }
-
-    return Object.assign(this._avgDotDowntime, { 0: this.avgDotDowntime('all') }) as IAvgDotDowntimeMap;
+    return this._avgHit;
   }
 
-  get avgTimeOffCooldown() {
+  get channelStats() {
     if (this.recalculate) {
       this.calculate();
     }
 
-    return this._avgTimeOffCooldown;
+    return this._channelStats;
+  }
+
+  get downtimeStats() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._downtimeStats;
+  }
+
+  get statsByHitCount() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._hitStats;
+  }
+
+  get statsByTarget() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._targetStats;
+  }
+
+  hitStats(hitCount: number) {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._hitStats[hitCount];
+  }
+
+  targetStats(targetId: number): IHitStats {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._targetStats[targetId];
   }
 
   /**
@@ -108,14 +139,15 @@ export class SpellSummary {
    */
   private calculate() {
     // aggregates only for damage spells
-    if (!this.spellData.damage) {
+    if (this.spellData.damageType === DamageType.NONE) {
       return;
     }
 
-    this.calculateTotalDamageStats();
-    this.calculateHitStats();
-    this.calculateDotStats();
-    this.calculateCooldownStats();
+    this.calculateDamageStats();
+    this.calculateChannelStats();
+    this.calculateDowntimeStats();
+    this.calculateStatsByHitCount();
+    this.calculateStatsByTarget();
 
     this.recalculate = false;
   }
@@ -124,15 +156,17 @@ export class SpellSummary {
    * Total Damage stats
    * @private
    */
-  private calculateTotalDamageStats() {
+  private calculateDamageStats() {
+    // unresisted casts
+    this._successfulCasts = this.casts.filter((c) => c.totalDamage > 0).length;
+
     // total damage across all casts
     this._totalDamage = this.casts.reduce((sum, next) => {
       sum += next.totalDamage;
       return sum;
     }, 0);
 
-    // unresisted casts
-    this._successfulCasts = this.casts.filter((c) => c.totalDamage > 0).length;
+    this._avgDamage = this._totalDamage / this.casts.length;
 
     // total damage instances (ticks)
     this._totalHits = this.casts
@@ -141,90 +175,162 @@ export class SpellSummary {
         sum += (this.spellData.maxDamageInstances > 1 ? next.ticks : 1);
         return sum;
       }, 0);
+
+    this._avgHitsPerCast = this._totalHits / this._successfulCasts;
+    this._avgHit = this._totalDamage / this._totalHits;
   }
 
-  /**
-   * Aggregate hit stats (e.g. MF ticks or DoT hits)
-   * @private
-   */
-  private calculateHitStats() {
-    if (this.spellData.maxDamageInstances > 1) {
-      this._avgHits = this._totalHits / this._successfulCasts;
+  private calculateChannelStats() {
+    if (this.spellData.damageType !== DamageType.CHANNEL) {
+      return;
+    }
 
-      this._castsByHitCount = this.casts
-        .filter((c) => c.totalDamage > 0)
-        .reduce((stats, next) => {
-          if (stats.hasOwnProperty(next.ticks)) {
-            stats[next.ticks].count++;
-            stats[next.ticks].totalLatency += next.clipLatency;
-          } else {
-            stats[next.ticks] = { count: 1, totalLatency: 0 };
+    this._channelStats = this.casts
+      .reduce((stats, cast) => {
+        stats.totalNextCastLatency += cast.nextCastLatency;
+        return stats;
+      }, this.createChannelStats());
+
+    this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._successfulCasts;
+  }
+
+  private calculateDowntimeStats() {
+    if (this.evaluateDowntime) {
+      this._downtimeStats = this.casts
+        .reduce((stats, cast) => {
+          stats.totalDowntime += this.getDowntime(cast);
+          if (cast.clippedPreviousCast) {
+            stats.clipCount++;
+            stats.clippedTicks += cast.clippedTicks;
           }
           return stats;
-        }, {} as IHitStats);
+        }, this.createDowntimeStats());
 
-      // update clip latency stats
-      if (this.spellId === SpellId.MIND_FLAY) {
-        for (const tickCount in this._castsByHitCount) {
-          const stats = this._castsByHitCount[tickCount];
-          stats.avgLatency = stats.totalLatency! / stats.count;
+      this._downtimeStats.avgDowntime = this._downtimeStats.totalDowntime / this._successfulCasts;
+      this._downtimeStats.missedTickPercent =
+        this._downtimeStats.clippedTicks / (this._successfulCasts * this.spellData.maxDamageInstances);
+    }
+  }
+
+  private calculateStatsByHitCount() {
+    if (this.spellData.maxDamageInstances < 2) {
+      return;
+    }
+
+    this._hitStats = this.casts.reduce(
+      (statsMap, next) => this.addStatsToMap(statsMap, next.ticks, next),
+      {} as IStatsMap
+    );
+    this.setAverages(this._hitStats);
+  }
+
+  private calculateStatsByTarget() {
+    this._targetStats = this.casts.reduce(
+      (statsMap, next) => this.addStatsToMap(statsMap, next.targetId, next),
+      {} as IStatsMap
+    );
+
+    this.setAverages(this._targetStats);
+  }
+
+  private addStatsToMap(statsMap: IStatsMap, key: number, cast: CastDetails) {
+    if (statsMap.hasOwnProperty(key)) {
+      statsMap[key].castCount++;
+
+      if (cast.totalDamage > 0) {
+        statsMap[key].successCount++;
+      }
+
+      if (this.spellData.damageType === DamageType.CHANNEL) {
+        statsMap[key].channelStats.totalNextCastLatency += cast.nextCastLatency;
+      }
+
+      if (this.evaluateDowntime) {
+        statsMap[key].downtimeStats.totalDowntime += this.getDowntime(cast);
+
+        if (cast.clippedPreviousCast) {
+          statsMap[key].downtimeStats.clippedTicks += cast.clippedTicks;
+          statsMap[key].downtimeStats.clipCount++;
         }
       }
     } else {
-      this._avgHits = 1;
-      this._castsByHitCount = { [1]: { count: this._successfulCasts, totalLatency: 0, avgLatency: 0 }};
+      statsMap[key] = {
+        castCount: 1,
+        successCount: cast.totalDamage > 0 ? 1 : 0,
+        channelStats: this.createChannelStats(cast),
+        downtimeStats: this.createDowntimeStats(cast)
+      };
     }
+
+    return statsMap;
   }
 
-  /**
-   * Calculate DoT downtime
-   * @private
-   */
-  private calculateDotStats() {
-    if (this.spellData.maxDuration > 0) {
-      this._avgDotDowntime = this.casts.reduce((dt, cast) => {
-        if (dt.hasOwnProperty(cast.targetId)) {
-          dt[cast.targetId].count++;
-          dt[cast.targetId].total += cast.dotDowntime;
-        } else {
-          dt[cast.targetId] = {
-            count: 1,
-            total: cast.dotDowntime,
-            avg: 0
-          }
-        }
-        return dt;
-      }, {} as IAvgDotDowntimeMap);
+  private setAverages(statsMap: IStatsMap) {
+    for (const key in statsMap) {
+      const stats = statsMap[key];
 
-      for (const targetId in this._avgDotDowntime) {
-        const dt = this._avgDotDowntime[targetId];
-        dt.avg = dt.total / dt.count;
+      if (this.spellData.damageType === DamageType.CHANNEL) {
+        stats.channelStats.avgNextCastLatency = stats.channelStats.totalNextCastLatency / stats.successCount;
+      }
+
+      if (this.evaluateDowntime) {
+        stats.downtimeStats.avgDowntime = stats.downtimeStats.totalDowntime / stats.successCount;
+
+        // what percentage of the total ticks I should have gotten were missed
+        stats.downtimeStats.missedTickPercent =
+          stats.downtimeStats.clippedTicks / (stats.successCount * this.spellData.maxDamageInstances);
       }
     }
   }
 
-  private calculateCooldownStats() {
-    if (this.spellData.cooldown > 0 && this.casts.length > 0) {
-      const total = this.casts.reduce((sum, c) => {
-        sum += c.timeOffCooldown;
-        return sum;
-      }, 0);
+  private getDowntime(cast: CastDetails) {
+    return this.spellData.damageType === DamageType.DOT ? cast.dotDowntime : cast.timeOffCooldown;
+  }
 
-      this._avgTimeOffCooldown = total / this.casts.length;
-    }
+  private createChannelStats(cast?: CastDetails): IChannelStats {
+    return {
+      totalNextCastLatency: cast?.nextCastLatency || 0,
+      avgNextCastLatency: 0
+    };
+  }
+
+  private createDowntimeStats(cast?: CastDetails): IDowntimeStats {
+    return {
+      clipCount: cast?.clippedPreviousCast ? 1 : 0,
+      clippedTicks: cast?.clippedTicks || 0,
+      missedTickPercent: 0,
+      totalDowntime: cast ? this.getDowntime(cast) : 0,
+      avgDowntime: 0
+    };
+  }
+
+  private get evaluateDowntime() {
+    return  (this.spellData.cooldown > 0 || this.spellData.damageType === DamageType.DOT);
   }
 }
 
-export interface IAvgDotDowntimeMap {
-  [targetId: number]: IAvgDotDowntime;
-}
-
-export interface IAvgDotDowntime {
-  avg: number;
-  total: number;
-  count: number;
+export interface IStatsMap {
+  [key: number]: IHitStats;
 }
 
 export interface IHitStats {
-  [hits: number]: { count: number; totalLatency: number; avgLatency?: number };
+  castCount: number;
+  successCount: number;
+  channelStats: IChannelStats;
+  downtimeStats: IDowntimeStats;
 }
+
+export interface IChannelStats {
+  totalNextCastLatency: number;
+  avgNextCastLatency: number;
+}
+
+export interface IDowntimeStats {
+  clipCount: number;
+  clippedTicks: number;
+  missedTickPercent: number;
+  totalDowntime: number;
+  avgDowntime: number;
+}
+
+

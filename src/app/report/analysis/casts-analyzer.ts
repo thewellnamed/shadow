@@ -1,6 +1,6 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
-import { SpellData, SpellId } from 'src/app/logs/models/spell-id.enum';
+import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 
 export class CastsAnalyzer {
   private summary: CastsSummary;
@@ -14,32 +14,38 @@ export class CastsAnalyzer {
   public run() {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
-        spellData = SpellData[current.spellId];
+        spellData = SpellData[current.spellId],
+        previous = this.findPreviousCast(current, i);
 
-      if (!spellData.damage || current.totalDamage === 0) {
+      if (spellData.damageType === DamageType.NONE || current.totalDamage === 0) {
         continue;
       }
 
-      // for DoTs, calculate downtime
-      if (spellData.maxDuration > 0) {
-        const previous = this.findPreviousCast(current, i);
-        if (previous) {
+      if (previous) {
+        // for DoTs, calculate downtime
+        if (spellData.damageType === DamageType.DOT) {
           current.dotDowntime = (current.castEnd - previous.lastDamageTimestamp) / 1000;
         }
-      }
 
-      // for flay, calculate clipping latency
-      if (current.spellId === SpellId.MIND_FLAY && i < this.casts.length - 1) {
-        const next = this.casts[i + 1];
-        current.clipLatency = (next.castStart - current.lastDamageTimestamp) / 1000;
-      }
+        // for DoTs and flay, check for clipping of previous cast
+        if (spellData.maxDamageInstances > 1) {
+          const expectedPreviousDuration = previous.castEnd + (spellData.maxDuration * 1000);
+          if (previous.ticks < spellData.maxDamageInstances && current.castEnd <= expectedPreviousDuration) {
+            current.clippedPreviousCast = true;
+            current.clippedTicks = spellData.maxDamageInstances - previous.ticks;
+          }
+        }
 
-      // check time between casts
-      if (spellData.cooldown > 0) {
-        const previous = this.findPreviousCast(current, i, true);
-        if (previous) {
+        // check time between casts
+        if (spellData.cooldown > 0) {
           current.timeOffCooldown = ((current.castStart - previous.castEnd)/1000) - spellData.cooldown;
         }
+      }
+
+      // for flay, calculate latency from effective end of channel (last tick) to start of next cast
+      if (spellData.damageType === DamageType.CHANNEL && i < this.casts.length - 1) {
+        const next = this.casts[i + 1];
+        current.nextCastLatency = (next.castStart - current.lastDamageTimestamp) / 1000;
       }
     }
 
