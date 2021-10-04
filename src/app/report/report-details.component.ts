@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { FormControl, FormGroup } from '@angular/forms';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
@@ -15,9 +16,10 @@ import { LogSummary } from 'src/app/logs/models/log-summary';
   styleUrls: ['./report-details.component.scss']
 })
 export class ReportDetailsComponent implements OnInit {
-  logId: string|null;
-  playerName: string|null;
+  logId: string;
   encounterId: number;
+  playerName: string;
+  form: FormGroup;
   summary: LogSummary;
   casts: CastsSummary;
 
@@ -25,28 +27,26 @@ export class ReportDetailsComponent implements OnInit {
               private logs: LogsService) { }
 
   ngOnInit(): void {
+    this.form = new FormGroup({
+      encounter: new FormControl(null),
+      player: new FormControl(null)
+    });
+
     this.activatedRoute.paramMap.pipe(
       switchMap((params) => {
-        this.logId = params.get('logId') || '';
-
-        if (params.has('encounterId')) {
-          this.encounterId = parseInt(params.get('encounterId') || '', 10);
-        }
-
-        if (params.has('player')) {
-          this.playerName = params.get('player');
-        }
+        this.logId = params.get('logId') as string;
+        this.encounterId = parseInt(params.get('encounterId') as string, 10);
+        this.playerName = params.get('player') as string;
 
         return this.logs.getSummary(this.logId);
       }),
       switchMap((summary: LogSummary) => {
         this.summary = summary;
 
-        if (this.playerName && this.encounterId) {
-          return this.logs.getEvents(summary, this.playerName, this.encounterId);
-        } else {
-          return of(null);
-        }
+        this.encounter!.setValue(this.encounterId);
+        this.player!.setValue(this.summary.getPlayerByName(this.playerName)!.id);
+
+        return this.logs.getEvents(summary, this.playerName, this.encounterId);
       })
     ).subscribe((data) => {
       if (data) {
@@ -56,5 +56,13 @@ export class ReportDetailsComponent implements OnInit {
         console.log(this.casts);
       }
     });
+  }
+
+  get encounter() {
+    return this.form.get('encounter');
+  }
+
+  get player() {
+    return this.form.get('player');
   }
 }

@@ -21,6 +21,8 @@ $theme: mat.define-dark-theme((
 @include mat.divider-theme($theme);
 @include mat.icon-theme($theme);
 @include mat.progress-spinner-theme($theme);
+@include mat.table-theme($theme);
+@include mat.tabs-theme($theme);
 
 html, body {
   height: 100%;
@@ -41,4 +43,23 @@ form mat-form-field {
   &.fill {
     width: 100%;
   }
+}
+
+.logo {
+  display: inline-block;
+  height: 56px;
+  width: 56px;
+  background: no-repeat url('/shadow/assets/shadowform.jpg');
+}
+
+.app-bar {
+  background-color: mat.get-color-from-palette(mat.$dark-theme-background-palette, 'app-bar');
+}
+
+.text-primary {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 300);
+}
+
+.text-subdued {
+  color: #999;
 }

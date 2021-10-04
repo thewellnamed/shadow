@@ -134,6 +134,8 @@ export class LogsService {
 }
 
 export interface IEncountersResponse {
+  title: string;
+  owner: string;
   friendlies: IPlayerData[];
   fights: IEncounterData[];
   enemies: IEnemyData[];

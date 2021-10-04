@@ -13,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 
 import { AppRoutingModule } from './app-routing.module';
 import { LogsModule } from 'src/app/logs/logs.module';
+import { ReportModule } from 'src/app/report/report.module';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home.component';
 
@@ -33,7 +34,8 @@ import { HomeComponent } from './home.component';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    ReportModule
   ],
   providers: [],
   bootstrap: [AppComponent]

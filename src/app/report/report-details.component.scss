@@ -1,0 +1,39 @@
+.app-bar {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  height: 56px;
+  font-size: 26px;
+  line-height: 56px;
+
+  .title {
+    margin-left: 1em;
+  }
+
+  .link {
+    margin-left: 0.25em;
+
+    .mat-icon {
+      position: relative;
+      top: 4px;
+    }
+  }
+}
+
+.inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+
+  .mat-form-field {
+    display: inline-block;
+    width: 30%;
+    margin: 0 1em 0 1em;
+  }
+}
+
+.content {
+  padding-left: 1em;
+  padding-right: 1em;
+}

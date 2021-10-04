@@ -5,9 +5,7 @@ import { ReportDetailsComponent } from 'src/app/report/report-details.component'
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
-  { path: 'report/:logId/:player/:encounterId', component: ReportDetailsComponent },
-  { path: 'report/:logId/:player', component: ReportDetailsComponent },
-  { path: 'report/:logId', component: ReportDetailsComponent }
+  { path: 'report/:logId/:player/:encounterId', component: ReportDetailsComponent }
 ];
 
 @NgModule({

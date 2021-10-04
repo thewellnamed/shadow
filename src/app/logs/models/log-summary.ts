@@ -5,11 +5,18 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
  * Model WCL data for a given log
  */
 export class LogSummary {
+  public title: string;
+  public owner: string;
+  public url: string;
   public encounters: EncounterSummary[];
   public players: Array<{ id: number, name: string }>
   public enemies: {[id: number]: string};
 
   constructor(public id: string, data: IEncountersResponse) {
+    this.title = data.title;
+    this.owner = data.owner;
+    this.url = `https://classic.warcraftlogs.com/reports/${id}`;
+
     this.encounters = data.fights
       .filter((fight) => {
         // only boss fights with a duration
@@ -36,6 +43,10 @@ export class LogSummary {
 
   getPlayer(id: number) {
     return this.players.find((p) => p.id === id);
+  }
+
+  getPlayerByName(name: string) {
+    return this.players.find((p) => p.name === name);
   }
 
   getEnemy(id: number) {
