@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
-import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 import { CastsAnalyzer } from 'src/app/report/analysis/casts-analyzer';

@@ -49,7 +49,13 @@ export class LogSummary {
     return this.players.find((p) => p.name === name);
   }
 
-  getEnemy(id: number) {
-    return this.enemies[id];
+  getEnemyName(id: number, instance?: number) {
+    let name = this.enemies[id];
+
+    if (name && instance) {
+      name = `${name} #${instance}`;
+    }
+
+    return name;
   }
 }

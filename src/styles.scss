@@ -14,6 +14,7 @@ $theme: mat.define-dark-theme((
 
 @include mat.core-theme($theme);
 @include mat.card-theme($theme);
+@include mat.expansion-theme($theme);
 @include mat.form-field-theme($theme);
 @include mat.input-theme($theme);
 @include mat.select-theme($theme);
@@ -21,7 +22,6 @@ $theme: mat.define-dark-theme((
 @include mat.divider-theme($theme);
 @include mat.icon-theme($theme);
 @include mat.progress-spinner-theme($theme);
-@include mat.table-theme($theme);
 @include mat.tabs-theme($theme);
 
 html, body {
@@ -45,6 +45,14 @@ form mat-form-field {
   }
 }
 
+.mat-content {
+  justify-content: space-between;
+}
+
+.mat-content > mat-panel-title, .mat-content > mat-panel-description {
+  flex: 0 0 auto;
+}
+
 .logo {
   display: inline-block;
   height: 56px;
@@ -62,4 +70,61 @@ form mat-form-field {
 
 .text-subdued {
   color: #999;
+}
+
+.table-accent {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 200);
+}
+
+.spell-accent {
+  color: mat.get-color-from-palette(mat.$pink-palette, 100);
+}
+
+//
+// Spell icons
+//
+
+// VT
+.spell-34917 {
+  background: no-repeat url('/shadow/assets/vt.jpg');
+}
+
+// SW:P
+.spell-25368 {
+  background: no-repeat url('/shadow/assets/swp.jpg');
+}
+
+// Mind Blast
+.spell-25375 {
+  background: no-repeat url('/shadow/assets/mb.jpg');
+}
+
+// Mind Flay
+.spell-25387 {
+  background: no-repeat url('/shadow/assets/flay.jpg');
+}
+
+// SW: Death
+.spell-32996 {
+  background: no-repeat url('/shadow/assets/swd.jpg');
+}
+
+// VE
+.spell-15286 {
+  background: no-repeat url('/shadow/assets/ve.jpg');
+}
+
+// Shield
+.spell-25218 {
+  background: no-repeat url('/shadow/assets/shield.jpg');
+}
+
+// Fade
+.spell-25429 {
+  background: no-repeat url('/shadow/assets/fade.jpg');
+}
+
+// Shadow friend
+.spell-34433 {
+  background: no-repeat url('/shadow/assets/fiend.jpg');
 }

@@ -1,0 +1,31 @@
+.casts-list {
+  margin: 0.5em;
+
+  .mat-expansion-panel:not(.mat-expanded) {
+    border-bottom: 1px solid #666;
+  }
+
+  .cast-status {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 100%;
+  }
+
+  span {
+    margin-right: 0.5em;
+
+    &.timestamp {
+      margin-right: 1em;
+    }
+  }
+
+  .icon {
+    background-position: center;
+    background-size: cover;
+    height: 20px;
+    width: 20px;
+  }
+}

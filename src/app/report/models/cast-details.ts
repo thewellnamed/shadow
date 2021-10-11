@@ -4,6 +4,7 @@ import { DamageInstance } from 'src/app/report/models/damage-instance';
 
 export class CastDetails {
   spellId: SpellId;
+  name: string;
   castStart: number;
   castEnd: number;
   targetId: number;
@@ -27,6 +28,7 @@ export class CastDetails {
 
   constructor({ ability, targetId, targetInstance, castStart, castEnd }: ICastDetailsParams) {
     this.spellId = ability.guid;
+    this.name = ability.name;
 
     this.targetId = targetId;
     this.targetInstance = targetInstance;

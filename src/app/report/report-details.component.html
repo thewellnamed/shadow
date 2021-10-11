@@ -1,6 +1,6 @@
-<nav class="app-bar">
+<nav class="app-bar" *ngIf="!!summary">>
   <a [routerLink]="['/']"><span class="logo"></span></a>
-  <span class="title text-primary" *ngIf="!!summary">
+  <span class="title text-primary">
     {{ summary.title }} ({{ summary.owner }})
   </span>
   <span class="link">
@@ -28,9 +28,10 @@
   </mat-form-field>
 </form>
 
-<section class="content">
+<section class="content" *ngIf="!!casts">
   <mat-tab-group>
     <mat-tab label="Casts">
+      <casts [summary]="summary" [encounterId]="encounterId" [list]="casts.allCasts"></casts>
     </mat-tab>
 
     <mat-tab>

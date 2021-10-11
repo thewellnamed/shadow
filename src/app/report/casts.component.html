@@ -1,0 +1,19 @@
+<section class="casts-list">
+  <mat-accordion multi>
+    <mat-expansion-panel *ngFor="let cast of list" hideToggle>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <span class="cast-status"></span>
+          <span class="timestamp table-accent">{{ offsetTime(cast.castEnd) }}</span>
+          <span class="icon" [ngClass]="iconClass(cast)"></span>
+          <span class="name spell-accent"> {{ cast.name }}</span>
+          <span class="target"> {{ target(cast.targetId, cast.targetInstance) }}</span>
+        </mat-panel-title>
+
+        <mat-panel-description>
+          <span class="damage"> {{ cast.totalDamage }}</span>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+    </mat-expansion-panel>
+  </mat-accordion>
+</section>
