@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
+import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 
 @Component({
   selector: 'casts',
@@ -20,7 +21,11 @@ export class CastsComponent implements OnInit  {
   }
 
   offsetTime(timestamp: number) {
-    const offset = (timestamp - this.encounter.start)/1000;
+    return this.duration(this.encounter.start, timestamp);
+  }
+
+  duration(start: number, end: number, includeMinutes = true) {
+    const offset = (end - start)/1000;
 
     const minutes = Math.floor(offset / 60),
       secondsFloat = offset - (minutes * 60),
@@ -31,7 +36,23 @@ export class CastsComponent implements OnInit  {
       ss = (seconds + '').padStart(2, '0'),
       dd = (decimal + '').padStart(2, '0').padEnd(2, '0');
 
-    return `${mm}:${ss}.${dd}`;
+    if (includeMinutes) {
+      return `${mm}:${ss}.${dd}`;
+    } else {
+      return `${seconds}.${dd}`;
+    }
+  }
+
+  isDot(cast: CastDetails) {
+    return SpellData[cast.spellId].damageType === DamageType.DOT;
+  }
+
+  isChannel(cast: CastDetails) {
+    return SpellData[cast.spellId].damageType === DamageType.CHANNEL;
+  }
+
+  hasCooldown(cast: CastDetails) {
+    return SpellData[cast.spellId].cooldown > 0;
   }
 
   iconClass(cast: CastDetails) {
@@ -42,5 +63,21 @@ export class CastsComponent implements OnInit  {
 
   target(targetId: number, targetInstance: number) {
     return this.summary.getEnemyName(targetId, targetInstance);
+  }
+
+  statusClass(cast: CastDetails) {
+    if (this.isDot(cast) && cast.clippedPreviousCast) {
+      return 'warning';
+    }
+
+    if (cast.timeOffCooldown > 5 || cast.dotDowntime > 5) {
+      return 'notice';
+    }
+
+    if (this.isChannel(cast) && cast.nextCastLatency > 1) {
+      return 'notice';
+    }
+
+    return 'normal';
   }
 }

@@ -20,6 +20,10 @@
     &.timestamp {
       margin-right: 1em;
     }
+
+    &.damage {
+      width: 200px;
+    }
   }
 
   .icon {
@@ -27,5 +31,31 @@
     background-size: cover;
     height: 20px;
     width: 20px;
+  }
+
+  .expanded-content {
+    display: flex;
+
+    div {
+      padding-left: 0.5em;
+      padding-right: 1em;
+    }
+  }
+
+  .instances {
+    margin-top: 2em;
+    padding: 0.5em;
+  }
+
+  .instance {
+    padding-top: 0.25em;
+  }
+
+  .warning {
+    background-color: orangered;
+  }
+
+  .notice {
+    background-color: gold;
   }
 }

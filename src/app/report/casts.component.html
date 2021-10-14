@@ -3,17 +3,34 @@
     <mat-expansion-panel *ngFor="let cast of list" hideToggle>
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <span class="cast-status"></span>
+          <span class="cast-status" [ngClass]="statusClass(cast)"></span>
           <span class="timestamp table-accent">{{ offsetTime(cast.castEnd) }}</span>
           <span class="icon" [ngClass]="iconClass(cast)"></span>
           <span class="name spell-accent"> {{ cast.name }}</span>
           <span class="target"> {{ target(cast.targetId, cast.targetInstance) }}</span>
         </mat-panel-title>
 
-        <mat-panel-description>
-          <span class="damage"> {{ cast.totalDamage }}</span>
+        <mat-panel-description *ngIf="cast.totalDamage > 0">
+          <span class="damage">Total Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
         </mat-panel-description>
       </mat-expansion-panel-header>
+
+      <div class="expanded-content">
+        <div>Cast Time: {{ duration(cast.castStart, cast.castEnd, false) }}s</div>
+        <div *ngIf="cast.ticks > 0">Ticks: {{ cast.ticks }}</div>
+        <div *ngIf="isDot(cast)">DoT downtime: {{ cast.dotDowntime }}s</div>
+        <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
+        <div *ngIf="isChannel(cast)">Post-Channel latency: {{ cast.nextCastLatency }}s</div>
+        <div *ngIf="hasCooldown(cast)">Time off cooldown: {{ cast.timeOffCooldown }}s</div>
+      </div>
+
+      <div class="instances" *ngIf="cast.ticks > 0">
+        Hits:
+        <div class="instance" *ngFor="let instance of cast.instances">
+          <span class="timestamp">{{ offsetTime(instance.timestamp) }}</span>
+          <span class="damage">{{ instance.amount }}</span>
+        </div>
+      </div>
     </mat-expansion-panel>
   </mat-accordion>
 </section>
