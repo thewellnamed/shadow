@@ -74,7 +74,7 @@ export class LogsService {
     );
   }
 
-  getEvents(log: LogSummary, playerName: string, encounterId: number) {
+  getEvents(log: LogSummary, playerName: string, encounterId: number): Observable<IPlayerEvents> {
     const encounter = log.getEncounter(encounterId);
     const params = {
       start: encounter!.start,
@@ -193,4 +193,9 @@ export interface IDamageData extends IEventData {
   amount: number;
   absorbed?: number;
   tick: boolean;
+}
+
+export interface IPlayerEvents {
+  casts: ICastData[];
+  damage: IDamageData[]
 }

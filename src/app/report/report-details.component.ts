@@ -6,7 +6,7 @@ import { switchMap } from 'rxjs/operators';
 import { CastsAnalyzer } from 'src/app/report/analysis/casts-analyzer';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
-import { LogsService } from 'src/app/logs/logs.service';
+import { IPlayerEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 
 @Component({
@@ -42,26 +42,50 @@ export class ReportDetailsComponent implements OnInit {
       switchMap((summary: LogSummary) => {
         this.summary = summary;
 
-        this.encounter!.setValue(this.encounterId);
-        this.player!.setValue(this.summary.getPlayerByName(this.playerName)!.id);
+        this.encounter.setValue(this.encounterId);
+        this.player.setValue(this.summary.getPlayerByName(this.playerName)!.id);
 
-        return this.logs.getEvents(summary, this.playerName, this.encounterId);
+        return this.fetchData();
       })
     ).subscribe((data) => {
-      if (data) {
-        this.casts = new CastsAnalyzer(EventAnalyzer.createCasts(data.casts, data.damage)).run();
+      this.analyze(data);
 
-        // eslint-disable-next-line no-console
-        console.log(this.casts);
-      }
+      this.encounter.valueChanges.subscribe(() => {
+        this.encounterId = this.encounter.value;
+        this.update();
+      });
+
+      this.player.valueChanges.subscribe(() => {
+        this.playerName = this.summary.getPlayer(this.player.value)!.name;
+        this.update();
+      })
     });
   }
 
+  private fetchData() {
+    return this.logs.getEvents(this.summary, this.playerName, this.encounterId);
+  }
+
+  private analyze(data: IPlayerEvents) {
+    if (data) {
+      this.casts = new CastsAnalyzer(EventAnalyzer.createCasts(data.casts, data.damage)).run();
+
+      // eslint-disable-next-line no-console
+      console.log(this.casts);
+    }
+  }
+
+  private update() {
+    this.fetchData().subscribe((data) => {
+      this.analyze(data);
+    })
+  }
+
   get encounter() {
-    return this.form.get('encounter');
+    return this.form.get('encounter') as FormControl;
   }
 
   get player() {
-    return this.form.get('player');
+    return this.form.get('player') as FormControl;
   }
 }
