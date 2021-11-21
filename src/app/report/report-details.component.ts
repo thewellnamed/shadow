@@ -70,10 +70,6 @@ export class ReportDetailsComponent implements OnInit {
   private analyze(data: IPlayerEvents) {
     if (data) {
       this.casts = new CastsAnalyzer(EventAnalyzer.createCasts(data.casts, data.damage)).run();
-
-      // eslint-disable-next-line no-console
-      console.log(this.casts);
-
       this.loading = false;
     }
   }

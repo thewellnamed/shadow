@@ -57,7 +57,8 @@ export class EventAnalyzer {
         targetId: currentCast.targetID,
         targetInstance: currentCast.targetInstance,
         castStart: startingCast?.timestamp || currentCast.timestamp,
-        castEnd: currentCast.timestamp
+        castEnd: currentCast.timestamp,
+        spellPower: currentCast.spellPower
       });
       casts.push(details);
 

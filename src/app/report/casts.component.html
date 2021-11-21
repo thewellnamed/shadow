@@ -11,13 +11,14 @@
         </mat-panel-title>
 
         <mat-panel-description *ngIf="cast.totalDamage > 0">
-          <span class="damage">Total Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
+          <span class="ticks" *ngIf="cast.ticks > 0">Ticks: <span [ngClass]="tickClass(cast)">{{ cast.ticks }}/{{ expectedTicks(cast) }}</span></span>
+          <span class="power">Power: <span class="table-accent">{{ cast.spellPower }}</span></span>
+          <span class="damage">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
         </mat-panel-description>
       </mat-expansion-panel-header>
 
       <div class="expanded-content">
-        <div>Cast Time: {{ duration(cast.castStart, cast.castEnd, false) }}s</div>
-        <div *ngIf="cast.ticks > 0">Ticks: {{ cast.ticks }}</div>
+        <div>Cast Time: {{ castTime(cast) }}s</div>
         <div *ngIf="isDot(cast)">DoT downtime: {{ cast.dotDowntime }}s</div>
         <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
         <div *ngIf="isChannel(cast)">Post-Channel latency: {{ cast.nextCastLatency }}s</div>
@@ -28,7 +29,7 @@
         Hits:
         <div class="instance" *ngFor="let instance of cast.instances">
           <span class="timestamp">{{ offsetTime(instance.timestamp) }}</span>
-          <span class="damage">{{ instance.amount }}</span>
+          <span class="damage">Damage: {{ instance.amount }}</span>
         </div>
       </div>
     </mat-expansion-panel>

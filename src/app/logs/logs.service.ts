@@ -27,7 +27,7 @@ export class LogsService {
   ];
 
   private summaryCache: { [id: string]: LogSummary} = {};
-  private eventCache: { [hash: string]: any} = {};
+  private eventCache: { [id: string]: IPlayerEvents} = {};
 
   constructor(private http: HttpClient) {}
 
@@ -76,6 +76,12 @@ export class LogsService {
 
   getEvents(log: LogSummary, playerName: string, encounterId: number): Observable<IPlayerEvents> {
     const encounter = log.getEncounter(encounterId);
+    const cacheId = `${log.id}:${encounterId}:${playerName}`;
+
+    if (this.eventCache.hasOwnProperty(cacheId)) {
+      return of(this.playerEvents(this.eventCache[cacheId]));
+    }
+
     const params = {
       start: encounter!.start,
       end: encounter!.end,
@@ -88,8 +94,26 @@ export class LogsService {
         this.requestEvents<IDamageData>(log.id,'damage-done', this.makeParams(params))
       ])
       .pipe(
-        map(([casts, damage]) => ({ casts, damage })),
+        map(([casts, damage]) => {
+          const data = { casts, damage };
+          this.eventCache[cacheId] = data;
+          return this.playerEvents(data)
+        }),
       );
+  }
+
+  /**
+   * Event consumers are mutating these objects, so return a clean copy every time
+   * @param data
+   * @private
+   */
+  private playerEvents(data: IPlayerEvents): IPlayerEvents {
+    return {
+      casts: [...data.casts],
+      damage: data.damage.map((d) => Object.assign({}, d, {
+        read: false
+      }))
+    };
   }
 
   private makeParams(params: any = {}) {
@@ -125,7 +149,6 @@ export class LogsService {
 
           return this.requestEvents(id, type, newParams, newEvents, depth + 1);
         } else {
-          // todo -- caching
           return of(newEvents);
         }
       })
@@ -186,6 +209,7 @@ export interface IEventData {
 
 export interface ICastData extends IEventData {
   type: 'cast' | 'begincast';
+  spellPower: number;
 }
 
 export interface IDamageData extends IEventData {

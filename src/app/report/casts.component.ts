@@ -3,6 +3,7 @@ import { CastDetails } from 'src/app/report/models/cast-details';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { SpellId } from 'src/app/logs/models/spell-id.enum';
 
 @Component({
   selector: 'casts',
@@ -22,6 +23,14 @@ export class CastsComponent implements OnInit  {
 
   offsetTime(timestamp: number) {
     return this.duration(this.encounter.start, timestamp);
+  }
+
+  castTime(cast: CastDetails) {
+    if (this.isChannel(cast) && cast.lastDamageTimestamp) {
+      return this.duration(cast.castStart, cast.lastDamageTimestamp, false);
+    }
+
+    return this.duration(cast.castStart, cast.castEnd, false);
   }
 
   duration(start: number, end: number, includeMinutes = true) {
@@ -55,6 +64,10 @@ export class CastsComponent implements OnInit  {
     return SpellData[cast.spellId].cooldown > 0;
   }
 
+  expectedTicks(cast: CastDetails) {
+    return SpellData[cast.spellId].maxDamageInstances;
+  }
+
   iconClass(cast: CastDetails) {
     return {
       [`spell-${cast.spellId}`]: true
@@ -66,11 +79,17 @@ export class CastsComponent implements OnInit  {
   }
 
   statusClass(cast: CastDetails) {
+    const data = SpellData[cast.spellId];
+
     if (this.isDot(cast) && cast.clippedPreviousCast) {
       return 'warning';
     }
 
-    if (cast.timeOffCooldown > 5 || cast.dotDowntime > 5) {
+    if (cast.spellId === SpellId.MIND_FLAY && cast.ticks < 2) {
+      return 'warning';
+    }
+
+    if (data.maxDamageInstances > 1 && cast.ticks < data.maxDamageInstances && cast.spellId !== SpellId.MIND_FLAY) {
       return 'notice';
     }
 
@@ -78,6 +97,20 @@ export class CastsComponent implements OnInit  {
       return 'notice';
     }
 
+    if (cast.timeOffCooldown > 5 || cast.dotDowntime > 5) {
+      return 'notice';
+    }
+
     return 'normal';
+  }
+
+  tickClass(cast: CastDetails) {
+    const data = SpellData[cast.spellId];
+
+    if (cast.ticks < data.maxDamageInstances) {
+      return 'text-notice';
+    }
+
+    return 'table-accent';
   }
 }

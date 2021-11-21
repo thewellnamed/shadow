@@ -12,6 +12,7 @@ export class CastDetails {
   instances: DamageInstance[] = [];
   totalDamage = 0;
   ticks = 0;
+  spellPower = 0;
 
   // for DoTs/flay (spells with multiple damage ticks), did this cast clip a previous cast
   clippedPreviousCast = false;
@@ -26,7 +27,7 @@ export class CastDetails {
   // for spells with a cooldown, delta from the point the spell was off cooldown until this cast started
   timeOffCooldown = 0;
 
-  constructor({ ability, targetId, targetInstance, castStart, castEnd }: ICastDetailsParams) {
+  constructor({ ability, targetId, targetInstance, castStart, castEnd, spellPower }: ICastDetailsParams) {
     this.spellId = ability.guid;
     this.name = ability.name;
 
@@ -34,6 +35,8 @@ export class CastDetails {
     this.targetInstance = targetInstance;
     this.castStart = castStart;
     this.castEnd = castEnd;
+
+    this.spellPower = spellPower;
   }
 
   hasSameTarget(other: CastDetails) {
@@ -41,6 +44,10 @@ export class CastDetails {
   }
 
   get lastDamageTimestamp() {
+    if (this.instances.length === 0) {
+      return undefined;
+    }
+
     return this.instances[this.instances.length - 1].timestamp;
   }
 }
@@ -51,4 +58,5 @@ interface ICastDetailsParams {
   targetInstance: number;
   castStart: number;
   castEnd: number;
+  spellPower: number;
 }

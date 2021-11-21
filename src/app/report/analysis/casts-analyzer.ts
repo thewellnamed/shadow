@@ -23,7 +23,7 @@ export class CastsAnalyzer {
 
       if (previous) {
         // for DoTs, calculate downtime
-        if (spellData.damageType === DamageType.DOT) {
+        if (spellData.damageType === DamageType.DOT && previous.lastDamageTimestamp) {
           current.dotDowntime = (current.castEnd - previous.lastDamageTimestamp) / 1000;
         }
 
@@ -38,12 +38,12 @@ export class CastsAnalyzer {
 
         // check time between casts
         if (spellData.cooldown > 0) {
-          current.timeOffCooldown = ((current.castStart - previous.castEnd)/1000) - spellData.cooldown;
+          current.timeOffCooldown = ((current.castStart - previous.castEnd) - (spellData.cooldown * 1000))/1000;
         }
       }
 
       // for flay, calculate latency from effective end of channel (last tick) to start of next cast
-      if (spellData.damageType === DamageType.CHANNEL && i < this.casts.length - 1) {
+      if (spellData.damageType === DamageType.CHANNEL && i < this.casts.length - 1 && current.lastDamageTimestamp) {
         const next = this.casts[i + 1];
         current.nextCastLatency = (next.castStart - current.lastDamageTimestamp) / 1000;
       }
