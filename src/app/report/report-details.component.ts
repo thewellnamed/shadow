@@ -21,6 +21,7 @@ export class ReportDetailsComponent implements OnInit {
   form: FormGroup;
   summary: LogSummary;
   casts: CastsSummary;
+  loading = true;
 
   constructor(private activatedRoute: ActivatedRoute,
               private logs: LogsService) { }
@@ -72,10 +73,13 @@ export class ReportDetailsComponent implements OnInit {
 
       // eslint-disable-next-line no-console
       console.log(this.casts);
+
+      this.loading = false;
     }
   }
 
   private update() {
+    this.loading = true;
     this.fetchData().subscribe((data) => {
       this.analyze(data);
     })

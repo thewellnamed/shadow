@@ -28,7 +28,11 @@
   </mat-form-field>
 </form>
 
-<section class="content" *ngIf="!!casts">
+<section class="loading" *ngIf="loading">
+  <mat-spinner diameter="64"></mat-spinner>
+</section>
+
+<section class="content" *ngIf="!loading && !!casts">
   <mat-tab-group>
     <mat-tab label="Casts">
       <casts [summary]="summary" [encounterId]="encounterId" [list]="casts.allCasts"></casts>
