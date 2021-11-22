@@ -1,26 +1,17 @@
 # Todo List
 
-### Home
-> Filter encounter list based on player selected
-
 ### Analyzer
-> - Add additional aggregates to `SpellSummary`
-> - Create subclasses of `SpellSummary` per spell, e.g. `MindFlaySummary` with spell-specific aggregates
+> - Reduce event fetch delay
+> - Handle friendly targets (generic name lookup)
+> - Add additional spells: starshards, devouring plague, engi bombs
+> - support AoE type damage (engi bombs)
 
 ### Report Detail
-> - Header 
->   - Menu style
->   - Select Encounter
->   - Select Player
->   - Refetch event data on changes
-
-> - Loading component
->   - Spinny shadow word:death
- 
-> - View Results
-
-### Logs Service
-> Event caching
+> - Lazy load tab content
+> - Rename "Ticks" to "Hits"
+> - Rename "Casts" to "Timeline"
+> - Add overall timeline stats
+> - Display AoE hits without max damage instances 
 
 ### Testing
 > - Create integration test with canned JSON data for a given log

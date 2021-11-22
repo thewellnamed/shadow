@@ -14,3 +14,7 @@ or [Yarn](https://yarnpkg.com/). If you're familiar with ng-cli commands, you ca
 ### Live Site
 
 https://thewellnamed.github.io/shadow
+
+### Todo
+
+[Todo List](TODO.md)
