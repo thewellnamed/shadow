@@ -102,7 +102,8 @@ export class ReportDetailsComponent implements OnInit {
       this.castSummary = new CastsAnalyzer(EventAnalyzer.createCasts(data.casts, data.damage)).run();
       this.targets = this.castSummary.allTargets
         .map((id) => ({ id , name: this.log.getUnitName(id) }))
-        .filter((t) => (t.name?.length || 0) > 0);
+        .filter((t) => (t.name?.length || 0) > 0)
+        .sort((a, b) => a.name.localeCompare(b.name));
 
       if (this.targets.length === 1) {
         this.target.setValue(this.targets[0].id);

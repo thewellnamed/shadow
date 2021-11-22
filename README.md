@@ -24,3 +24,4 @@ https://thewellnamed.github.io/shadow
 - 2021/11/22
   - Fixed display of friendly target names in cast list
   - Added display of damage absorbed/resisted
+  - Sort target list alphabetically
