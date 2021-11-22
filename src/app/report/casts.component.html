@@ -7,10 +7,10 @@
       <div>Damage per Cast: {{ round(stats.avgDamage) }}</div>
     </div>
 
-    <div class="aggregates ticks" *ngIf="spellData.maxDamageInstances > 1">
-      <div>Total Ticks: {{ stats.totalHits }}</div>
-      <div>Ticks per Cast: {{ round(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</div>
-      <div>Avg tick: {{ round(stats.avgHit) }}</div>
+    <div class="aggregates hits" *ngIf="spellData.maxDamageInstances > 1">
+      <div>Total Hits: {{ stats.totalHits }}</div>
+      <div>Hits per Cast: {{ round(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</div>
+      <div>Avg hit: {{ round(stats.avgHit) }}</div>
     </div>
 
     <div class="aggregates downtime" *ngIf="stats.hasDowntimeStats">

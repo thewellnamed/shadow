@@ -139,7 +139,7 @@ export class LogsService {
     const url = `${LogsService.API_URL}/report/events/${type}/${id}`;
 
     return this.http.get<IEventsResponse>(url, { params }).pipe(
-      delay(200),
+      delay(50),
       switchMap((response) => {
         const newEvents = events.concat(response.events as T[]);
 

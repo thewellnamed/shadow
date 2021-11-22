@@ -14,8 +14,9 @@ export class CastsAnalyzer {
   public run() {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
-        spellData = SpellData[current.spellId],
-        previous = this.findPreviousCast(current, i);
+        spellData = SpellData[current.spellId];
+
+      let previous = this.findPreviousCast(current, i);
 
       if (spellData.damageType === DamageType.NONE || current.totalDamage === 0) {
         continue;
@@ -35,10 +36,14 @@ export class CastsAnalyzer {
             current.clippedTicks = spellData.maxDamageInstances - previous.ticks;
           }
         }
+      }
 
-        // check time between casts
-        if (spellData.cooldown > 0) {
-          current.timeOffCooldown = ((current.castStart - previous.castEnd) - (spellData.cooldown * 1000))/1000;
+      // check time between casts
+      if (spellData.cooldown > 0) {
+        previous = this.findPreviousCast(current, i, true);
+
+        if (previous) {
+          current.timeOffCooldown = ((current.castStart - previous.castEnd) - (spellData.cooldown * 1000)) / 1000;
         }
       }
 
