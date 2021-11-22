@@ -19,8 +19,8 @@ export class SpellSummary implements IHitStats {
   private _avgHitsPerCast = 0;
   private _channelStats: IChannelStats;
   private _downtimeStats: IDowntimeStats;
-  private _hitStats: IStatsMap;
-  private _targetStats: IStatsMap;
+  private _hitStats: IStatsMap = {};
+  private _targetStats: IStatsMap = {};
 
   private recalculate = true;
 
