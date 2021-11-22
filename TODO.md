@@ -12,6 +12,7 @@
 > - Rename "Casts" to "Timeline"
 > - Add overall timeline stats
 > - Display AoE hits without max damage instances 
+> - Additional highlighting of "bad" data
 
 ### Testing
 > - Create integration test with canned JSON data for a given log
