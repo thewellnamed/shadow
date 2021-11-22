@@ -52,26 +52,28 @@
         </mat-panel-description>
       </mat-expansion-panel-header>
 
-      <div class="stats">
-        <div>Cast Time: {{ castTime(cast) }}s</div>
-        <div *ngIf="cast.totalAbsorbed > 0">Absorbed: {{ cast.totalAbsorbed }}</div>
-        <div *ngIf="cast.totalResisted > 0">Resisted: {{ cast.totalResisted }}</div>
-        <div *ngIf="isDot(cast)">DoT downtime: <span [ngClass]="downtimeClass(cast)">{{ round(cast.dotDowntime) }}s</span></div>
-        <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
-        <div *ngIf="isChannel(cast)">Post-Channel latency: {{ round(cast.nextCastLatency) }}s</div>
-        <div *ngIf="hasCooldown(cast)">Time off cooldown: <span [ngClass]="downtimeClass(cast)">{{ round(cast.timeOffCooldown) }}s</span></div>
-      </div>
-
-      <div class="instances" *ngIf="cast.instances.length > 0">
-        Hits:
-        <div class="instance" *ngFor="let instance of cast.instances">
-          <span class="timestamp">{{ offsetTime(instance.timestamp) }}</span>
-          <span class="damage">
-            Damage: {{ instance.amount }}
-            <span *ngIf="instance.partial">({{ instance.partialSummary }})</span>
-          </span>
+      <ng-template matExpansionPanelContent>
+        <div class="stats">
+          <div>Cast Time: {{ castTime(cast) }}s</div>
+          <div *ngIf="cast.totalAbsorbed > 0">Absorbed: {{ cast.totalAbsorbed }}</div>
+          <div *ngIf="cast.totalResisted > 0">Resisted: {{ cast.totalResisted }}</div>
+          <div *ngIf="isDot(cast)">DoT downtime: <span [ngClass]="downtimeClass(cast)">{{ round(cast.dotDowntime) }}s</span></div>
+          <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
+          <div *ngIf="isChannel(cast)">Post-Channel latency: {{ round(cast.nextCastLatency) }}s</div>
+          <div *ngIf="hasCooldown(cast)">Time off cooldown: <span [ngClass]="downtimeClass(cast)">{{ round(cast.timeOffCooldown) }}s</span></div>
         </div>
-      </div>
+
+        <div class="instances" *ngIf="cast.instances.length > 0">
+          Hits:
+          <div class="instance" *ngFor="let instance of cast.instances">
+            <span class="timestamp">{{ offsetTime(instance.timestamp) }}</span>
+            <span class="damage">
+              Damage: {{ instance.amount }}
+              <span *ngIf="instance.partial">({{ instance.partialSummary }})</span>
+            </span>
+          </div>
+        </div>
+      </ng-template>
     </mat-expansion-panel>
   </mat-accordion>
 </section>
