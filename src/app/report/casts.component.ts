@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
@@ -80,6 +80,10 @@ export class CastsComponent implements OnChanges  {
     return Math.round(value * factor) / factor;
   }
 
+  isDamage(cast: CastDetails) {
+    return SpellData[cast.spellId].damageType !== DamageType.NONE;
+  }
+
   isDot(cast: CastDetails) {
     return SpellData[cast.spellId].damageType === DamageType.DOT;
   }
@@ -103,7 +107,7 @@ export class CastsComponent implements OnChanges  {
   }
 
   targetName(targetId: number, targetInstance: number) {
-    return this.log.getEnemyName(targetId, targetInstance);
+    return this.log.getUnitName(targetId, targetInstance);
   }
 
   statusClass(cast: CastDetails) {

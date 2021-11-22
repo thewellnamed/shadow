@@ -11,6 +11,8 @@ export class CastDetails {
   targetInstance: number;
   instances: DamageInstance[] = [];
   totalDamage = 0;
+  totalAbsorbed = 0;
+  totalResisted = 0;
   ticks = 0;
   spellPower = 0;
 

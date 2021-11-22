@@ -10,7 +10,7 @@ export class LogSummary {
   public url: string;
   public encounters: EncounterSummary[];
   public players: IPlayerSummary[]
-  public enemies: {[id: number]: string};
+  public names: {[id: number]: string};
 
   constructor(public id: string, data: IEncountersResponse) {
     this.title = data.title;
@@ -24,21 +24,25 @@ export class LogSummary {
       })
       .map((fight) => new EncounterSummary(fight));
 
-    // Only shadow priests
-    this.players = data.friendlies
-      .filter((f) => f.icon === 'Priest-Shadow')
-      .map((f) => ({
-        id: f.id,
-        name: f.name,
-        encounterIds: f.fights.map((d) => d.id)
-      }));
-
-    this.enemies = data.enemies
+    // initialize names from enemy data. We'll add player names to it.
+    this.names = data.enemies
       .concat(data.enemyPets)
       .reduce((enemies, next) => {
         enemies[next.id] = next.name;
         return enemies;
       }, {} as {[id: number]: string});
+
+    // Only shadow priests
+    this.players = data.friendlies
+      .filter((f) => f.icon === 'Priest-Shadow')
+      .map((f) => {
+        this.names[f.id] = f.name;
+        return {
+          id: f.id,
+          name: f.name,
+          encounterIds: f.fights.map((d) => d.id)
+        };
+      });
   }
 
   getEncounter(id: number) {
@@ -62,8 +66,8 @@ export class LogSummary {
     return this.players.find((p) => p.name === name);
   }
 
-  getEnemyName(id: number, instance?: number) {
-    let name = this.enemies[id];
+  getUnitName(id: number, instance?: number) {
+    let name = this.names[id];
 
     if (name && instance) {
       name = `${name} #${instance}`;

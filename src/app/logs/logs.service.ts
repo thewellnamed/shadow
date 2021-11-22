@@ -218,6 +218,7 @@ export interface IDamageData extends IEventData {
   type: 'damage';
   amount: number;
   absorbed?: number;
+  resisted?: number;
   tick: boolean;
 }
 

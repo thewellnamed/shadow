@@ -86,12 +86,16 @@ export class EventAnalyzer {
 
           // Process damage instances for this spell within the window
           nextDamage = damageEvents[0];
-          let totalDamage = 0, count = 0;
+          let totalDamage = 0, totalAbsorbed = 0, totalResisted = 0, count = 0;
           i = 0;
           while (nextDamage && nextDamage.timestamp <= maxDamageTimestamp && count < spellData.maxDamageInstances) {
             if (!nextDamage.read && this.targetMatch(details, nextDamage)) {
-              instances.push(new DamageInstance(nextDamage));
-              totalDamage += nextDamage.amount + (nextDamage.absorbed || 0);
+              const instance = new DamageInstance(nextDamage);
+              instances.push(instance);
+              totalDamage += instance.amount;
+              totalAbsorbed += instance.absorbed;
+              totalResisted += instance.resisted;
+
               nextDamage.read = true;
               ++count;
             }
@@ -99,6 +103,8 @@ export class EventAnalyzer {
           }
 
           details.totalDamage = totalDamage;
+          details.totalAbsorbed = totalAbsorbed;
+          details.totalResisted = totalResisted;
           details.ticks = count;
           details.instances = instances;
         } else {
@@ -106,11 +112,12 @@ export class EventAnalyzer {
           const damage = damageEvents.find((d) => !d.read && this.targetMatch(details, d));
 
           if (damage) {
-            details.totalDamage = damage.amount;
-            details.instances = [new DamageInstance(damage)];
+            const instance = new DamageInstance(damage);
+            details.totalDamage = instance.amount;
+            details.totalAbsorbed = instance.absorbed;
+            details.totalResisted = instance.resisted;
+            details.instances = [instance];
             damage.read = true;
-          } else {
-            details.totalDamage = 0;
           }
         }
 

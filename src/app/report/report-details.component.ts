@@ -101,7 +101,7 @@ export class ReportDetailsComponent implements OnInit {
     if (data) {
       this.castSummary = new CastsAnalyzer(EventAnalyzer.createCasts(data.casts, data.damage)).run();
       this.targets = this.castSummary.allTargets
-        .map((id) => ({ id , name: this.log.getEnemyName(id) }))
+        .map((id) => ({ id , name: this.log.getUnitName(id) }))
         .filter((t) => (t.name?.length || 0) > 0);
 
       if (this.targets.length === 1) {

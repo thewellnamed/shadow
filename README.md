@@ -18,3 +18,9 @@ https://thewellnamed.github.io/shadow
 ### Todo
 
 [Todo List](TODO.md)
+
+### Changelog
+
+- 2021/11/22
+  - Fixed display of friendly target names in cast list
+  - Added display of damage absorbed/resisted

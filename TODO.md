@@ -1,8 +1,6 @@
 # Todo List
 
 ### Analyzer
-> - Handle absorbs (display absorb amount)
-> - Handle friendly targets (generic name lookup)
 > - Add additional spells: starshards, devouring plague, engi bombs
 > - support AoE type damage (engi bombs)
 
