@@ -1,18 +1,18 @@
-<nav class="app-bar" *ngIf="!!summary">
+<nav class="app-bar" *ngIf="!!log">
   <a [routerLink]="['/']"><span class="logo"></span></a>
   <span class="title text-primary">
-    {{ summary.title }} ({{ summary.owner }})
+    {{ log.title }} ({{ log.owner }})
   </span>
   <span class="link">
-    <a [href]="summary.url" target="_blank" class="text-subdued" title="view on WCL"><mat-icon>article</mat-icon></a>
+    <a [href]="log.url" target="_blank" class="text-subdued" title="view on WCL"><mat-icon>article</mat-icon></a>
   </span>
 </nav>
 
-<form class="inputs" *ngIf="!!summary" [formGroup]="form">
+<form class="inputs" *ngIf="!!log" [formGroup]="form">
   <mat-form-field appearance="outline">
     <mat-label>Select Player</mat-label>
     <mat-select #selectPlayer formControlName="player">
-      <mat-option *ngFor="let option of summary?.players" [value]="option.id">
+      <mat-option *ngFor="let option of log?.players" [value]="option.id">
         {{option.name}}
       </mat-option>
     </mat-select>
@@ -21,7 +21,7 @@
   <mat-form-field appearance="outline">
     <mat-label>Select Encounter</mat-label>
     <mat-select #selectEncounter formControlName="encounter">
-      <mat-option *ngFor="let option of summary.encounters" [value]="option.id">
+      <mat-option *ngFor="let option of encounters" [value]="option.id">
         {{option.description}}
       </mat-option>
     </mat-select>
@@ -32,43 +32,71 @@
   <mat-spinner diameter="64"></mat-spinner>
 </section>
 
-<section class="content" *ngIf="!loading && !!casts">
+<section class="content" *ngIf="!loading && !!castSummary">
+  <form class="target-form" [formGroup]="form">
+    <mat-form-field class="fill" appearance="standard">
+      <mat-label>Filter by Target</mat-label>
+      <mat-select formControlName="target">
+        <mat-option [value]="0">All Targets</mat-option>
+        <mat-option *ngFor="let option of targets" [value]="option.id">
+          {{option.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+
   <mat-tab-group>
     <mat-tab label="Casts">
-      <casts [summary]="summary" [encounterId]="encounterId" [list]="casts.allCasts"></casts>
+      <casts [log]="log"
+             [encounterId]="encounterId"
+             [targetId]="target.value"
+             [summary]="castSummary">
+      </casts>
     </mat-tab>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        VT
-      </ng-template>
+    <mat-tab label="VT">
+      <casts [log]="log"
+             [encounterId]="encounterId"
+             [targetId]="target.value"
+             [summary]="castSummary"
+             [spellId]="SpellId.VAMPIRIC_TOUCH">
+      </casts>
     </mat-tab>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        SW:P
-      </ng-template>
+    <mat-tab label="SW:P">
+      <casts [log]="log"
+             [encounterId]="encounterId"
+             [targetId]="target.value"
+             [summary]="castSummary"
+             [spellId]="SpellId.PAIN">
+      </casts>
     </mat-tab>
 
-
-    <mat-tab>
-      <ng-template mat-tab-label>
-        Mind Blast
-      </ng-template>
+    <mat-tab label="Mind Blast">
+      <casts [log]="log"
+             [encounterId]="encounterId"
+             [targetId]="target.value"
+             [summary]="castSummary"
+             [spellId]="SpellId.MIND_BLAST">
+      </casts>
     </mat-tab>
 
-
-    <mat-tab>
-      <ng-template mat-tab-label>
-        SW:D
-      </ng-template>
+    <mat-tab label="SW:D">
+      <casts [log]="log"
+             [encounterId]="encounterId"
+             [targetId]="target.value"
+             [summary]="castSummary"
+             [spellId]="SpellId.DEATH">
+      </casts>
     </mat-tab>
 
-
-    <mat-tab>
-      <ng-template mat-tab-label>
-        Mind Flay
-      </ng-template>
+    <mat-tab label="Mind Flay">
+      <casts [log]="log"
+             [encounterId]="encounterId"
+             [targetId]="target.value"
+             [summary]="castSummary"
+             [spellId]="SpellId.MIND_FLAY">
+      </casts>
     </mat-tab>
   </mat-tab-group>
 </section>

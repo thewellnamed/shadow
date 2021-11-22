@@ -1,28 +1,63 @@
 <section class="casts-list">
+  <section class="stats" *ngIf="!!stats">
+    <div class="aggregates basic">
+      <div>Total Casts: {{ stats.castCount }}</div>
+      <div>Successful Casts: {{ stats.successCount }}</div>
+      <div>Total Damage: {{ stats.totalDamage }}</div>
+      <div>Damage per Cast: {{ round(stats.avgDamage) }}</div>
+    </div>
+
+    <div class="aggregates ticks" *ngIf="spellData.maxDamageInstances > 1">
+      <div>Total Ticks: {{ stats.totalHits }}</div>
+      <div>Ticks per Cast: {{ round(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</div>
+      <div>Avg tick: {{ round(stats.avgHit) }}</div>
+    </div>
+
+    <div class="aggregates downtime" *ngIf="stats.hasDowntimeStats">
+      <div>Total downtime: {{ round(stats.downtimeStats.totalDowntime) }}s</div>
+      <div>Avg downtime per Cast: {{ round(stats.downtimeStats.avgDowntime) }}s</div>
+      <div *ngIf="spellData.maxDamageInstances > 1">
+        Clipped casts: {{ round(stats.downtimeStats.clipCount) }}
+      </div>
+      <div *ngIf="spellData.maxDamageInstances > 1">
+        Clipped ticks: {{ round(stats.downtimeStats.clippedTicks) }}
+        ({{ round(stats.downtimeStats.missedTickPercent * 100, 2) }}%)
+      </div>
+    </div>
+
+    <div class="aggregates channel" *ngIf="stats.hasChannelStats">
+      <div>Total post-channel latency: {{ round(stats.channelStats.totalNextCastLatency) }}s</div>
+      <div>Avg Latency per Cast: {{ round(stats.channelStats.avgNextCastLatency) }}s</div>
+    </div>
+  </section>
+
   <mat-accordion multi>
-    <mat-expansion-panel *ngFor="let cast of list" hideToggle>
+    <mat-expansion-panel *ngFor="let cast of casts" hideToggle>
       <mat-expansion-panel-header>
         <mat-panel-title>
           <span class="cast-status" [ngClass]="statusClass(cast)"></span>
           <span class="timestamp table-accent">{{ offsetTime(cast.castEnd) }}</span>
           <span class="icon" [ngClass]="iconClass(cast)"></span>
           <span class="name spell-accent"> {{ cast.name }}</span>
-          <span class="target"> {{ target(cast.targetId, cast.targetInstance) }}</span>
+          <span class="target"> {{ targetName(cast.targetId, cast.targetInstance) }}</span>
         </mat-panel-title>
 
         <mat-panel-description *ngIf="cast.totalDamage > 0">
+          <span class="downtime" *ngIf="spellId && isDot(cast)">Downtime: <span [ngClass]="downtimeClass(cast)">{{ round(cast.dotDowntime) }}</span></span>
+          <span class="downtime" *ngIf="spellId && hasCooldown(cast)">Downtime: <span [ngClass]="downtimeClass(cast)">{{ round(cast.timeOffCooldown) }}</span></span>
+
           <span class="ticks" *ngIf="cast.ticks > 0">Ticks: <span [ngClass]="tickClass(cast)">{{ cast.ticks }}/{{ expectedTicks(cast) }}</span></span>
           <span class="power">Power: <span class="table-accent">{{ cast.spellPower }}</span></span>
           <span class="damage">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
         </mat-panel-description>
       </mat-expansion-panel-header>
 
-      <div class="expanded-content">
+      <div class="stats">
         <div>Cast Time: {{ castTime(cast) }}s</div>
-        <div *ngIf="isDot(cast)">DoT downtime: {{ cast.dotDowntime }}s</div>
+        <div *ngIf="isDot(cast)">DoT downtime: <span [ngClass]="downtimeClass(cast)">{{ round(cast.dotDowntime) }}s</span></div>
         <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
-        <div *ngIf="isChannel(cast)">Post-Channel latency: {{ cast.nextCastLatency }}s</div>
-        <div *ngIf="hasCooldown(cast)">Time off cooldown: {{ cast.timeOffCooldown }}s</div>
+        <div *ngIf="isChannel(cast)">Post-Channel latency: {{ round(cast.nextCastLatency) }}s</div>
+        <div *ngIf="hasCooldown(cast)">Time off cooldown: <span [ngClass]="downtimeClass(cast)">{{ round(cast.timeOffCooldown) }}s</span></div>
       </div>
 
       <div class="instances" *ngIf="cast.ticks > 0">

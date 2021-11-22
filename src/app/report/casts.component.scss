@@ -1,6 +1,16 @@
 .casts-list {
   margin: 0.5em;
 
+  .aggregates {
+    font-size: 0.9em;
+    color: #fff;
+    margin-bottom: 2em;
+
+    > div {
+      padding: 0.25em;
+    }
+  }
+
   .mat-expansion-panel:not(.mat-expanded) {
     border-bottom: 1px solid #666;
   }
@@ -26,7 +36,11 @@
     }
 
     &.damage {
-      min-width: 120px;
+      min-width: 100px;
+    }
+
+    &.downtime {
+      min-width: 140px;
     }
   }
 
@@ -37,7 +51,7 @@
     width: 20px;
   }
 
-  .expanded-content {
+  .stats {
     display: flex;
 
     div {

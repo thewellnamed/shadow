@@ -9,7 +9,7 @@ export class LogSummary {
   public owner: string;
   public url: string;
   public encounters: EncounterSummary[];
-  public players: Array<{ id: number, name: string }>
+  public players: IPlayerSummary[]
   public enemies: {[id: number]: string};
 
   constructor(public id: string, data: IEncountersResponse) {
@@ -27,7 +27,11 @@ export class LogSummary {
     // Only shadow priests
     this.players = data.friendlies
       .filter((f) => f.icon === 'Priest-Shadow')
-      .map((f) => ({ id: f.id, name: f.name }));
+      .map((f) => ({
+        id: f.id,
+        name: f.name,
+        encounterIds: f.fights.map((d) => d.id)
+      }));
 
     this.enemies = data.enemies
       .concat(data.enemyPets)
@@ -45,6 +49,15 @@ export class LogSummary {
     return this.players.find((p) => p.id === id);
   }
 
+  getPlayerEncounters(id: number) {
+    const player = this.getPlayer(id);
+    if (!player) {
+      return [];
+    }
+
+    return this.encounters.filter((e) => player.encounterIds.includes(e.id))
+  }
+
   getPlayerByName(name: string) {
     return this.players.find((p) => p.name === name);
   }
@@ -58,4 +71,10 @@ export class LogSummary {
 
     return name;
   }
+}
+
+export interface IPlayerSummary {
+  id: number;
+  name: string;
+  encounterIds: number[];
 }

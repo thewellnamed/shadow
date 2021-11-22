@@ -4,6 +4,7 @@ import { SpellData } from 'src/app/logs/models/spell-data';
 
 export class CastsSummary {
   allCasts: CastDetails[];
+  allTargets: number[];
   spells: {[spellId: number]: SpellSummary};
 
   constructor(data: CastDetails[]) {
@@ -20,6 +21,9 @@ export class CastsSummary {
       spells[details.spellId].addCast(details);
       return spells;
     }, this.spells);
+
+    const targetIds = this.allCasts.map((c) => c.targetId);
+    this.allTargets = [... new Set(targetIds)];
   }
 
   getSpellSummary(spellId: number) {

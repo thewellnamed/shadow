@@ -180,6 +180,7 @@ export interface IPlayerData {
   name: string;
   type: string;
   icon: string;
+  fights: { id: number }[];
 }
 
 export interface IEnemyData {

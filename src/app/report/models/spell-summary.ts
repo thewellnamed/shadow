@@ -5,12 +5,13 @@ import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-dat
 /**
  * Summarize performance for a single spell over an encounter
  */
-export class SpellSummary {
+export class SpellSummary implements IHitStats {
   spellId: SpellId;
   spellData: ISpellData;
   casts: CastDetails[] = []
 
-  private _successfulCasts: number;
+  private _targets: number[];
+  private _successCount: number;
   private _totalDamage = 0;
   private _totalHits = 0;
   private _avgDamage = 0;
@@ -33,16 +34,32 @@ export class SpellSummary {
     this.recalculate = true;
   }
 
-  get castCount() {
-    return this.casts.length;
+  get hasDowntimeStats() {
+    return (this.spellData.cooldown > 0 || this.spellData.damageType === DamageType.DOT);
   }
 
-  get successfulCasts() {
+  get hasChannelStats() {
+    return this.spellData.damageType === DamageType.CHANNEL;
+  }
+
+  get targets() {
     if (this.recalculate) {
       this.calculate();
     }
 
-    return this._successfulCasts;
+    return this._targets;
+  }
+
+  get castCount() {
+    return this.casts.length;
+  }
+
+  get successCount() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._successCount;
   }
 
   get totalDamage() {
@@ -143,6 +160,8 @@ export class SpellSummary {
       return;
     }
 
+    this._targets = [... new Set(this.casts.map((c) => c.targetId))];
+
     this.calculateDamageStats();
     this.calculateChannelStats();
     this.calculateDowntimeStats();
@@ -158,7 +177,7 @@ export class SpellSummary {
    */
   private calculateDamageStats() {
     // unresisted casts
-    this._successfulCasts = this.casts.filter((c) => c.totalDamage > 0).length;
+    this._successCount = this.casts.filter((c) => c.totalDamage > 0).length;
 
     // total damage across all casts
     this._totalDamage = this.casts.reduce((sum, next) => {
@@ -172,16 +191,16 @@ export class SpellSummary {
     this._totalHits = this.casts
       .filter((c) => c.totalDamage > 0)
       .reduce((sum, next) => {
-        sum += (this.spellData.maxDamageInstances > 1 ? next.ticks : 1);
+        sum += this.evaluateHits(next);
         return sum;
       }, 0);
 
-    this._avgHitsPerCast = this._totalHits / this._successfulCasts;
+    this._avgHitsPerCast = this._totalHits / this._successCount;
     this._avgHit = this._totalDamage / this._totalHits;
   }
 
   private calculateChannelStats() {
-    if (this.spellData.damageType !== DamageType.CHANNEL) {
+    if (!this.hasChannelStats) {
       return;
     }
 
@@ -191,11 +210,11 @@ export class SpellSummary {
         return stats;
       }, this.createChannelStats());
 
-    this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._successfulCasts;
+    this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._successCount;
   }
 
   private calculateDowntimeStats() {
-    if (this.evaluateDowntime) {
+    if (this.hasDowntimeStats) {
       this._downtimeStats = this.casts
         .reduce((stats, cast) => {
           stats.totalDowntime += this.getDowntime(cast);
@@ -206,9 +225,9 @@ export class SpellSummary {
           return stats;
         }, this.createDowntimeStats());
 
-      this._downtimeStats.avgDowntime = this._downtimeStats.totalDowntime / this._successfulCasts;
+      this._downtimeStats.avgDowntime = this._downtimeStats.totalDowntime / this._successCount;
       this._downtimeStats.missedTickPercent =
-        this._downtimeStats.clippedTicks / (this._successfulCasts * this.spellData.maxDamageInstances);
+        this._downtimeStats.clippedTicks / (this._successCount * this.spellData.maxDamageInstances);
     }
   }
 
@@ -236,6 +255,8 @@ export class SpellSummary {
   private addStatsToMap(statsMap: IStatsMap, key: number, cast: CastDetails) {
     if (statsMap.hasOwnProperty(key)) {
       statsMap[key].castCount++;
+      statsMap[key].totalDamage += cast.totalDamage;
+      statsMap[key].totalHits += cast.ticks;
 
       if (cast.totalDamage > 0) {
         statsMap[key].successCount++;
@@ -245,7 +266,7 @@ export class SpellSummary {
         statsMap[key].channelStats.totalNextCastLatency += cast.nextCastLatency;
       }
 
-      if (this.evaluateDowntime) {
+      if (this.hasDowntimeStats) {
         statsMap[key].downtimeStats.totalDowntime += this.getDowntime(cast);
 
         if (cast.clippedPreviousCast) {
@@ -257,7 +278,14 @@ export class SpellSummary {
       statsMap[key] = {
         castCount: 1,
         successCount: cast.totalDamage > 0 ? 1 : 0,
+        totalDamage: cast.totalDamage,
+        totalHits: this.evaluateHits(cast),
+        avgDamage: 0,
+        avgHit: 0,
+        avgHitCount: 0,
+        hasChannelStats: this.hasChannelStats,
         channelStats: this.createChannelStats(cast),
+        hasDowntimeStats: this.hasDowntimeStats,
         downtimeStats: this.createDowntimeStats(cast)
       };
     }
@@ -269,11 +297,15 @@ export class SpellSummary {
     for (const key in statsMap) {
       const stats = statsMap[key];
 
-      if (this.spellData.damageType === DamageType.CHANNEL) {
+      stats.avgDamage = stats.totalDamage / stats.castCount;
+      stats.avgHit = stats.totalDamage / stats.totalHits;
+      stats.avgHitCount = stats.totalHits / stats.successCount;
+
+      if (this.hasChannelStats) {
         stats.channelStats.avgNextCastLatency = stats.channelStats.totalNextCastLatency / stats.successCount;
       }
 
-      if (this.evaluateDowntime) {
+      if (this.hasDowntimeStats) {
         stats.downtimeStats.avgDowntime = stats.downtimeStats.totalDowntime / stats.successCount;
 
         // what percentage of the total ticks I should have gotten were missed
@@ -304,8 +336,16 @@ export class SpellSummary {
     };
   }
 
-  private get evaluateDowntime() {
-    return  (this.spellData.cooldown > 0 || this.spellData.damageType === DamageType.DOT);
+  private evaluateHits(cast: CastDetails) {
+    if (this.spellData.maxDamageInstances > 1) {
+      return cast.ticks;
+    }
+
+    if (cast.totalDamage > 0) {
+      return 1;
+    }
+
+    return 0;
   }
 }
 
@@ -316,7 +356,14 @@ export interface IStatsMap {
 export interface IHitStats {
   castCount: number;
   successCount: number;
+  totalDamage: number;
+  totalHits: number;
+  avgHitCount: number;
+  avgDamage: number;
+  avgHit: number;
+  hasChannelStats: boolean;
   channelStats: IChannelStats;
+  hasDowntimeStats: boolean;
   downtimeStats: IDowntimeStats;
 }
 

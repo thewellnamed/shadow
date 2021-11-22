@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   @ViewChild('selectEncounter') public encounterSelect: MatSelect;
   @ViewChild('selectPlayer') public playerSelect: MatSelect;
   public summary?: LogSummary;
@@ -31,16 +31,22 @@ export class HomeComponent {
     });
   }
 
+  ngOnInit() {
+    this.player.valueChanges.subscribe(() => {
+      this.filterEncounters();
+    })
+  }
+
   get log() {
     return this.form.get('log');
   }
 
   get encounter() {
-    return this.form.get('encounter');
+    return this.form.get('encounter') as FormControl;
   }
 
   get player() {
-    return this.form.get('player');
+    return this.form.get('player') as FormControl;
   }
 
   validateLogId = (control: AbstractControl): ValidationErrors | null => {
@@ -64,13 +70,14 @@ export class HomeComponent {
         this.logId = logId;
 
         this.summary = summary;
+
         this.log?.markAsPristine();
 
-        this.encounter?.enable();
-        this.player?.enable();
+        this.encounter.enable();
+        this.player.enable();
 
         if (summary.players.length === 1) {
-          this.player!.setValue(summary.players[0].id);
+          this.player.setValue(summary.players[0].id);
           this.encounterSelect.focus();
         } else {
           this.playerSelect.focus();
@@ -100,9 +107,9 @@ export class HomeComponent {
   }
 
   private filterEncounters() {
-    // todo - filter this list based on player selected
-    // need to extract more player data from the fight information
-    this.encounters = this.summary?.encounters as EncounterSummary[];
+    const playerId = this.player.value;
+    this.encounters = playerId ?
+      this.summary!.getPlayerEncounters(this.player.value) :
+      this.summary?.encounters as EncounterSummary[];
   }
-
 }
