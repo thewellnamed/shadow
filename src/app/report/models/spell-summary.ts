@@ -11,7 +11,7 @@ export class SpellSummary implements IHitStats {
   casts: CastDetails[] = []
 
   private _targets: number[];
-  private _successCount: number;
+  private _successCount = 0;
   private _totalDamage = 0;
   private _totalHits = 0;
   private _avgDamage = 0;
@@ -22,11 +22,13 @@ export class SpellSummary implements IHitStats {
   private _hitStats: IStatsMap;
   private _targetStats: IStatsMap;
 
-  private recalculate = false;
+  private recalculate = true;
 
   constructor(spellId: SpellId) {
     this.spellId = spellId;
     this.spellData = SpellData[spellId];
+    this._channelStats = this.createChannelStats();
+    this._downtimeStats = this.createDowntimeStats();
   }
 
   addCast(details: CastDetails) {
@@ -156,7 +158,7 @@ export class SpellSummary implements IHitStats {
    */
   private calculate() {
     // aggregates only for damage spells
-    if (this.spellData.damageType === DamageType.NONE) {
+    if (this.spellData.damageType === DamageType.NONE || this.casts.length === 0) {
       return;
     }
 
@@ -214,21 +216,23 @@ export class SpellSummary implements IHitStats {
   }
 
   private calculateDowntimeStats() {
-    if (this.hasDowntimeStats) {
-      this._downtimeStats = this.casts
-        .reduce((stats, cast) => {
-          stats.totalDowntime += this.getDowntime(cast);
-          if (cast.clippedPreviousCast) {
-            stats.clipCount++;
-            stats.clippedTicks += cast.clippedTicks;
-          }
-          return stats;
-        }, this.createDowntimeStats());
-
-      this._downtimeStats.avgDowntime = this._downtimeStats.totalDowntime / this._successCount;
-      this._downtimeStats.missedTickPercent =
-        this._downtimeStats.clippedTicks / (this._successCount * this.spellData.maxDamageInstances);
+    if (!this.hasDowntimeStats) {
+      return;
     }
+
+    this._downtimeStats = this.casts
+      .reduce((stats, cast) => {
+        stats.totalDowntime += this.getDowntime(cast);
+        if (cast.clippedPreviousCast) {
+          stats.clipCount++;
+          stats.clippedTicks += cast.clippedTicks;
+        }
+        return stats;
+      }, this.createDowntimeStats());
+
+    this._downtimeStats.avgDowntime = this._downtimeStats.totalDowntime / this._successCount;
+    this._downtimeStats.missedTickPercent =
+      this._downtimeStats.clippedTicks / (this._successCount * this.spellData.maxDamageInstances);
   }
 
   private calculateStatsByHitCount() {

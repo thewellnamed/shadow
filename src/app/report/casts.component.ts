@@ -34,7 +34,6 @@ export class CastsComponent implements OnChanges  {
       this.spellSummary = this.summary.getSpellSummary(this.spellId);
       this.spellData = SpellData[this.spellId];
       this.stats = this.targetId > 0 ? this.spellSummary.targetStats(this.targetId) : this.spellSummary;
-
       casts = this.spellSummary.casts;
     } else {
       casts = this.summary.allCasts;

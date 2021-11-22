@@ -170,6 +170,7 @@ export interface IEncounterData {
   name: string;
   start_time: number;
   end_time: number;
+  durationSeconds: number;
   boss: number;
   originalBoss: number;
   kill?: boolean;
