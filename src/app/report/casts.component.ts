@@ -25,32 +25,28 @@ export class CastsComponent implements OnChanges  {
   spellData: ISpellData;
   spellSummary: SpellSummary;
   encounter: EncounterSummary;
-  stats: SpellStats;
+  stats?: SpellStats;
 
   constructor(private changeDetectorRef: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    this.encounter = this.log.getEncounter(this.encounterId) as EncounterSummary;
-    let casts;
-
     if (!this.spellId) {
       this.spellId = SpellId.NONE;
     }
 
+    this.encounter = this.log.getEncounter(this.encounterId) as EncounterSummary;
+    let stats: SpellStats;
+
     if (this.spellId > SpellId.NONE) {
-      this.spellSummary = this.summary.getSpellSummary(this.spellId);
       this.spellData = SpellData[this.spellId];
-      this.stats = this.targetId > 0 ? this.spellSummary.targetStats(this.targetId) : this.spellSummary;
-      casts = this.spellSummary.casts;
+      this.spellSummary = this.summary.getSpellSummary(this.spellId);
+      stats = this.spellSummary;
     } else {
-      this.stats = this.summary.stats;
-      casts = this.summary.allCasts;
+      stats = this.summary.stats;
     }
 
-    this.casts = this.targetId > 0 ?
-      casts.filter((c) => c.targetId === this.targetId) :
-      casts;
-
+    this.stats = this.targetId ? stats.targetStats(this.targetId) : stats;
+    this.casts = this.stats?.casts || [];
     this.changeDetectorRef.detectChanges();
   }
 

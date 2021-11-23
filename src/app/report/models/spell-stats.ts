@@ -2,9 +2,6 @@ import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 
 export class SpellStats {
-  casts: CastDetails[] = [];
-  targetId: number;
-
   castCount = 0;
   successCount = 0;
   minTimestamp = 0;
@@ -16,6 +13,9 @@ export class SpellStats {
 
   recalculate = true;
 
+  private _casts: CastDetails[] = [];
+  private _sortedCasts?: CastDetails[];
+  private _includeTargetStats = false;
   private _targetIds: Set<number> = new Set();
   private _avgDamage = 0;
   private _avgHitCount = 0;
@@ -27,7 +27,7 @@ export class SpellStats {
     totalNextCastLatency: 0,
     avgNextCastLatency: 0
   };
-  private _downtimeStats: IDowntimeStats = {
+  private _dotStats: IDotStats = {
     castCount: 0,
     clipCount: 0,
     clippedTicks: 0,
@@ -36,9 +36,15 @@ export class SpellStats {
     totalDowntime: 0,
     avgDowntime: 0
   };
+  private _cooldownStats: ICooldownStats = {
+    castCount: 0,
+    totalOffCooldown: 0,
+    avgOffCooldown: 0
+  };
 
-  constructor(targetId = 0, casts?: CastDetails[]) {
-    this.targetId = targetId;
+  constructor(casts?: CastDetails[], includeTargetStats = false) {
+    this._includeTargetStats = includeTargetStats;
+
     if (casts) {
       this.addCasts(casts);
     }
@@ -46,6 +52,14 @@ export class SpellStats {
 
   get targetIds() {
     return [... this._targetIds];
+  }
+
+  get casts() {
+    if (!this._sortedCasts) {
+      this._sortedCasts = this._casts.sort((a, b) => a.castStart - b.castStart);
+    }
+
+    return this._sortedCasts;
   }
 
   get avgDamage() {
@@ -84,16 +98,12 @@ export class SpellStats {
     return this._channelStats.castCount > 0;
   }
 
-  get hasDowntimeStats() {
-    return this._downtimeStats.castCount > 0;
+  get hasCooldownStats() {
+    return this._cooldownStats.castCount > 0;
   }
 
-  get downtimeStats() {
-    if (this.recalculate) {
-      this.updateStats();
-    }
-
-    return this._downtimeStats;
+  get hasDotStats() {
+    return this._dotStats.castCount > 0;
   }
 
   get channelStats() {
@@ -104,10 +114,26 @@ export class SpellStats {
     return this._channelStats;
   }
 
+  get cooldownStats() {
+    if (this.recalculate) {
+      this.updateStats();
+    }
+
+    return this._cooldownStats;
+  }
+
+  get dotStats() {
+    if (this.recalculate) {
+      this.updateStats();
+    }
+
+    return this._dotStats;
+  }
+
   targetStats(targetId: number): SpellStats {
     const stats = this._targetStats[targetId];
 
-    if (stats && stats.recalculate) {
+    if (stats?.recalculate) {
       stats.updateStats();
     }
 
@@ -115,8 +141,18 @@ export class SpellStats {
   }
 
   addCast(cast: CastDetails) {
-    this.casts.push(cast);
+    this._casts.push(cast);
+    this._sortedCasts = undefined;
     this.castCount++;
+    this.recalculate = true;
+
+    this._targetIds.add(cast.targetId);
+    if (this._includeTargetStats) {
+      if (!this._targetStats.hasOwnProperty(cast.targetId)) {
+        this._targetStats[cast.targetId] = new SpellStats();
+      }
+      this._targetStats[cast.targetId].addCast(cast);
+    }
 
     const spellData = SpellData[cast.spellId];
     if (spellData.damageType === DamageType.NONE) {
@@ -125,7 +161,7 @@ export class SpellStats {
 
     if (cast.totalDamage > 0) {
       this.successCount++;
-      this.totalDamage += cast.totalDamage;
+      this.totalDamage += cast.totalDamage + cast.totalAbsorbed;
       this.totalHits += this.evaluateHits(cast);
       this.totalWeightedSpellpower += (cast.spellPower * cast.totalDamage);
     }
@@ -142,30 +178,25 @@ export class SpellStats {
       }
     }
 
-    if (this.addDowntimeStats(cast)) {
-      this._downtimeStats.castCount++;
-      this._downtimeStats.expectedTicks += spellData.maxDamageInstances;
-      this._downtimeStats.totalDowntime += spellData.damageType === DamageType.DOT ?
-        cast.dotDowntime :
-        cast.timeOffCooldown;
-
-      if (cast.clippedPreviousCast) {
-        this._downtimeStats.clipCount++;
-        this._downtimeStats.clippedTicks += cast.clippedTicks;
-      }
-    }
-
     if (this.addChannelStats(cast)) {
       this._channelStats.castCount++;
       this._channelStats.totalNextCastLatency += cast.nextCastLatency;
     }
 
-    if (this.targetId === 0) {
-      this._targetIds.add(cast.targetId);
-      if (!this._targetStats.hasOwnProperty(cast.targetId)) {
-        this._targetStats[cast.targetId] = new SpellStats(cast.targetId);
+    if (this.addCooldownStats(cast)) {
+      this._cooldownStats.castCount++;
+      this._cooldownStats.totalOffCooldown += cast.timeOffCooldown;
+    }
+
+    if (this.addDotStats(cast)) {
+      this._dotStats.castCount++;
+      this._dotStats.expectedTicks += spellData.maxDamageInstances;
+      this._dotStats.totalDowntime += cast.dotDowntime;
+
+      if (cast.clippedPreviousCast) {
+        this._dotStats.clipCount++;
+        this._dotStats.clippedTicks += cast.clippedTicks;
       }
-      this._targetStats[cast.targetId].addCast(cast);
     }
 
     this.recalculate = true;
@@ -183,7 +214,9 @@ export class SpellStats {
     }
 
     for (const next of stats) {
+      this._casts = this._casts.concat(next.casts);
       this.castCount += next.castCount;
+
       this.successCount += next.successCount;
       this.totalDamage += next.totalDamage;
       this.totalHits += next.totalHits;
@@ -198,9 +231,39 @@ export class SpellStats {
         this.maxTimestamp = next.maxTimestamp;
       }
 
-      // todo: merge downtime/channel stats
+      if (next.hasChannelStats) {
+        this._channelStats.castCount += next.channelStats.castCount;
+        this._channelStats.totalNextCastLatency += next.channelStats.totalNextCastLatency;
+      }
+
+      if (next.hasCooldownStats) {
+        this._cooldownStats.castCount += next.cooldownStats.castCount;
+        this._cooldownStats.totalOffCooldown += next._cooldownStats.totalOffCooldown;
+      }
+
+      if (next.hasDotStats) {
+        this._dotStats.castCount += next.dotStats.castCount;
+        this._dotStats.clipCount += next.dotStats.clipCount;
+        this._dotStats.clippedTicks += next.dotStats.clippedTicks;
+        this._dotStats.expectedTicks += next.dotStats.expectedTicks;
+        this._dotStats.totalDowntime += next.dotStats.totalDowntime;
+      }
+
+      if (this._includeTargetStats) {
+        for (const targetId of next.targetIds) {
+          const targetStats = next.targetStats(targetId);
+
+          this._targetIds.add(targetId);
+          if (this._targetStats.hasOwnProperty(targetId)) {
+            this._targetStats[targetId].merge(targetStats);
+          } else {
+            this._targetStats[targetId] = new SpellStats(targetStats.casts);
+          }
+        }
+      }
     }
 
+    this._sortedCasts = undefined;
     this.recalculate = true;
   }
 
@@ -211,26 +274,35 @@ export class SpellStats {
     this._avgSpellpower = this.totalWeightedSpellpower / this.totalDamage;
 
     if (this.hasChannelStats) {
-      this._channelStats!.avgNextCastLatency = this._channelStats!.totalNextCastLatency / this.successCount;
+      this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this.successCount;
     }
 
-    if (this.hasDowntimeStats) {
-      this._downtimeStats!.avgDowntime = this._downtimeStats!.totalDowntime / this.successCount;
+    if (this.hasCooldownStats) {
+      this._cooldownStats.avgOffCooldown = this._cooldownStats.totalOffCooldown / this._cooldownStats.castCount;
+    }
+
+    if (this.hasDotStats) {
+      this._dotStats.avgDowntime = this._dotStats.totalDowntime / this._dotStats.castCount;
 
       // what percentage of the total ticks I should have gotten were missed
-      this._downtimeStats!.missedTickPercent = this._downtimeStats!.clippedTicks / this._downtimeStats!.expectedTicks;
+      if (this._dotStats.expectedTicks > 0) {
+        this._dotStats.missedTickPercent = this._dotStats.clippedTicks / this._dotStats.expectedTicks;
+      }
     }
 
     this.recalculate = false;
   }
 
-  private addDowntimeStats(cast: CastDetails) {
-    const spellData = SpellData[cast.spellId];
-    return (spellData.cooldown > 0 || spellData.damageType === DamageType.DOT);
-  }
-
   private addChannelStats(cast: CastDetails) {
     return SpellData[cast.spellId].damageType === DamageType.CHANNEL;
+  }
+
+  private addCooldownStats(cast: CastDetails) {
+    return SpellData[cast.spellId].cooldown > 0;
+  }
+
+  private addDotStats(cast: CastDetails) {
+    return SpellData[cast.spellId].damageType === DamageType.DOT;
   }
 
   private evaluateHits(cast: CastDetails) {
@@ -261,7 +333,13 @@ export interface IChannelStats {
   avgNextCastLatency: number;
 }
 
-export interface IDowntimeStats {
+export interface ICooldownStats {
+  castCount: number;
+  totalOffCooldown: number;
+  avgOffCooldown: number;
+}
+
+export interface IDotStats {
   castCount: number;
   clipCount: number;
   clippedTicks: number;
@@ -270,4 +348,3 @@ export interface IDowntimeStats {
   totalDowntime: number;
   avgDowntime: number;
 }
-

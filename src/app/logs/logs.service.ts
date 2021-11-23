@@ -11,8 +11,7 @@ export class LogsService {
   private static API_KEY = '259b121232ec91e17f4d2b48300801be';
   private static API_URL = 'https://classic.warcraftlogs.com/v1';
 
-  private static MAX_EVENT_REQUESTS = 10; // 300 events per request * 10 = 3000 total
-
+  private static MAX_EVENT_REQUESTS = 10;
   private static TRACKED_ABILITIES = [
     SpellId.DEATH,
     SpellId.FADE,
@@ -143,7 +142,7 @@ export class LogsService {
       switchMap((response) => {
         const newEvents = events.concat(response.events as T[]);
 
-        if (response.nextPageTimestamp && response.nextPageTimestamp < params.end && depth < LogsService.MAX_EVENT_REQUESTS) {
+        if (response.nextPageTimestamp && response.nextPageTimestamp <= params.end && depth < LogsService.MAX_EVENT_REQUESTS) {
           const newParams = Object.assign({}, params)
           newParams.start = response.nextPageTimestamp;
 

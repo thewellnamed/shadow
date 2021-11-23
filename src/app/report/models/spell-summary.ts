@@ -1,6 +1,6 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
+import { ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 
 /**
@@ -11,7 +11,7 @@ export class SpellSummary extends SpellStats {
   spellData: ISpellData;
 
   constructor(spellId: SpellId) {
-    super();
+    super([], true);
     this.spellId = spellId;
     this.spellData = SpellData[spellId];
   }

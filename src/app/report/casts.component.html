@@ -3,8 +3,24 @@
     <div class="aggregates basic">
       <div>Casts: {{ stats.castCount }}</div>
       <div>Total Damage: {{ stats.totalDamage }}</div>
-      <div>Active: {{ stats.activeDuration }}</div>
       <div>Active DPS: {{ activeDps(stats) }}</div>
+      <div>Active Time: {{ stats.activeDuration }}</div>
+    </div>
+
+    <div class="aggregates detailed dots" *ngIf="stats.hasDotStats">
+      <div>Avg per-cast DoT Downtime: {{ round(stats.dotStats.avgDowntime) }}s</div>
+      <div *ngIf="targetId > 0">Total DoT Downtime: {{ round(stats.dotStats.totalDowntime) }}s</div>
+
+      <div>Clipped DoTs: {{ round(stats.dotStats.clipCount) }}</div>
+      <div>
+        Clipped Ticks: {{ round(stats.dotStats.clippedTicks) }}
+        ({{ round(stats.dotStats.missedTickPercent * 100, 2) }}%)
+      </div>
+    </div>
+
+    <div class="aggregates detailed misc">
+      <div *ngIf="stats.hasCooldownStats">Avg Time Off Cooldown: {{ round(stats.cooldownStats.avgOffCooldown) }}s</div>
+      <div *ngIf="stats.hasChannelStats">Avg post-channel MF latency: {{ round(stats.channelStats.avgNextCastLatency) }}s</div>
     </div>
 
     <div class="aggregates spellpower">
@@ -14,39 +30,40 @@
   </section>
   <section class="stats spell" *ngIf="!!stats && !!spellData">
     <div class="aggregates basic">
-      <div>Total Casts: {{ stats.castCount }}</div>
-      <div>Successful Casts: {{ stats.successCount }}</div>
+      <div>Casts: {{ stats.castCount }}</div>
       <div>Total Damage: {{ stats.totalDamage }}</div>
-      <div>Damage per Cast: {{ round(stats.avgDamage) }}</div>
+      <div>Active DPS: {{ activeDps(stats) }}</div>
+      <div>Active Time: {{ stats.activeDuration }}</div>
     </div>
 
     <div class="aggregates hits" *ngIf="spellData.maxDamageInstances > 1">
       <div>Total Hits: {{ stats.totalHits }}</div>
       <div>Hits per Cast: {{ round(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</div>
-      <div>Avg hit: {{ round(stats.avgHit) }}</div>
-    </div>
+      <div>Avg Hit: {{ round(stats.avgHit) }}</div>
 
-    <div class="aggregates downtime" *ngIf="stats.hasDowntimeStats">
-      <div>Total downtime: {{ round(stats.downtimeStats!.totalDowntime) }}s</div>
-      <div>Avg downtime per Cast: {{ round(stats.downtimeStats!.avgDowntime) }}s</div>
-      <div *ngIf="spellData.maxDamageInstances > 1">
-        Clipped casts: {{ round(stats.downtimeStats!.clipCount) }}
-      </div>
-      <div *ngIf="spellData.maxDamageInstances > 1">
-        Clipped ticks: {{ round(stats.downtimeStats!.clippedTicks) }}
-        ({{ round(stats.downtimeStats!.missedTickPercent * 100, 2) }}%)
+      <div *ngIf="stats.hasChannelStats">
+        Avg Post-Channel Latency: {{ round(stats.channelStats.avgNextCastLatency) }}s
       </div>
     </div>
 
-    <div class="aggregates channel" *ngIf="stats.hasChannelStats">
-      <div>Total post-channel latency: {{ round(stats.channelStats!.totalNextCastLatency) }}s</div>
-      <div>Avg Latency per Cast: {{ round(stats.channelStats!.avgNextCastLatency) }}s</div>
+    <div class="aggregates dots" *ngIf="stats.hasDotStats">
+        <div>Avg per-cast DoT Downtime: {{ round(stats.dotStats.avgDowntime) }}s</div>
+        <div *ngIf="targetId > 0">Total DoT Downtime: {{ round(stats.dotStats.totalDowntime) }}s</div>
+        <div>Clipped DoTs: {{ round(stats.dotStats.clipCount) }}</div>
+        <div>
+          Clipped Ticks: {{ round(stats.dotStats.clippedTicks) }}
+          ({{ round(stats.dotStats.missedTickPercent * 100, 2) }}%)
+        </div>
+    </div>
+
+    <div class="aggregates cooldown" *ngIf="stats.hasCooldownStats">
+      <div>Avg per-cast Downtime: {{ round(stats.cooldownStats.avgOffCooldown) }}s</div>
+      <div>Total Downtime: {{ round(stats.cooldownStats.totalOffCooldown) }}s</div>
     </div>
 
     <div class="aggregates spellpower">
+      <div>Damage per Cast: {{ round(stats.avgDamage) }}</div>
       <div>Avg Spellpower: {{ round(stats.avgSpellpower) }}</div>
-      <div>Active: {{ stats.activeDuration }}</div>
-      <div>Active DPS: {{ activeDps(stats) }}</div>
       <div>DPS/Power: {{ powerMetric(stats) }}</div>
     </div>
   </section>

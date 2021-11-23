@@ -1,17 +1,16 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { SpellSummary } from 'src/app/report/models/spell-summary';
-import { SpellData } from 'src/app/logs/models/spell-data';
+import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 
 export class CastsSummary {
-  allCasts: CastDetails[];
+  casts: CastDetails[];
   spells: {[spellId: number]: SpellSummary};
-
+  targetIds: number[];
   private _stats: SpellStats;
 
-  constructor(data: CastDetails[]) {
-    this.allCasts = data;
-
+  constructor(casts: CastDetails[]) {
+    this.casts = casts;
     this.spells = Object.keys(SpellData)
       .map((k) => parseInt(k))
       .reduce((spells, spellId) => {
@@ -19,23 +18,17 @@ export class CastsSummary {
         return spells;
       }, {} as {[spellId: number]: SpellSummary});
 
-    data.reduce((spells, details) => {
+    casts.reduce((spells, details) => {
       spells[details.spellId].addCast(details);
       return spells;
     }, this.spells);
+
+    this.targetIds = [... new Set(this.casts.map((c) => c.targetId))];
+    this.aggregateSpellStats();
   }
 
   getSpellSummary(spellId: number) {
     return this.spells[spellId];
-  }
-
-  get targetIds(): number[] {
-    let ids: number[] = [];
-    for (const summary of Object.values(this.spells)) {
-      ids = ids.concat(summary.targetIds);
-    }
-
-    return [... new Set<number>(ids)];
   }
 
   get stats() {
@@ -51,9 +44,8 @@ export class CastsSummary {
   }
 
   private aggregateSpellStats() {
-    const stats = new SpellStats();
+    const stats = new SpellStats([], true);
     stats.merge(Object.values(this.spells));
-
     this._stats = stats;
   }
 }
