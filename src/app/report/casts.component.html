@@ -3,8 +3,7 @@
     <div class="aggregates basic">
       <div>Casts: {{ stats.castCount }}</div>
       <div>Total Damage: {{ stats.totalDamage }}</div>
-      <div>Active DPS: {{ activeDps(stats) }}</div>
-      <div>Active Time: {{ stats.activeDuration }}</div>
+      <div>Active DPS: {{ activeDps(stats) }} ({{stats.activeDuration }})</div>
     </div>
 
     <div class="aggregates detailed dots" *ngIf="stats.hasDotStats">
@@ -32,8 +31,8 @@
     <div class="aggregates basic">
       <div>Casts: {{ stats.castCount }}</div>
       <div>Total Damage: {{ stats.totalDamage }}</div>
-      <div>Active DPS: {{ activeDps(stats) }}</div>
-      <div>Active Time: {{ stats.activeDuration }}</div>
+      <div>Active DPS: {{ activeDps(stats) }} ({{ stats.activeDuration }})</div>
+      <div>Damage per Cast: {{ round(stats.avgDamage) }}</div>
     </div>
 
     <div class="aggregates hits" *ngIf="spellData.maxDamageInstances > 1">
@@ -57,12 +56,11 @@
     </div>
 
     <div class="aggregates cooldown" *ngIf="stats.hasCooldownStats">
-      <div>Avg per-cast Downtime: {{ round(stats.cooldownStats.avgOffCooldown) }}s</div>
-      <div>Total Downtime: {{ round(stats.cooldownStats.totalOffCooldown) }}s</div>
+      <div>Avg Time off Cooldown: {{ round(stats.cooldownStats.avgOffCooldown) }}s</div>
+      <div>Total Off Cooldown: {{ round(stats.cooldownStats.totalOffCooldown) }}s</div>
     </div>
 
     <div class="aggregates spellpower">
-      <div>Damage per Cast: {{ round(stats.avgDamage) }}</div>
       <div>Avg Spellpower: {{ round(stats.avgSpellpower) }}</div>
       <div>DPS/Power: {{ powerMetric(stats) }}</div>
     </div>
