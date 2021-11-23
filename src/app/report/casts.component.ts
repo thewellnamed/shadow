@@ -176,7 +176,6 @@ export class CastsComponent implements OnChanges  {
   }
 
   downtimeClass(cast: CastDetails) {
-    const data = SpellData[cast.spellId];
     if (this.hasCooldown(cast)) {
       if (cast.timeOffCooldown > 5) {
         return 'text-warning';

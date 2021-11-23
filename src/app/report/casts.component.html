@@ -1,9 +1,9 @@
 <section class="casts-list">
   <section class="stats summary" *ngIf="!!stats && summaryStats">
     <div class="aggregates basic">
-      <div>Casts: {{ stats.castCount }}</div>
-      <div>Total Damage: {{ stats.totalDamage }}</div>
-      <div>Active DPS: {{ activeDps(stats) }} ({{stats.activeDuration }})</div>
+      <div>Casts: <span class="table-accent">{{ stats.castCount }}</span></div>
+      <div>Total Damage: <span class="table-accent">{{ stats.totalDamage }}</span></div>
+      <div>Active DPS: <span class="table-accent">{{ activeDps(stats) }} ({{stats.activeDuration }})</span></div>
     </div>
 
     <div class="aggregates detailed dots" *ngIf="stats.hasDotStats">
@@ -23,22 +23,22 @@
     </div>
 
     <div class="aggregates spellpower">
-      <div>Avg Spellpower: {{ round(stats.avgSpellpower) }}</div>
-      <div>DPS/Power: {{ powerMetric(stats) }}</div>
+      <div>Avg Spellpower: <span class="table-accent">{{ round(stats.avgSpellpower) }}</span></div>
+      <div>DPS/Power: <span class="table-accent">{{ powerMetric(stats) }}</span></div>
     </div>
   </section>
   <section class="stats spell" *ngIf="!!stats && !!spellData">
     <div class="aggregates basic">
-      <div>Casts: {{ stats.castCount }}</div>
-      <div>Total Damage: {{ stats.totalDamage }}</div>
-      <div>Active DPS: {{ activeDps(stats) }} ({{ stats.activeDuration }})</div>
-      <div>Damage per Cast: {{ round(stats.avgDamage) }}</div>
+      <div>Casts: <span class="table-accent">{{ stats.castCount }}</span></div>
+      <div>Total Damage: <span class="table-accent">{{ stats.totalDamage }}</span></div>
+      <div>Active DPS: <span class="table-accent">{{ activeDps(stats) }} ({{ stats.activeDuration }})</span></div>
+      <div>Damage per Cast: <span class="table-accent">{{ round(stats.avgDamage) }}</span></div>
     </div>
 
     <div class="aggregates hits" *ngIf="spellData.maxDamageInstances > 1">
-      <div>Total Hits: {{ stats.totalHits }}</div>
-      <div>Hits per Cast: {{ round(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</div>
-      <div>Avg Hit: {{ round(stats.avgHit) }}</div>
+      <div>Total Hits: <span class="table-accent">{{ stats.totalHits }}</span></div>
+      <div>Hits per Cast: <span class="table-accent">{{ round(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</span></div>
+      <div>Avg Hit: <span class="table-accent">{{ round(stats.avgHit) }}</span></div>
 
       <div *ngIf="stats.hasChannelStats">
         Avg Post-Channel Latency: {{ round(stats.channelStats.avgNextCastLatency) }}s
@@ -61,8 +61,8 @@
     </div>
 
     <div class="aggregates spellpower">
-      <div>Avg Spellpower: {{ round(stats.avgSpellpower) }}</div>
-      <div>DPS/Power: {{ powerMetric(stats) }}</div>
+      <div>Avg Spellpower: <span class="table-accent">{{ round(stats.avgSpellpower) }}</span></div>
+      <div>DPS/Power: <span class="table-accent">{{ powerMetric(stats) }}</span></div>
     </div>
   </section>
 
