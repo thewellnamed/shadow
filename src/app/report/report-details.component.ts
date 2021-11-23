@@ -100,7 +100,7 @@ export class ReportDetailsComponent implements OnInit {
   private analyze(data: IPlayerEvents) {
     if (data) {
       this.castSummary = new CastsAnalyzer(EventAnalyzer.createCasts(data.casts, data.damage)).run();
-      this.targets = this.castSummary.allTargets
+      this.targets = this.castSummary.targetIds
         .map((id) => ({ id , name: this.log.getUnitName(id) }))
         .filter((t) => (t.name?.length || 0) > 0)
         .sort((a, b) => a.name.localeCompare(b.name));

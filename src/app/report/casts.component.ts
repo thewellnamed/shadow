@@ -5,7 +5,8 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
-import { IHitStats, SpellSummary } from 'src/app/report/models/spell-summary';
+import { SpellSummary } from 'src/app/report/models/spell-summary';
+import { SpellStats } from 'src/app/report/models/spell-stats';
 
 @Component({
   selector: 'casts',
@@ -24,16 +25,19 @@ export class CastsComponent implements OnChanges  {
   spellData: ISpellData;
   spellSummary: SpellSummary;
   encounter: EncounterSummary;
-  stats: IHitStats;
+  stats: SpellStats;
 
   constructor(private changeDetectorRef: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges) {
     this.encounter = this.log.getEncounter(this.encounterId) as EncounterSummary;
-
     let casts;
 
-    if (this.spellId) {
+    if (!this.spellId) {
+      this.spellId = SpellId.NONE;
+    }
+
+    if (this.spellId > SpellId.NONE) {
       this.spellSummary = this.summary.getSpellSummary(this.spellId);
       this.spellData = SpellData[this.spellId];
       this.stats = this.targetId > 0 ? this.spellSummary.targetStats(this.targetId) : this.spellSummary;
@@ -48,6 +52,10 @@ export class CastsComponent implements OnChanges  {
       casts;
 
     this.changeDetectorRef.detectChanges();
+  }
+
+  get summaryStats() {
+    return this.spellId === SpellId.NONE;
   }
 
   offsetTime(timestamp: number) {
@@ -81,13 +89,12 @@ export class CastsComponent implements OnChanges  {
     }
   }
 
-  activeDps(stats: IHitStats) {
-    const duration = (stats.maxTimestamp - stats.minTimestamp)/1000;
-    return this.round(stats.totalDamage/duration);
+  activeDps(stats: SpellStats) {
+    return this.round(stats.totalDamage/stats.activeDuration);
   }
 
-  powerMetric(stats: IHitStats) {
-    const duration = (stats.maxTimestamp - stats.minTimestamp)/1000,
+  powerMetric(stats: SpellStats) {
+    const duration = stats.activeDuration,
       dps = stats.totalDamage/duration;
 
     return this.round(dps/stats.avgSpellpower, 3);

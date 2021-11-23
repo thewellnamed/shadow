@@ -3,15 +3,13 @@ import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 
 export class CastsAnalyzer {
-  private summary: CastsSummary;
   private casts: CastDetails[];
 
-  constructor(summary: CastsSummary) {
-    this.summary = summary;
-    this.casts = summary.allCasts;
+  constructor(casts: CastDetails[]) {
+    this.casts = casts;
   }
 
-  public run() {
+  public run(): CastsSummary {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
         spellData = SpellData[current.spellId];
@@ -54,7 +52,7 @@ export class CastsAnalyzer {
       }
     }
 
-    return this.summary;
+    return new CastsSummary(this.casts);
   }
 
   // find the last time this spell was cast on the same target

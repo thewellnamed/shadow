@@ -1,8 +1,9 @@
 <section class="casts-list">
-  <section class="stats summary" *ngIf="!!stats && stats.spellId === 0">
+  <section class="stats summary" *ngIf="!!stats && summaryStats">
     <div class="aggregates basic">
       <div>Casts: {{ stats.castCount }}</div>
       <div>Total Damage: {{ stats.totalDamage }}</div>
+      <div>Active: {{ stats.activeDuration }}</div>
       <div>Active DPS: {{ activeDps(stats) }}</div>
     </div>
 
@@ -11,7 +12,7 @@
       <div>DPS/Power: {{ powerMetric(stats) }}</div>
     </div>
   </section>
-  <section class="stats spell" *ngIf="!!stats && stats.spellId > 0">
+  <section class="stats spell" *ngIf="!!stats && !!spellData">
     <div class="aggregates basic">
       <div>Total Casts: {{ stats.castCount }}</div>
       <div>Successful Casts: {{ stats.successCount }}</div>
@@ -44,6 +45,7 @@
 
     <div class="aggregates spellpower">
       <div>Avg Spellpower: {{ round(stats.avgSpellpower) }}</div>
+      <div>Active: {{ stats.activeDuration }}</div>
       <div>Active DPS: {{ activeDps(stats) }}</div>
       <div>DPS/Power: {{ powerMetric(stats) }}</div>
     </div>

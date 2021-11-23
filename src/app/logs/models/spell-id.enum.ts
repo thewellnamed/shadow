@@ -1,4 +1,5 @@
 export enum SpellId {
+  NONE = 0,
   DEATH = 32996,
   FADE = 25429,
   FEAR_WARD = 6346,

@@ -15,7 +15,7 @@ export class EventAnalyzer {
    * @param {IDamageData[]} damageData
    * @returns {CastsSummary}
    */
-  public static createCasts(castData: ICastData[], damageData: IDamageData[]): CastsSummary {
+  public static createCasts(castData: ICastData[], damageData: IDamageData[]): CastDetails[] {
     let currentCast: ICastData, startingCast: ICastData|null = null;
     let nextCast: ICastData|null, nextDamage: IDamageData|null;
     const casts: CastDetails[] = [];
@@ -131,7 +131,7 @@ export class EventAnalyzer {
       }
     }
 
-    return new CastsSummary(casts);
+    return casts;
   }
 
   // next replaces the current cast if ALL of these conditions are true
