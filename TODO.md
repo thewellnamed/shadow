@@ -5,10 +5,7 @@
 > - support AoE type damage (engi bombs)
 
 ### Report Detail
-> - Average spell power (weight by damage done per cast?)
 > - Icons for tab labels?
-> - Investigate content loading speed. Paging? Lazy loading is slooooow.
-> - Add overall timeline stats
 > - Display AoE hits without max damage instances 
 > - Additional highlighting of "bad" data (clipped previous)
 

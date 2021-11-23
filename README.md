@@ -21,6 +21,11 @@ https://thewellnamed.github.io/shadow
 
 ### Changelog
 
+- 2021/11/23
+  - Improved rendering performance by switching to ChangeDetectionStrategy.OnPush
+  - Added overall summary stats
+  - Added Spellpower/Active DPS
+
 - 2021/11/22
   - Fixed display of friendly target names in cast list
   - Added display of damage absorbed/resisted

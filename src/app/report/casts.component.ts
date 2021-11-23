@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
@@ -10,7 +10,8 @@ import { IHitStats, SpellSummary } from 'src/app/report/models/spell-summary';
 @Component({
   selector: 'casts',
   templateUrl: './casts.component.html',
-  styleUrls: ['./casts.component.scss']
+  styleUrls: ['./casts.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CastsComponent implements OnChanges  {
   @Input() log: LogSummary;
@@ -25,6 +26,8 @@ export class CastsComponent implements OnChanges  {
   encounter: EncounterSummary;
   stats: IHitStats;
 
+  constructor(private changeDetectorRef: ChangeDetectorRef) {}
+
   ngOnChanges(changes: SimpleChanges) {
     this.encounter = this.log.getEncounter(this.encounterId) as EncounterSummary;
 
@@ -36,12 +39,15 @@ export class CastsComponent implements OnChanges  {
       this.stats = this.targetId > 0 ? this.spellSummary.targetStats(this.targetId) : this.spellSummary;
       casts = this.spellSummary.casts;
     } else {
+      this.stats = this.summary.stats;
       casts = this.summary.allCasts;
     }
 
     this.casts = this.targetId > 0 ?
       casts.filter((c) => c.targetId === this.targetId) :
       casts;
+
+    this.changeDetectorRef.detectChanges();
   }
 
   offsetTime(timestamp: number) {
@@ -73,6 +79,18 @@ export class CastsComponent implements OnChanges  {
     } else {
       return `${seconds}.${dd}`;
     }
+  }
+
+  activeDps(stats: IHitStats) {
+    const duration = (stats.maxTimestamp - stats.minTimestamp)/1000;
+    return this.round(stats.totalDamage/duration);
+  }
+
+  powerMetric(stats: IHitStats) {
+    const duration = (stats.maxTimestamp - stats.minTimestamp)/1000,
+      dps = stats.totalDamage/duration;
+
+    return this.round(dps/stats.avgSpellpower, 3);
   }
 
   round(value: number, decimals = 1) {

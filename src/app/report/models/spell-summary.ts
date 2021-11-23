@@ -8,21 +8,24 @@ import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-dat
 export class SpellSummary implements IHitStats {
   spellId: SpellId;
   spellData: ISpellData;
-  casts: CastDetails[] = []
+  casts: CastDetails[] = [];
+  recalculate = true;
 
   private _targets: number[];
   private _successCount = 0;
   private _totalDamage = 0;
   private _totalHits = 0;
+  private _totalWeightedSpellpower = 0;
   private _avgDamage = 0;
   private _avgHit = 0;
   private _avgHitsPerCast = 0;
+  private _avgSpellpower = 0;
+  private _minTimestamp = 0;
+  private _maxTimestamp = 0;
   private _channelStats: IChannelStats;
   private _downtimeStats: IDowntimeStats;
   private _hitStats: IStatsMap = {};
   private _targetStats: IStatsMap = {};
-
-  private recalculate = true;
 
   constructor(spellId: SpellId) {
     this.spellId = spellId;
@@ -50,6 +53,22 @@ export class SpellSummary implements IHitStats {
     }
 
     return this._targets;
+  }
+
+  get minTimestamp() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._minTimestamp;
+  }
+
+  get maxTimestamp() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._maxTimestamp;
   }
 
   get castCount() {
@@ -80,6 +99,14 @@ export class SpellSummary implements IHitStats {
     return this._totalHits;
   }
 
+  get totalWeightedSpellpower() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._totalWeightedSpellpower;
+  }
+
   get avgHitCount() {
     if (this.recalculate) {
       this.calculate();
@@ -94,6 +121,14 @@ export class SpellSummary implements IHitStats {
     }
 
     return this._avgDamage;
+  }
+
+  get avgSpellpower() {
+    if (this.recalculate) {
+      this.calculate();
+    }
+
+    return this._avgSpellpower;
   }
 
   get avgHit() {
@@ -175,6 +210,7 @@ export class SpellSummary implements IHitStats {
 
   /**
    * Total Damage stats
+   * TODO - could do all of this in one loop. Less functional, faster
    * @private
    */
   private calculateDamageStats() {
@@ -182,8 +218,22 @@ export class SpellSummary implements IHitStats {
     this._successCount = this.casts.filter((c) => c.totalDamage > 0).length;
 
     // total damage across all casts
+    // also timestamps
     this._totalDamage = this.casts.reduce((sum, next) => {
       sum += next.totalDamage;
+
+      if (next.instances.length > 0) {
+        const lastInstance = next.instances[next.instances.length - 1];
+
+        if (this._minTimestamp === 0 || next.castStart < this._minTimestamp) {
+          this._minTimestamp = next.castStart;
+        }
+
+        if (this._maxTimestamp === 0 || lastInstance.timestamp > this._maxTimestamp) {
+          this._maxTimestamp = lastInstance.timestamp;
+        }
+      }
+
       return sum;
     }, 0);
 
@@ -199,6 +249,13 @@ export class SpellSummary implements IHitStats {
 
     this._avgHitsPerCast = this._totalHits / this._successCount;
     this._avgHit = this._totalDamage / this._totalHits;
+
+    // Spellpower
+    this._totalWeightedSpellpower = this.casts.reduce((sum, next) => {
+      sum += next.spellPower * next.totalDamage;
+      return sum;
+    }, 0);
+    this._avgSpellpower = this._totalWeightedSpellpower / this._totalDamage;
   }
 
   private calculateChannelStats() {
@@ -260,33 +317,55 @@ export class SpellSummary implements IHitStats {
     if (statsMap.hasOwnProperty(key)) {
       statsMap[key].castCount++;
       statsMap[key].totalDamage += cast.totalDamage;
-      statsMap[key].totalHits += cast.ticks;
+
+      if (cast.instances.length > 0) {
+        const lastInstance = cast.instances[cast.instances.length - 1];
+
+        if (statsMap[key].minTimestamp === 0 || cast.castStart < statsMap[key].minTimestamp) {
+          statsMap[key].minTimestamp = cast.castStart;
+        }
+
+        if (statsMap[key].maxTimestamp === 0 || lastInstance.timestamp > statsMap[key].maxTimestamp) {
+          statsMap[key].maxTimestamp = lastInstance.timestamp;
+        }
+      }
+
+      const hits = this.evaluateHits(cast);
+      statsMap[key].totalHits += hits;
+      statsMap[key].totalWeightedSpellpower += (cast.spellPower * cast.totalDamage);
 
       if (cast.totalDamage > 0) {
         statsMap[key].successCount++;
       }
 
-      if (this.spellData.damageType === DamageType.CHANNEL) {
-        statsMap[key].channelStats.totalNextCastLatency += cast.nextCastLatency;
+      if (this.hasChannelStats) {
+        statsMap[key].channelStats!.totalNextCastLatency += cast.nextCastLatency;
       }
 
       if (this.hasDowntimeStats) {
-        statsMap[key].downtimeStats.totalDowntime += this.getDowntime(cast);
+        statsMap[key].downtimeStats!.totalDowntime += this.getDowntime(cast);
 
         if (cast.clippedPreviousCast) {
-          statsMap[key].downtimeStats.clippedTicks += cast.clippedTicks;
-          statsMap[key].downtimeStats.clipCount++;
+          statsMap[key].downtimeStats!.clippedTicks += cast.clippedTicks;
+          statsMap[key].downtimeStats!.clipCount++;
         }
       }
     } else {
+      const hits = this.evaluateHits(cast);
+
       statsMap[key] = {
+        spellId: this.spellId,
         castCount: 1,
+        minTimestamp: cast.castStart,
+        maxTimestamp: cast.instances.length === 0 ? cast.castEnd : cast.instances[cast.instances.length - 1].timestamp,
         successCount: cast.totalDamage > 0 ? 1 : 0,
         totalDamage: cast.totalDamage,
-        totalHits: this.evaluateHits(cast),
+        totalHits: hits,
+        totalWeightedSpellpower: cast.spellPower * cast.totalDamage,
         avgDamage: 0,
         avgHit: 0,
         avgHitCount: 0,
+        avgSpellpower: 0,
         hasChannelStats: this.hasChannelStats,
         channelStats: this.createChannelStats(cast),
         hasDowntimeStats: this.hasDowntimeStats,
@@ -304,17 +383,18 @@ export class SpellSummary implements IHitStats {
       stats.avgDamage = stats.totalDamage / stats.castCount;
       stats.avgHit = stats.totalDamage / stats.totalHits;
       stats.avgHitCount = stats.totalHits / stats.successCount;
+      stats.avgSpellpower = stats.totalWeightedSpellpower / stats.totalDamage;
 
       if (this.hasChannelStats) {
-        stats.channelStats.avgNextCastLatency = stats.channelStats.totalNextCastLatency / stats.successCount;
+        stats.channelStats!.avgNextCastLatency = stats.channelStats!.totalNextCastLatency / stats.successCount;
       }
 
       if (this.hasDowntimeStats) {
-        stats.downtimeStats.avgDowntime = stats.downtimeStats.totalDowntime / stats.successCount;
+        stats.downtimeStats!.avgDowntime = stats.downtimeStats!.totalDowntime / stats.successCount;
 
         // what percentage of the total ticks I should have gotten were missed
-        stats.downtimeStats.missedTickPercent =
-          stats.downtimeStats.clippedTicks / (stats.successCount * this.spellData.maxDamageInstances);
+        stats.downtimeStats!.missedTickPercent =
+          stats.downtimeStats!.clippedTicks / (stats.successCount * this.spellData.maxDamageInstances);
       }
     }
   }
@@ -358,17 +438,22 @@ export interface IStatsMap {
 }
 
 export interface IHitStats {
+  spellId: number;
   castCount: number;
   successCount: number;
+  minTimestamp: number;
+  maxTimestamp: number;
   totalDamage: number;
   totalHits: number;
   avgHitCount: number;
   avgDamage: number;
   avgHit: number;
+  totalWeightedSpellpower: number;
+  avgSpellpower: number;
   hasChannelStats: boolean;
-  channelStats: IChannelStats;
+  channelStats?: IChannelStats;
   hasDowntimeStats: boolean;
-  downtimeStats: IDowntimeStats;
+  downtimeStats?: IDowntimeStats;
 }
 
 export interface IChannelStats {

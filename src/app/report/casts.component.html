@@ -1,5 +1,17 @@
 <section class="casts-list">
-  <section class="stats" *ngIf="!!stats">
+  <section class="stats summary" *ngIf="!!stats && stats.spellId === 0">
+    <div class="aggregates basic">
+      <div>Casts: {{ stats.castCount }}</div>
+      <div>Total Damage: {{ stats.totalDamage }}</div>
+      <div>Active DPS: {{ activeDps(stats) }}</div>
+    </div>
+
+    <div class="aggregates spellpower">
+      <div>Avg Spellpower: {{ round(stats.avgSpellpower) }}</div>
+      <div>DPS/Power: {{ powerMetric(stats) }}</div>
+    </div>
+  </section>
+  <section class="stats spell" *ngIf="!!stats && stats.spellId > 0">
     <div class="aggregates basic">
       <div>Total Casts: {{ stats.castCount }}</div>
       <div>Successful Casts: {{ stats.successCount }}</div>
@@ -14,20 +26,26 @@
     </div>
 
     <div class="aggregates downtime" *ngIf="stats.hasDowntimeStats">
-      <div>Total downtime: {{ round(stats.downtimeStats.totalDowntime) }}s</div>
-      <div>Avg downtime per Cast: {{ round(stats.downtimeStats.avgDowntime) }}s</div>
+      <div>Total downtime: {{ round(stats.downtimeStats!.totalDowntime) }}s</div>
+      <div>Avg downtime per Cast: {{ round(stats.downtimeStats!.avgDowntime) }}s</div>
       <div *ngIf="spellData.maxDamageInstances > 1">
-        Clipped casts: {{ round(stats.downtimeStats.clipCount) }}
+        Clipped casts: {{ round(stats.downtimeStats!.clipCount) }}
       </div>
       <div *ngIf="spellData.maxDamageInstances > 1">
-        Clipped ticks: {{ round(stats.downtimeStats.clippedTicks) }}
-        ({{ round(stats.downtimeStats.missedTickPercent * 100, 2) }}%)
+        Clipped ticks: {{ round(stats.downtimeStats!.clippedTicks) }}
+        ({{ round(stats.downtimeStats!.missedTickPercent * 100, 2) }}%)
       </div>
     </div>
 
     <div class="aggregates channel" *ngIf="stats.hasChannelStats">
-      <div>Total post-channel latency: {{ round(stats.channelStats.totalNextCastLatency) }}s</div>
-      <div>Avg Latency per Cast: {{ round(stats.channelStats.avgNextCastLatency) }}s</div>
+      <div>Total post-channel latency: {{ round(stats.channelStats!.totalNextCastLatency) }}s</div>
+      <div>Avg Latency per Cast: {{ round(stats.channelStats!.avgNextCastLatency) }}s</div>
+    </div>
+
+    <div class="aggregates spellpower">
+      <div>Avg Spellpower: {{ round(stats.avgSpellpower) }}</div>
+      <div>Active DPS: {{ activeDps(stats) }}</div>
+      <div>DPS/Power: {{ powerMetric(stats) }}</div>
     </div>
   </section>
 
