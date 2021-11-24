@@ -6,8 +6,7 @@
 
 ### Report Detail
 > - Icons for tab labels?
-> - Display AoE hits without max damage instances 
-> - Additional highlighting of "bad" data (clipped previous)
+> - Display AoE hits without max damage instances
 
 ### Testing
 > - Create integration test with canned JSON data for a given log

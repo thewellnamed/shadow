@@ -55,45 +55,50 @@ export class CastsComponent implements OnChanges  {
   }
 
   offsetTime(timestamp: number) {
-    return this.duration(this.encounter.start, timestamp);
+    return this.duration(timestamp - this.encounter.start);
   }
 
   castTime(cast: CastDetails) {
     if (this.isChannel(cast) && cast.lastDamageTimestamp) {
-      return this.duration(cast.castStart, cast.lastDamageTimestamp, false);
+      return this.duration(cast.lastDamageTimestamp - cast.castStart, 'S.dd');
     }
 
-    return this.duration(cast.castStart, cast.castEnd, false);
+    return this.duration(cast.castEnd - cast.castStart, 'S.dd');
   }
 
-  duration(start: number, end: number, includeMinutes = true) {
-    const offset = (end - start)/1000;
+  duration(lengthMs: number, format = 'mm:ss.dd') {
+    const offset = lengthMs/1000;
 
     const minutes = Math.floor(offset / 60),
       secondsFloat = offset - (minutes * 60),
       seconds = Math.floor(secondsFloat),
       decimal = Math.round((secondsFloat - seconds) * 100);
 
-    const mm = (minutes + '').padStart(2, '0'),
-      ss = (seconds + '').padStart(2, '0'),
-      dd = (decimal + '').padStart(2, '0').padEnd(2, '0');
+    const values: any = {
+      M: minutes,
+      mm: (minutes + '').padStart(2, '0'),
+      S: seconds,
+      ss: (seconds + '').padStart(2, '0'),
+      dd: (decimal + '').padStart(2, '0').padEnd(2, '0')
+    };
 
-    if (includeMinutes) {
-      return `${mm}:${ss}.${dd}`;
-    } else {
-      return `${seconds}.${dd}`;
+    let out = format;
+    for (const key in values) {
+      out = out.replace(key, values[key]);
     }
+
+    return out;
   }
 
   activeDps(stats: SpellStats) {
-    return this.round(stats.totalDamage/stats.activeDuration);
+    return this.round((stats.totalDamage * 1000) / stats.activeDuration);
   }
 
   powerMetric(stats: SpellStats) {
     const duration = stats.activeDuration,
-      dps = stats.totalDamage/duration;
+      dps = (stats.totalDamage * 1000) / duration;
 
-    return this.round(dps/stats.avgSpellpower, 3);
+    return this.round(dps / stats.avgSpellpower, 3);
   }
 
   round(value: number, decimals = 1) {
@@ -175,25 +180,37 @@ export class CastsComponent implements OnChanges  {
     return 'table-accent';
   }
 
-  downtimeClass(cast: CastDetails) {
-    if (this.hasCooldown(cast)) {
-      if (cast.timeOffCooldown > 5) {
-        return 'text-warning';
-      }
-
-      if (cast.timeOffCooldown > 1) {
-        return 'text-notice';
-      }
+  latencyClass(latency: number) {
+    if (latency >= 1) {
+      return 'text-warning';
     }
 
-    if (this.isDot(cast)) {
-      if (cast.dotDowntime > 5) {
-        return 'text-warning';
-      }
+    if (latency >= 0.3) {
+      return 'text-notice';
+    }
 
-      if (cast.dotDowntime > 1) {
-        return 'text-notice';
-      }
+    return 'table-accent';
+  }
+
+  clipClass(missedPercent: number) {
+    if (missedPercent >= 0.02) {
+      return 'text-warning';
+    }
+
+    if (missedPercent > 0) {
+      return 'text-notice';
+    }
+
+    return 'table-accent';
+  }
+
+  downtimeClass(downtime: number) {
+    if (downtime > 5) {
+      return 'text-warning';
+    }
+
+    if (downtime >= 2) {
+      return 'text-notice';
     }
 
     return 'table-accent';

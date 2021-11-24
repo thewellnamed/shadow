@@ -6,7 +6,6 @@ export class SpellStats {
   successCount = 0;
   minTimestamp = 0;
   maxTimestamp = 0;
-  activeDuration = 1;
   totalDamage = 0;
   totalHits = 0;
   totalWeightedSpellpower = 0;
@@ -15,6 +14,7 @@ export class SpellStats {
 
   private _casts: CastDetails[] = [];
   private _sortedCasts?: CastDetails[];
+  private _activeDuration = 0;
   private _includeTargetStats = false;
   private _targetIds: Set<number> = new Set();
   private _avgDamage = 0;
@@ -60,6 +60,14 @@ export class SpellStats {
     }
 
     return this._sortedCasts;
+  }
+
+  get activeDuration() {
+    if (this.recalculate) {
+      this.updateStats();
+    }
+
+    return this._activeDuration;
   }
 
   get avgDamage() {
@@ -221,7 +229,6 @@ export class SpellStats {
       this.totalDamage += next.totalDamage;
       this.totalHits += next.totalHits;
       this.totalWeightedSpellpower += next.totalWeightedSpellpower;
-      this.activeDuration += next.activeDuration;
 
       if (this.minTimestamp === 0 || next.minTimestamp < this.minTimestamp) {
         this.minTimestamp = next.minTimestamp;
@@ -290,7 +297,48 @@ export class SpellStats {
       }
     }
 
+    // Calculate active duration
+    this._sortedCasts = this.casts.sort((a, b) => a.castStart - b.castStart);
+    let window = { start: 0, end: 0 };
+    let activeDuration = 0;
+
+    for (const next of this.casts) {
+      const { start, end } = this.getEffectiveWindow(next);
+
+      if (window.end === 0 || start > window.end) {
+        activeDuration += (end - start);
+        window = { start, end };
+      } else if (start <= window.end && end > window.end) {
+        activeDuration += (end - window.end);
+        window.end = end;
+      }
+    }
+
+    this._activeDuration = activeDuration;
     this.recalculate = false;
+  }
+
+  private getEffectiveWindow(cast: CastDetails) {
+    const spellData = SpellData[cast.spellId];
+    const start = cast.castStart;
+    let end;
+
+    // For DoT/Channel, use the timestamp of the last instance
+    if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData.damageType) && cast.instances.length > 0) {
+      end = cast.instances[cast.instances.length - 1].timestamp;
+    }
+
+    // If there's a cast time, use that
+    else if (cast.castEnd - cast.castStart >= 950) {
+      end = cast.castEnd;
+    }
+
+    // If all else fails, assume 1.5s GCD
+    else {
+      end = cast.castStart + 1500;
+    }
+
+    return { start, end };
   }
 
   private addChannelStats(cast: CastDetails) {
