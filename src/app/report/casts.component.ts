@@ -155,7 +155,7 @@ export class CastsComponent implements OnChanges  {
       return 'notice';
     }
 
-    if (this.isChannel(cast) && cast.nextCastLatency > 1) {
+    if (this.isChannel(cast) && cast.nextCastLatency >= 0.4) {
       return 'notice';
     }
 
@@ -185,7 +185,7 @@ export class CastsComponent implements OnChanges  {
       return 'text-warning';
     }
 
-    if (latency >= 0.3) {
+    if (latency >= 0.4) {
       return 'text-notice';
     }
 

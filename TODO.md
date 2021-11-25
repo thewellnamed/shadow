@@ -3,6 +3,8 @@
 ### Analyzer
 > - Add additional spells: starshards, devouring plague, engi bombs
 > - support AoE type damage (engi bombs)
+> - Cleanup color coding evaluation implementation
+>   - Don't flag missed ticks if target died
 
 ### Report Detail
 > - Icons for tab labels?

@@ -21,6 +21,10 @@ https://thewellnamed.github.io/shadow
 
 ### Changelog
 
+- 2021/11/25
+  - Fixed bug in post-channel latency calculation
+
+
 - 2021/11/23
   - Improved rendering performance by switching to ChangeDetectionStrategy.OnPush
   - Added overall summary stats

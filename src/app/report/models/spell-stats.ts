@@ -168,10 +168,12 @@ export class SpellStats {
     }
 
     if (cast.totalDamage > 0) {
+      const totalDamage = cast.totalDamage + cast.totalAbsorbed;
+
       this.successCount++;
-      this.totalDamage += cast.totalDamage + cast.totalAbsorbed;
+      this.totalDamage += totalDamage;
       this.totalHits += this.evaluateHits(cast);
-      this.totalWeightedSpellpower += (cast.spellPower * cast.totalDamage);
+      this.totalWeightedSpellpower += (cast.spellPower * totalDamage);
     }
 
     if (cast.instances.length > 0) {
@@ -281,7 +283,7 @@ export class SpellStats {
     this._avgSpellpower = this.totalWeightedSpellpower / this.totalDamage;
 
     if (this.hasChannelStats) {
-      this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this.successCount;
+      this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._channelStats.castCount;
     }
 
     if (this.hasCooldownStats) {

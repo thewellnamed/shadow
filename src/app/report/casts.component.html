@@ -54,7 +54,7 @@
 
       <div *ngIf="stats.hasChannelStats">
         Avg post-channel MF latency:
-        <span [ngClass]="latencyClass(stats.channelStats.avgNextCastLatency)">{{ round(stats.channelStats.avgNextCastLatency) }}s</span>
+        <span [ngClass]="latencyClass(stats.channelStats.avgNextCastLatency)">{{ round(stats.channelStats.avgNextCastLatency, 2) }}s</span>
       </div>
     </div>
 
@@ -92,7 +92,7 @@
           <div *ngIf="cast.totalResisted > 0">Resisted: {{ cast.totalResisted }}</div>
           <div *ngIf="isDot(cast)">DoT downtime: <span [ngClass]="downtimeClass(cast.dotDowntime)">{{ round(cast.dotDowntime) }}s</span></div>
           <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
-          <div *ngIf="isChannel(cast)">Post-Channel latency: {{ round(cast.nextCastLatency) }}s</div>
+          <div *ngIf="isChannel(cast)">Post-Channel latency: {{ round(cast.nextCastLatency, 2) }}s</div>
           <div *ngIf="hasCooldown(cast)">Time off cooldown: <span [ngClass]="downtimeClass(cast.timeOffCooldown)">{{ round(cast.timeOffCooldown) }}s</span></div>
         </div>
 
