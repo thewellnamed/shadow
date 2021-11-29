@@ -1,6 +1,7 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { HitType } from 'src/app/logs/models/hit-type';
 
 export class CastsAnalyzer {
   private static MAX_ACTIVE_LATENCY = 3000; // ignore "next cast latency" for gaps over 5s (not trying to chain-cast)
@@ -85,7 +86,7 @@ export class CastsAnalyzer {
 
     for (let i = currentIndex - 1; i >= 0; i--) {
       const test = this.casts[i];
-      if (test.spellId === cast.spellId) {
+      if (test.spellId === cast.spellId && test.hitType !== HitType.RESIST) {
         if (!prev.onTarget && test.hasSameTarget(cast)) {
           prev.onTarget = test;
         }
