@@ -50,10 +50,6 @@ export class CastsComponent implements OnChanges  {
     this.changeDetectorRef.detectChanges();
   }
 
-  get summaryStats() {
-    return this.spellId === SpellId.NONE;
-  }
-
   offsetTime(timestamp: number) {
     return this.duration(timestamp - this.encounter.start);
   }
@@ -101,7 +97,11 @@ export class CastsComponent implements OnChanges  {
     return this.round(dps / stats.avgSpellpower, 3);
   }
 
-  round(value: number, decimals = 1) {
+  round(value: number|undefined, decimals = 1) {
+    if (value === undefined) {
+      return '---';
+    }
+
     const factor = 10 ** decimals;
     return Math.round(value * factor) / factor;
   }
@@ -147,7 +147,7 @@ export class CastsComponent implements OnChanges  {
       return 'warning';
     }
 
-    if (cast.timeOffCooldown > 5 || cast.dotDowntime > 5) {
+    if ((cast.timeOffCooldown || 0) > 5 || (cast.dotDowntime || 0) > 5) {
       return 'warning';
     }
 
@@ -155,11 +155,11 @@ export class CastsComponent implements OnChanges  {
       return 'notice';
     }
 
-    if (this.isChannel(cast) && cast.nextCastLatency >= 0.4) {
+    if (this.isChannel(cast) && (cast.nextCastLatency || 0) >= 0.4) {
       return 'notice';
     }
 
-    if (cast.timeOffCooldown > 1 || cast.dotDowntime > 1) {
+    if ((cast.timeOffCooldown || 0) > 1 || (cast.dotDowntime || 0) > 1) {
       return 'notice';
     }
 
@@ -180,7 +180,11 @@ export class CastsComponent implements OnChanges  {
     return 'table-accent';
   }
 
-  latencyClass(latency: number) {
+  latencyClass(latency: number|undefined) {
+    if (latency === undefined) {
+      return 'table-accent';
+    }
+
     if (latency >= 1) {
       return 'text-warning';
     }
@@ -204,7 +208,11 @@ export class CastsComponent implements OnChanges  {
     return 'table-accent';
   }
 
-  downtimeClass(downtime: number) {
+  downtimeClass(downtime: number|undefined) {
+    if (downtime === undefined) {
+      return 'table-accent';
+    }
+
     if (downtime > 5) {
       return 'text-warning';
     }

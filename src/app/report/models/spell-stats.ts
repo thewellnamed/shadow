@@ -29,6 +29,7 @@ export class SpellStats {
   };
   private _dotStats: IDotStats = {
     castCount: 0,
+    downtimeCount: 0,
     clipCount: 0,
     clippedTicks: 0,
     missedTickPercent: 0,
@@ -190,18 +191,22 @@ export class SpellStats {
 
     if (this.addChannelStats(cast)) {
       this._channelStats.castCount++;
-      this._channelStats.totalNextCastLatency += cast.nextCastLatency;
+      this._channelStats.totalNextCastLatency += cast.nextCastLatency as number;
     }
 
     if (this.addCooldownStats(cast)) {
       this._cooldownStats.castCount++;
-      this._cooldownStats.totalOffCooldown += cast.timeOffCooldown;
+      this._cooldownStats.totalOffCooldown += cast.timeOffCooldown as number;
     }
 
     if (this.addDotStats(cast)) {
       this._dotStats.castCount++;
       this._dotStats.expectedTicks += spellData.maxDamageInstances;
-      this._dotStats.totalDowntime += cast.dotDowntime;
+
+      if (cast.dotDowntime !== undefined) {
+        this._dotStats.downtimeCount++;
+        this._dotStats.totalDowntime += cast.dotDowntime;
+      }
 
       if (cast.clippedPreviousCast) {
         this._dotStats.clipCount++;
@@ -252,6 +257,7 @@ export class SpellStats {
 
       if (next.hasDotStats) {
         this._dotStats.castCount += next.dotStats.castCount;
+        this._dotStats.downtimeCount += next.dotStats.downtimeCount;
         this._dotStats.clipCount += next.dotStats.clipCount;
         this._dotStats.clippedTicks += next.dotStats.clippedTicks;
         this._dotStats.expectedTicks += next.dotStats.expectedTicks;
@@ -291,7 +297,7 @@ export class SpellStats {
     }
 
     if (this.hasDotStats) {
-      this._dotStats.avgDowntime = this._dotStats.totalDowntime / this._dotStats.castCount;
+      this._dotStats.avgDowntime = this._dotStats.totalDowntime / this._dotStats.downtimeCount;
 
       // what percentage of the total ticks I should have gotten were missed
       if (this._dotStats.expectedTicks > 0) {
@@ -344,11 +350,11 @@ export class SpellStats {
   }
 
   private addChannelStats(cast: CastDetails) {
-    return SpellData[cast.spellId].damageType === DamageType.CHANNEL;
+    return SpellData[cast.spellId].damageType === DamageType.CHANNEL && cast.nextCastLatency !== undefined;
   }
 
   private addCooldownStats(cast: CastDetails) {
-    return SpellData[cast.spellId].cooldown > 0;
+    return SpellData[cast.spellId].cooldown > 0 && cast.timeOffCooldown !== undefined;
   }
 
   private addDotStats(cast: CastDetails) {
@@ -391,6 +397,7 @@ export interface ICooldownStats {
 
 export interface IDotStats {
   castCount: number;
+  downtimeCount: number;
   clipCount: number;
   clippedTicks: number;
   expectedTicks: number;

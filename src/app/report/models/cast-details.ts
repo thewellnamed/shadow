@@ -21,13 +21,13 @@ export class CastDetails {
   clippedTicks = 0;
 
   // for channeled spells, delta from the last damage tick (effective end of channel) until next cast (of any spell)
-  nextCastLatency = 0;
+  nextCastLatency?: number;
 
   // for DoTs, downtime between last tick and first tick of this cast
-  dotDowntime = 0;
+  dotDowntime?: number;
 
   // for spells with a cooldown, delta from the point the spell was off cooldown until this cast started
-  timeOffCooldown = 0;
+  timeOffCooldown?: number;
 
   constructor({ ability, targetId, targetInstance, castStart, castEnd, spellPower }: ICastDetailsParams) {
     this.spellId = ability.guid;
