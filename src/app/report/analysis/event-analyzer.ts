@@ -138,8 +138,14 @@ export class EventAnalyzer {
       return false;
     }
 
-    // must take place in the proper window
-    if (next.timestamp < (cast.castEnd - this.EVENT_LEEWAY) || next.timestamp > (maxTimestamp + this.EVENT_LEEWAY)) {
+    // damage must take place in the proper window
+    // for dots, allow EVENT_LEEWAY for each tick
+    const spellData = SpellData[cast.spellId];
+    const leeway = spellData.maxDamageInstances > 1 ?
+      (spellData.maxDamageInstances * this.EVENT_LEEWAY) :
+      this.EVENT_LEEWAY;
+
+    if (next.timestamp < (cast.castEnd - this.EVENT_LEEWAY) || next.timestamp > (maxTimestamp + leeway)) {
       return false;
     }
 
