@@ -1,14 +1,12 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
-import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 export class CastsAnalyzer {
-  private static MAX_ACTIVE_LATENCY = 5000; // ignore "next cast latency" for gaps over 5s
-  private static MAX_ACTIVE_DOWNTIME = 30000; // ignore cooldown/dot downtime for gaps over 30s
+  private static MAX_ACTIVE_LATENCY = 3000; // ignore "next cast latency" for gaps over 5s (not trying to chain-cast)
+  private static MAX_ACTIVE_DOWNTIME = 10000; // ignore cooldown/dot downtime for gaps over 10s (movement?)
 
   private casts: CastDetails[];
-  private encounter: EncounterSummary;
 
   constructor(casts: CastDetails[]) {
     this.casts = casts;
@@ -34,7 +32,6 @@ export class CastsAnalyzer {
           break;
       }
 
-      // check time between casts
       if (spellData.cooldown > 0 && prevCastData.onAll) {
         const delta = current.castStart - prevCastData.onAll.castEnd;
         if (delta <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME) {

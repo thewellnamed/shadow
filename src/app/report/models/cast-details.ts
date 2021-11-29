@@ -1,6 +1,7 @@
 import { IAbilityData } from 'src/app/logs/logs.service';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
+import { HitType } from 'src/app/logs/models/hit-type';
 
 export class CastDetails {
   spellId: SpellId;
@@ -9,6 +10,7 @@ export class CastDetails {
   castEnd: number;
   targetId: number;
   targetInstance: number;
+  hitType: HitType;
   instances: DamageInstance[] = [];
   totalDamage = 0;
   totalAbsorbed = 0;
@@ -41,6 +43,23 @@ export class CastDetails {
     this.spellPower = spellPower;
   }
 
+  setInstances(instances: DamageInstance[]) {
+    this.instances = instances;
+
+    let damage = 0, absorbed = 0, resisted = 0;
+    for (const next of instances) {
+      damage += next.amount;
+      absorbed += next.absorbed;
+      resisted += next.resisted;
+    }
+
+    this.setHitType();
+    this.totalDamage = damage;
+    this.totalAbsorbed = absorbed;
+    this.totalResisted = resisted;
+    this.ticks = this.instances.length;
+  }
+
   hasSameTarget(other: CastDetails) {
     return other.targetId === this.targetId && other.targetInstance === this.targetInstance;
   }
@@ -51,6 +70,24 @@ export class CastDetails {
     }
 
     return this.instances[this.instances.length - 1].timestamp;
+  }
+
+  private setHitType() {
+    // none of the multi-instance abilities can crit, so if there are multiple instances of damage
+    // then we didn't fully resist, so call it a hit.
+    // Could interrogate all the instances and mark as partial resist, etc., but not needed now
+    if (this.instances.length > 1) {
+      this.hitType = HitType.HIT;
+    }
+
+    else if (this.instances.length === 1 ) {
+      this.hitType = this.instances[0].hitType;
+    }
+
+    else {
+      // we cast but nothing ever happened (dead before any ticks? clipped?)
+      this.hitType = HitType.NONE;
+    }
   }
 }
 

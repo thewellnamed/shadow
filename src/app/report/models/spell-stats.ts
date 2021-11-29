@@ -22,25 +22,31 @@ export class SpellStats {
   private _avgHit = 0;
   private _avgSpellpower = 0;
   private _targetStats: IStatsMap = {};
+
   private _channelStats: IChannelStats = {
     castCount: 0,
     totalNextCastLatency: 0,
     avgNextCastLatency: 0
   };
-  private _dotStats: IDotStats = {
-    castCount: 0,
-    downtimeCount: 0,
-    clipCount: 0,
-    clippedTicks: 0,
-    missedTickPercent: 0,
-    expectedTicks: 0,
-    totalDowntime: 0,
-    avgDowntime: 0
-  };
+
   private _cooldownStats: ICooldownStats = {
     castCount: 0,
     totalOffCooldown: 0,
     avgOffCooldown: 0
+  };
+
+  private _clipStats: IDotClipStats = {
+    castCount: 0,
+    clipCount: 0,
+    clippedTicks: 0,
+    missedTickPercent: 0,
+    expectedTicks: 0,
+  };
+
+  private _dotDowntimeStats: IDotDownTimeStats = {
+    castCount: 0,
+    totalDowntime: 0,
+    avgDowntime: 0
   };
 
   constructor(casts?: CastDetails[], includeTargetStats = false) {
@@ -111,8 +117,12 @@ export class SpellStats {
     return this._cooldownStats.castCount > 0;
   }
 
-  get hasDotStats() {
-    return this._dotStats.castCount > 0;
+  get hasClipStats() {
+    return this._clipStats.castCount > 0;
+  }
+
+  get hasDotDowntimeStats() {
+    return this._dotDowntimeStats.castCount > 0;
   }
 
   get channelStats() {
@@ -131,12 +141,20 @@ export class SpellStats {
     return this._cooldownStats;
   }
 
-  get dotStats() {
+  get clipStats() {
     if (this.recalculate) {
       this.updateStats();
     }
 
-    return this._dotStats;
+    return this._clipStats;
+  }
+
+  get dotDowntimeStats() {
+    if (this.recalculate) {
+      this.updateStats();
+    }
+
+    return this._dotDowntimeStats;
   }
 
   targetStats(targetId: number): SpellStats {
@@ -199,19 +217,19 @@ export class SpellStats {
       this._cooldownStats.totalOffCooldown += cast.timeOffCooldown as number;
     }
 
-    if (this.addDotStats(cast)) {
-      this._dotStats.castCount++;
-      this._dotStats.expectedTicks += spellData.maxDamageInstances;
-
-      if (cast.dotDowntime !== undefined) {
-        this._dotStats.downtimeCount++;
-        this._dotStats.totalDowntime += cast.dotDowntime;
-      }
+    if (this.addClipStats(cast)) {
+      this._clipStats.castCount++;
+      this._clipStats.expectedTicks += spellData.maxDamageInstances;
 
       if (cast.clippedPreviousCast) {
-        this._dotStats.clipCount++;
-        this._dotStats.clippedTicks += cast.clippedTicks;
+        this._clipStats.clipCount++;
+        this._clipStats.clippedTicks += cast.clippedTicks;
       }
+    }
+
+    if (this.addDotDowntimeStats(cast)) {
+      this._dotDowntimeStats.castCount++;
+      this._dotDowntimeStats.totalDowntime += cast.dotDowntime as number;
     }
 
     this.recalculate = true;
@@ -255,13 +273,16 @@ export class SpellStats {
         this._cooldownStats.totalOffCooldown += next._cooldownStats.totalOffCooldown;
       }
 
-      if (next.hasDotStats) {
-        this._dotStats.castCount += next.dotStats.castCount;
-        this._dotStats.downtimeCount += next.dotStats.downtimeCount;
-        this._dotStats.clipCount += next.dotStats.clipCount;
-        this._dotStats.clippedTicks += next.dotStats.clippedTicks;
-        this._dotStats.expectedTicks += next.dotStats.expectedTicks;
-        this._dotStats.totalDowntime += next.dotStats.totalDowntime;
+      if (next.hasClipStats) {
+        this._clipStats.castCount += next.clipStats.castCount;
+        this._clipStats.clipCount += next.clipStats.clipCount;
+        this._clipStats.clippedTicks += next.clipStats.clippedTicks;
+        this._clipStats.expectedTicks += next.clipStats.expectedTicks;
+      }
+
+      if (next.hasDotDowntimeStats) {
+        this._dotDowntimeStats.castCount += next.dotDowntimeStats.castCount;
+        this._dotDowntimeStats.totalDowntime += next.dotDowntimeStats.totalDowntime;
       }
 
       if (this._includeTargetStats) {
@@ -296,13 +317,12 @@ export class SpellStats {
       this._cooldownStats.avgOffCooldown = this._cooldownStats.totalOffCooldown / this._cooldownStats.castCount;
     }
 
-    if (this.hasDotStats) {
-      this._dotStats.avgDowntime = this._dotStats.totalDowntime / this._dotStats.downtimeCount;
+    if (this.hasDotDowntimeStats) {
+      this._dotDowntimeStats.avgDowntime = this._dotDowntimeStats.totalDowntime / this._dotDowntimeStats.castCount;
+    }
 
-      // what percentage of the total ticks I should have gotten were missed
-      if (this._dotStats.expectedTicks > 0) {
-        this._dotStats.missedTickPercent = this._dotStats.clippedTicks / this._dotStats.expectedTicks;
-      }
+    if (this.hasClipStats && this._clipStats.expectedTicks > 0) {
+      this._clipStats.missedTickPercent = this._clipStats.clippedTicks / this._clipStats.expectedTicks;
     }
 
     // Calculate active duration
@@ -357,8 +377,12 @@ export class SpellStats {
     return SpellData[cast.spellId].cooldown > 0 && cast.timeOffCooldown !== undefined;
   }
 
-  private addDotStats(cast: CastDetails) {
+  private addClipStats(cast: CastDetails) {
     return SpellData[cast.spellId].damageType === DamageType.DOT;
+  }
+
+  private addDotDowntimeStats(cast: CastDetails) {
+    return SpellData[cast.spellId].damageType === DamageType.DOT && cast.dotDowntime !== undefined;
   }
 
   private evaluateHits(cast: CastDetails) {
@@ -395,13 +419,16 @@ export interface ICooldownStats {
   avgOffCooldown: number;
 }
 
-export interface IDotStats {
+export interface IDotClipStats {
   castCount: number;
-  downtimeCount: number;
   clipCount: number;
   clippedTicks: number;
   expectedTicks: number;
   missedTickPercent: number;
+}
+
+export interface IDotDownTimeStats {
+  castCount: number;
   totalDowntime: number;
-  avgDowntime: number;
+  avgDowntime: number
 }

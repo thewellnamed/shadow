@@ -72,51 +72,38 @@ export class EventAnalyzer {
         // be responsible for ticks up until the next cast on a given target
         if (spellData.maxDamageInstances > 1) {
           let i = 0;
-          let maxDamageTimestamp = currentCast.timestamp + (spellData.maxDuration * 1000) + this.EVENT_LEEWAY;
+          let maxDamageTimestamp = currentCast.timestamp + (spellData.maxDuration * 1000);
           let instances: DamageInstance[] = [];
 
           do {
             nextCast = castData.length > i ? castData[i] : null;
             if (nextCast === null || this.castIsReplacement(details, nextCast)) {
-              maxDamageTimestamp = (nextCast && nextCast?.timestamp + this.EVENT_LEEWAY) || maxDamageTimestamp;
+              maxDamageTimestamp = nextCast?.timestamp || maxDamageTimestamp;
               break;
             }
             i++;
-          } while (nextCast.timestamp <= maxDamageTimestamp);
+          } while (nextCast.timestamp <= maxDamageTimestamp + this.EVENT_LEEWAY);
 
           // Process damage instances for this spell within the window
           nextDamage = damageEvents[0];
-          let totalDamage = 0, totalAbsorbed = 0, totalResisted = 0, count = 0;
+          let count = 0;
           i = 0;
-          while (nextDamage && nextDamage.timestamp <= maxDamageTimestamp && count < spellData.maxDamageInstances) {
-            if (!nextDamage.read && this.targetMatch(details, nextDamage)) {
-              const instance = new DamageInstance(nextDamage);
-              instances.push(instance);
-              totalDamage += instance.amount;
-              totalAbsorbed += instance.absorbed;
-              totalResisted += instance.resisted;
-
+          while (nextDamage && count < spellData.maxDamageInstances) {
+            if (this.matchDamage(details, nextDamage, maxDamageTimestamp)) {
+              instances.push(new DamageInstance(nextDamage));
               nextDamage.read = true;
-              ++count;
+              count++;
             }
+
             nextDamage = damageEvents[++i];
           }
-
-          details.totalDamage = totalDamage;
-          details.totalAbsorbed = totalAbsorbed;
-          details.totalResisted = totalResisted;
-          details.ticks = count;
-          details.instances = instances;
+          details.setInstances(instances);
         } else {
           // find the next instance of damage for this spell for this target.
-          const damage = damageEvents.find((d) => !d.read && this.targetMatch(details, d));
+          const damage = damageEvents.find((d) => this.matchDamage(details, d, details.castEnd));
 
           if (damage) {
-            const instance = new DamageInstance(damage);
-            details.totalDamage = instance.amount;
-            details.totalAbsorbed = instance.absorbed;
-            details.totalResisted = instance.resisted;
-            details.instances = [instance];
+            details.setInstances([new DamageInstance((damage))]);
             damage.read = true;
           }
         }
@@ -145,7 +132,17 @@ export class EventAnalyzer {
       next.targetInstance === cast.targetInstance;
   }
 
-  private static targetMatch(cast: CastDetails, next: IDamageData) {
-    return next.targetID === cast.targetId && next.targetInstance === cast.targetInstance;
+  private static matchDamage(cast: CastDetails, next: IDamageData, maxTimestamp: number) {
+    // must match target and be unread
+    if (next.read || next.targetID !== cast.targetId || next.targetInstance !== cast.targetInstance) {
+      return false;
+    }
+
+    // must take place in the proper window
+    if (next.timestamp < (cast.castEnd - this.EVENT_LEEWAY) || next.timestamp > (maxTimestamp + this.EVENT_LEEWAY)) {
+      return false;
+    }
+
+    return true;
   }
 }

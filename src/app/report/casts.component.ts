@@ -48,6 +48,9 @@ export class CastsComponent implements OnChanges  {
     this.stats = this.targetId ? stats.targetStats(this.targetId) : stats;
     this.casts = this.stats?.casts || [];
     this.changeDetectorRef.detectChanges();
+
+    // eslint-disable-next-line no-console
+    console.log(this.casts);
   }
 
   offsetTime(timestamp: number) {
@@ -87,23 +90,23 @@ export class CastsComponent implements OnChanges  {
   }
 
   activeDps(stats: SpellStats) {
-    return this.round((stats.totalDamage * 1000) / stats.activeDuration);
+    return this.format((stats.totalDamage * 1000) / stats.activeDuration);
   }
 
   powerMetric(stats: SpellStats) {
     const duration = stats.activeDuration,
       dps = (stats.totalDamage * 1000) / duration;
 
-    return this.round(dps / stats.avgSpellpower, 3);
+    return this.format(dps / stats.avgSpellpower, 3);
   }
 
-  round(value: number|undefined, decimals = 1) {
+  format(value: number|undefined, decimals = 1, suffix = '') {
     if (value === undefined) {
       return '---';
     }
 
     const factor = 10 ** decimals;
-    return Math.round(value * factor) / factor;
+    return (Math.round(value * factor) / factor) + suffix;
   }
 
   isDamage(cast: CastDetails) {

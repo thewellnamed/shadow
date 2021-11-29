@@ -1,13 +1,16 @@
 import { IDamageData } from 'src/app/logs/logs.service';
+import { HitType } from 'src/app/logs/models/hit-type';
 
 export class DamageInstance {
   timestamp: number;
+  hitType: HitType;
   amount: number;
   absorbed: number;
   resisted: number;
 
   constructor(data: IDamageData) {
     this.timestamp = data.timestamp;
+    this.hitType = data.hitType;
     this.amount = data.amount;
     this.absorbed = data.absorbed || 0;
     this.resisted = data.resisted || 0;
