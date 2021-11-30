@@ -27,11 +27,11 @@
       </div>
       <div>
         Clipped DoTs:
-        <span [ngClass]="highlight.clippedDots(stats)">{{ stats.clipStats.clipCount }}</span>
+        <span [ngClass]="highlight.clippedTicks(stats)">{{ stats.clipStats.clipCount }}</span>
       </div>
       <div>
         Clipped Ticks:
-        <span [ngClass]="highlight.clippedDots(stats)">
+        <span [ngClass]="highlight.clippedTicks(stats)">
           {{ stats.clipStats.clippedTicks }}
           ({{ format(stats.clipStats.missedTickPercent * 100, 2) }}%)
         </span>
@@ -91,7 +91,7 @@
             Hits: <span [ngClass]="highlight.ticks(cast)">{{ cast.ticks }}/{{ expectedTicks(cast) }}</span>
           </span>
           <span class="power">Power: <span class="table-accent">{{ cast.spellPower }}</span></span>
-          <span class="damage" *ngIf="cast.dealtDamage">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
+          <span class="damage" *ngIf="!cast.resisted">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
           <span class="damage" *ngIf="cast.resisted"><span class="text-warning">Resisted</span></span>
         </mat-panel-description>
       </mat-expansion-panel-header>
@@ -105,7 +105,9 @@
             DoT downtime:
             <span [ngClass]="highlight.dotDowntime(cast)">{{ format(cast.dotDowntime, 1, 's') }}</span>
           </div>
-          <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
+          <div *ngIf="isDot(cast)">
+            Clipped Previous:
+            <span [ngClass]="highlight.clippedCast(cast)">{{ cast.clippedPreviousCast }}</span></div>
           <div *ngIf="isChannel(cast)">
             Post-Channel latency:
             <span [ngClass]="highlight.latency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>

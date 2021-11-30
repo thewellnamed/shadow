@@ -19,6 +19,17 @@
       width: 500px;
     }
   }
+
+  .footer {
+    margin-top: 4px;
+    text-align: center;
+    font-size: smaller;
+
+    span.separator {
+      margin-left: 6px;
+      margin-right: 6px;
+    }
+  }
 }
 
 @media screen and (max-width: 500px) {

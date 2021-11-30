@@ -80,6 +80,10 @@ form mat-form-field {
   color: mat.get-color-from-palette(mat.$pink-palette, 100);
 }
 
+a {
+  color: mat.get-color-from-palette(mat.$indigo-palette, 200);
+}
+
 //
 // Spell icons
 //

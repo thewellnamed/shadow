@@ -15,6 +15,10 @@ or [Yarn](https://yarnpkg.com/). If you're familiar with ng-cli commands, you ca
 
 https://thewellnamed.github.io/shadow
 
+### Glossary
+
+Definitions of stats/terms available via the [Glossary](GLOSSARY.md)
+
 ### Todo
 
 [Todo List](TODO.md)
