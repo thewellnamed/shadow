@@ -45,8 +45,8 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     cooldown: 0
   },
   [SpellId.SHADOW_FIEND]: {
-    damageType: DamageType.NONE,
-    maxDamageInstances: 0,
+    damageType: DamageType.DIRECT,
+    maxDamageInstances: 30,
     maxDuration: 15,
     cooldown: 300
   },
@@ -66,6 +66,12 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     damageType: DamageType.DOT,
     maxDamageInstances: 5,
     maxDuration: 15,
+    cooldown: 0
+  },
+  [SpellId.MELEE]: {
+    damageType: DamageType.DIRECT,
+    maxDamageInstances: 0,
+    maxDuration: 0,
     cooldown: 0
   }
 }

@@ -66,9 +66,9 @@ export class CastsAnalyzer {
     }
 
     const expectedDuration = prev.castEnd + (spellData.maxDuration * 1000);
-    if (prev.ticks < spellData.maxDamageInstances && current.castEnd <= expectedDuration) {
+    if (prev.hits < spellData.maxDamageInstances && current.castEnd <= expectedDuration) {
       current.clippedPreviousCast = true;
-      current.clippedTicks = spellData.maxDamageInstances - prev.ticks;
+      current.clippedTicks = spellData.maxDamageInstances - prev.hits;
     }
   }
 

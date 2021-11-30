@@ -87,8 +87,9 @@
             Downtime: <span [ngClass]="highlight.cooldown(cast)">{{ format(cast.timeOffCooldown) }}</span>
           </span>
 
-          <span class="ticks" *ngIf="cast.ticks > 0">
-            Hits: <span [ngClass]="highlight.ticks(cast)">{{ cast.ticks }}/{{ expectedTicks(cast) }}</span>
+          <span class="ticks" *ngIf="expectHits(cast)">
+            Hits:
+            <span [ngClass]="highlight.hits(cast)">{{ hits(cast) }}</span>
           </span>
           <span class="power">Power: <span class="table-accent">{{ cast.spellPower }}</span></span>
           <span class="damage" *ngIf="!cast.resisted">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>

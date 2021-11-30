@@ -185,14 +185,6 @@ export interface IActorData {
   fights: { id: number }[];
 }
 
-export interface IPlayerData {
-  id: number;
-  name: string;
-  type: string;
-  icon: string;
-
-}
-
 export interface IEventsResponse {
   events: IEventData[];
   count: number;
@@ -208,6 +200,7 @@ export interface IEventData {
   type: 'cast' | 'begincast' | 'damage';
   ability: IAbilityData;
   timestamp: number;
+  sourceID: number;
   targetID: number;
   targetInstance: number;
   read: boolean;

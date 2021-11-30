@@ -99,8 +99,8 @@ export class ReportDetailsComponent implements OnInit {
 
   private analyze(data: IPlayerEvents) {
     if (data) {
-      const events = new EventAnalyzer(this.log, this.encounterId, data.casts, data.damage)
-      this.castSummary = new CastsAnalyzer(events.createCasts()).run();
+      const events = new EventAnalyzer(this.log, this.encounterId, data.casts, data.damage).createCasts();
+      this.castSummary = new CastsAnalyzer(events).run();
 
       this.targets = this.castSummary.targetIds
         .map((id) => ({ id , name: this.log.getActorName(id) }))

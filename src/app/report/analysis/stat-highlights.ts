@@ -60,8 +60,8 @@ export class StatHighlights {
    * @param {CastDetails} cast
    * @return {string} CSS style
    */
-  ticks(cast: CastDetails) {
-    return this.textHighlight(this.evaluateTicks(cast));
+  hits(cast: CastDetails) {
+    return this.textHighlight(this.evaluateHits(cast));
   }
 
   dotDowntime(data: CastDetails|SpellStats) {
@@ -128,7 +128,7 @@ export class StatHighlights {
     }
 
     // TODO -- detect that target has died
-    if (this.missingtTicks(cast, spellData)) {
+    if (this.missingTicks(cast, spellData)) {
       return Status.NOTICE;
     }
 
@@ -139,14 +139,14 @@ export class StatHighlights {
     return Status.NORMAL;
   }
 
-  private evaluateTicks(cast: CastDetails): Status {
+  private evaluateHits(cast: CastDetails): Status {
     const spellData = SpellData[cast.spellId];
 
     if (this.clippedMindFlay(cast)) {
       return Status.WARNING;
     }
 
-    if (this.missingtTicks(cast, spellData)) {
+    if (this.missingTicks(cast, spellData)) {
       return Status.NOTICE;
     }
 
@@ -167,12 +167,12 @@ export class StatHighlights {
 
   // TODO -- detect if target has died
   private clippedMindFlay(cast: CastDetails) {
-    return (cast.spellId === SpellId.MIND_FLAY && cast.ticks < 2);
+    return (cast.spellId === SpellId.MIND_FLAY && cast.hits === 1);
   }
 
   // TODO -- detect if target has died
-  private missingtTicks(cast: CastDetails, spellData: ISpellData) {
-    return spellData.damageType === DamageType.DOT && cast.ticks < spellData.maxDamageInstances;
+  private missingTicks(cast: CastDetails, spellData: ISpellData) {
+    return spellData.damageType === DamageType.DOT && !cast.resisted && cast.hits < spellData.maxDamageInstances;
   }
 
   private checkThresholds(cast: CastDetails, level: Status): boolean {

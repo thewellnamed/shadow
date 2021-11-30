@@ -117,8 +117,19 @@ export class CastsComponent implements OnChanges  {
     return SpellData[cast.spellId].cooldown > 0;
   }
 
-  expectedTicks(cast: CastDetails) {
-    return SpellData[cast.spellId].maxDamageInstances;
+  expectHits(cast: CastDetails) {
+    return ([DamageType.DOT, DamageType.CHANNEL].includes(SpellData[cast.spellId].damageType));
+  }
+
+  hits(cast: CastDetails) {
+    const spellData = SpellData[cast.spellId];
+    let hits = cast.hits.toString();
+
+    if (this.expectHits(cast)) {
+      return `${hits}/${spellData.maxDamageInstances}`;
+    }
+
+    return hits;
   }
 
   activeDps(stats: SpellStats) {

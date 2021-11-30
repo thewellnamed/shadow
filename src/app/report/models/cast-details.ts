@@ -8,6 +8,7 @@ export class CastDetails {
   name: string;
   castStart: number;
   castEnd: number;
+  sourceId: number;
   targetId: number;
   targetInstance: number;
   hitType: HitType;
@@ -15,7 +16,7 @@ export class CastDetails {
   totalDamage = 0;
   totalAbsorbed = 0;
   totalResisted = 0;
-  ticks = 0;
+  hits = 0;
   spellPower = 0;
 
   // for DoTs/flay (spells with multiple damage ticks), did this cast clip a previous cast
@@ -31,29 +32,30 @@ export class CastDetails {
   // for spells with a cooldown, delta from the point the spell was off cooldown until this cast started
   timeOffCooldown?: number;
 
-  constructor({ ability, targetId, targetInstance, castStart, castEnd, spellPower }: ICastDetailsParams) {
-    this.spellId = ability.guid;
-    this.name = ability.name;
+  constructor(params: ICastDetailsParams) {
+    this.spellId = params.spellId;
+    this.name = params.ability.name;
 
-    this.targetId = targetId;
-    this.targetInstance = targetInstance;
-    this.castStart = castStart;
-    this.castEnd = castEnd;
+    this.sourceId = params.sourceId;
+    this.targetId = params.targetId;
+    this.targetInstance = params.targetInstance;
+    this.castStart = params.castStart;
+    this.castEnd = params.castEnd;
 
-    this.spellPower = spellPower;
+    this.spellPower = params.spellPower;
   }
 
   setInstances(instances: DamageInstance[]) {
     this.instances = instances;
 
-    let ticks = 0, damage = 0, absorbed = 0, resisted = 0;
+    let hits = 0, damage = 0, absorbed = 0, resisted = 0;
     for (const next of instances) {
       damage += next.amount;
       absorbed += next.absorbed;
       resisted += next.resisted;
 
       if (next.hitType !== HitType.RESIST) {
-        ticks++;
+        hits++;
       }
     }
 
@@ -61,7 +63,7 @@ export class CastDetails {
     this.totalDamage = damage + absorbed;
     this.totalAbsorbed = absorbed;
     this.totalResisted = resisted;
-    this.ticks = ticks;
+    this.hits = hits;
   }
 
   get dealtDamage() {
@@ -104,7 +106,9 @@ export class CastDetails {
 }
 
 interface ICastDetailsParams {
+  spellId: SpellId;
   ability: IAbilityData;
+  sourceId: number,
   targetId: number;
   targetInstance: number;
   castStart: number;
