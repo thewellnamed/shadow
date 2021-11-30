@@ -2,20 +2,23 @@ import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { ICastData, IDamageData } from 'src/app/logs/logs.service';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { SpellData } from 'src/app/logs/models/spell-data';
+import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
 import { LogSummary } from 'src/app/logs/models/log-summary';
+import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 export class EventAnalyzer {
   private static EVENT_LEEWAY = 50 // ms. allow damage to occur just slightly later than "should" be possible given
                                    // strict debuff times. Blah blah server doesn't keep time exactly.
 
   log: LogSummary;
+  encounter: EncounterSummary;
   castData: ICastData[];
   damageData: IDamageData[];
 
-  constructor(log: LogSummary, castData: ICastData[], damageData: IDamageData[]) {
+  constructor(log: LogSummary, encounterId: number, castData: ICastData[], damageData: IDamageData[]) {
     this.log = log;
+    this.encounter = log.getEncounter(encounterId) as EncounterSummary;
     this.castData = castData;
     this.damageData = damageData;
   }
@@ -39,6 +42,10 @@ export class EventAnalyzer {
       [SpellId.MIND_FLAY]: [],
       [SpellId.VAMPIRIC_TOUCH]: []
     };
+
+    // sometimes casts that start before combat begins for the logger are omitted,
+    // but the damage is recorded. In that case, infer the cast...
+    this.finesseMissingFirstCast();
 
     // partition damage data by spell ID to make it easier
     // to associate instances of damage with casts.
@@ -169,5 +176,42 @@ export class EventAnalyzer {
     }
 
     return true;
+  }
+
+  // sometimes casts that start before combat begins for the logger are omitted,
+  // but the damage is recorded. In that case, infer the cast...
+  private finesseMissingFirstCast() {
+    const firstCast = this.castData.find((c) => {
+      return c.type === 'cast' && SpellData[c.ability.guid].damageType !== DamageType.NONE
+    });
+
+    if (this.damageData.length > 0 && firstCast) {
+      const firstDamage = this.damageData[0];
+
+      if (firstDamage.timestamp < firstCast.timestamp) {
+        this.castData.unshift({
+          type: 'cast',
+          ability: firstDamage.ability,
+          timestamp: this.inferCastTimestamp(firstDamage),
+          targetID: firstDamage.targetID,
+          targetInstance: firstDamage.targetInstance,
+          read: false,
+          spellPower: firstCast.spellPower // we really have no idea, but it should be close to this almost always
+        })
+      }
+    }
+  }
+
+  private inferCastTimestamp(damage: IDamageData) {
+    const spellData = SpellData[damage.ability.guid];
+
+    if (spellData.maxDamageInstances > 1) {
+      return Math.max(
+        damage.timestamp - ((spellData.maxDuration / spellData.maxDamageInstances) * 1000),
+        this.encounter.start
+      );
+    }
+
+    return damage.timestamp;
   }
 }
