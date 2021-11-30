@@ -85,11 +85,21 @@ export class StatHighlights {
   }
 
   /**
-   * Highlight
-   * @param stats
+   * Highlight clipped tick percent
+   * @param {SpellStats} stats
+   * @return {string} CSS Style
    */
-  clippedDots(stats: SpellStats) {
+  clippedTicks(stats: SpellStats) {
     return this.textHighlight(this.evaluateDotClips(stats));
+  }
+
+  /**
+   * Highlight clipped previous cast
+   * @param {SpellStats} stats
+   * @return {string} CSS Style
+   */
+  clippedCast(cast: CastDetails) {
+    return this.textHighlight(cast.clippedPreviousCast ? Status.WARNING : Status.NORMAL);
   }
 
   /**
