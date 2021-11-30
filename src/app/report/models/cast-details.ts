@@ -58,7 +58,7 @@ export class CastDetails {
     }
 
     this.setHitType();
-    this.totalDamage = damage;
+    this.totalDamage = damage + absorbed;
     this.totalAbsorbed = absorbed;
     this.totalResisted = resisted;
     this.ticks = ticks;

@@ -187,12 +187,10 @@ export class SpellStats {
     }
 
     if (cast.totalDamage > 0) {
-      const totalDamage = cast.totalDamage + cast.totalAbsorbed;
-
       this.successCount++;
-      this.totalDamage += totalDamage;
+      this.totalDamage += cast.totalDamage;
       this.totalHits += this.evaluateHits(cast);
-      this.totalWeightedSpellpower += (cast.spellPower * totalDamage);
+      this.totalWeightedSpellpower += (cast.spellPower * cast.totalDamage);
     }
 
     if (cast.instances.length > 0) {
