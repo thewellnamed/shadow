@@ -63,8 +63,6 @@ export class LogsService {
     const url = `${LogsService.API_URL}/report/fights/${id}`;
     return this.http.get<IEncountersResponse>(url, { params: this.makeParams() }).pipe(
       map((response) => {
-        // eslint-disable-next-line no-console
-        console.log(response);
         const summary = new LogSummary(id, response);
         this.summaryCache[id] = summary;
         return summary;
@@ -160,10 +158,11 @@ export class LogsService {
 export interface IEncountersResponse {
   title: string;
   owner: string;
-  friendlies: IPlayerData[];
+  friendlies: IActorData[];
+  friendlyPets: IActorData[];
   fights: IEncounterData[];
-  enemies: IEnemyData[];
-  enemyPets: IEnemyData[];
+  enemies: IActorData[];
+  enemyPets: IActorData[];
 }
 
 export interface IEncounterData {
@@ -177,17 +176,21 @@ export interface IEncounterData {
   kill?: boolean;
 }
 
+export interface IActorData {
+  id: number;
+  name: string;
+  icon: string;
+  type: string;
+  petOwner?: number;
+  fights: { id: number }[];
+}
+
 export interface IPlayerData {
   id: number;
   name: string;
   type: string;
   icon: string;
-  fights: { id: number }[];
-}
 
-export interface IEnemyData {
-  id: number;
-  name: string;
 }
 
 export interface IEventsResponse {

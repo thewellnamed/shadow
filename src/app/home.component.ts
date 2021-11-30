@@ -76,8 +76,8 @@ export class HomeComponent implements OnInit {
         this.encounter.enable();
         this.player.enable();
 
-        if (summary.players.length === 1) {
-          this.player.setValue(summary.players[0].id);
+        if (summary.shadowPriests.length === 1) {
+          this.player.setValue(summary.shadowPriests[0].id);
           this.encounterSelect.focus();
         } else {
           this.playerSelect.focus();
@@ -102,14 +102,14 @@ export class HomeComponent implements OnInit {
 
   analyze(event: Event) {
     event.preventDefault();
-    const playerName = this.summary?.getPlayer(this.player?.value)?.name;
+    const playerName = this.summary?.getActor(this.player?.value)?.name;
     this.router.navigateByUrl(`report/${this.logId}/${playerName}/${this.encounter?.value}`);
   }
 
   private filterEncounters() {
     const playerId = this.player.value;
     this.encounters = playerId ?
-      this.summary!.getPlayerEncounters(this.player.value) :
+      this.summary!.getActorEncounters(this.player.value) :
       this.summary?.encounters as EncounterSummary[];
   }
 }

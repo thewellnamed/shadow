@@ -12,7 +12,7 @@
   <mat-form-field appearance="outline">
     <mat-label>Select Player</mat-label>
     <mat-select #selectPlayer formControlName="player">
-      <mat-option *ngFor="let option of log?.players" [value]="option.id">
+      <mat-option *ngFor="let option of log?.shadowPriests" [value]="option.id">
         {{option.name}}
       </mat-option>
     </mat-select>

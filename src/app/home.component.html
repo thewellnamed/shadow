@@ -36,7 +36,7 @@
           <mat-form-field class="fill" appearance="standard">
             <mat-label>Select Player</mat-label>
             <mat-select #selectPlayer formControlName="player">
-              <mat-option *ngFor="let option of summary?.players" [value]="option.id">
+              <mat-option *ngFor="let option of summary?.shadowPriests" [value]="option.id">
                 {{option.name}}
               </mat-option>
             </mat-select>

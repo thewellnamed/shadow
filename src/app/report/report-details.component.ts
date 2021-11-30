@@ -54,7 +54,7 @@ export class ReportDetailsComponent implements OnInit {
         this.log = log;
 
         this.encounter.setValue(this.encounterId);
-        this.player.setValue(this.log.getPlayerByName(this.playerName)!.id);
+        this.player.setValue(this.log.getActorByName(this.playerName)!.id);
         this.filterEncounters();
 
         return this.fetchData();
@@ -72,7 +72,7 @@ export class ReportDetailsComponent implements OnInit {
       });
 
       this.player.valueChanges.subscribe(() => {
-        this.playerName = this.log.getPlayer(this.player.value)!.name;
+        this.playerName = this.log.getActor(this.player.value)!.name;
         this.filterEncounters();
 
         if (this.encounters.find((e) => e.id === this.encounterId)) {
@@ -89,7 +89,7 @@ export class ReportDetailsComponent implements OnInit {
   private filterEncounters() {
     const playerId = this.player.value;
     this.encounters = playerId ?
-      this.log.getPlayerEncounters(this.player.value) :
+      this.log.getActorEncounters(this.player.value) :
       this.log.encounters as EncounterSummary[];
   }
 
@@ -99,14 +99,11 @@ export class ReportDetailsComponent implements OnInit {
 
   private analyze(data: IPlayerEvents) {
     if (data) {
-      // eslint-disable-next-line no-console
-      console.log(([] as IDamageData[]).concat(data.damage));
-
       const events = new EventAnalyzer(this.log, this.encounterId, data.casts, data.damage)
       this.castSummary = new CastsAnalyzer(events.createCasts()).run();
 
       this.targets = this.castSummary.targetIds
-        .map((id) => ({ id , name: this.log.getUnitName(id) }))
+        .map((id) => ({ id , name: this.log.getActorName(id) }))
         .filter((t) => (t.name?.length || 0) > 0)
         .sort((a, b) => a.name.localeCompare(b.name));
 

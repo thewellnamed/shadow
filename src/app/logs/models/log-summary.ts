@@ -1,16 +1,18 @@
-import { IEncountersResponse, IPlayerData } from 'src/app/logs/logs.service';
+import { IEncountersResponse } from 'src/app/logs/logs.service';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
+import { Actor } from 'src/app/logs/models/actor';
 
 /**
  * Model WCL data for a given log
  */
 export class LogSummary {
-  public title: string;
-  public owner: string;
-  public url: string;
-  public encounters: EncounterSummary[];
-  public players: IPlayerSummary[]
-  public names: {[id: number]: string};
+  title: string;
+  owner: string;
+  url: string;
+  encounters: EncounterSummary[];
+  actors: Actor[];
+  shadowPriests: Actor[] = [];
+  public actorMap: {[id: number]: Actor} = {};
 
   constructor(public id: string, data: IEncountersResponse) {
     this.title = data.title;
@@ -24,52 +26,74 @@ export class LogSummary {
       })
       .map((fight) => new EncounterSummary(fight));
 
-    // initialize names from enemy data. We'll add player names to it.
-    this.names = data.enemies
+    const allEnemies = data.enemies
       .concat(data.enemyPets)
-      .reduce((enemies, next) => {
-        enemies[next.id] = next.name;
-        return enemies;
-      }, {} as {[id: number]: string});
-
-    // Only shadow priests
-    this.players = data.friendlies
-      .filter((f) => f.icon === 'Priest-Shadow')
-      .map((f) => {
-        this.names[f.id] = f.name;
-        return {
-          id: f.id,
-          name: f.name,
-          encounterIds: f.fights.map((d) => d.id)
-        };
+      .map((enemyData) => {
+        const actor = new Actor(enemyData, false);
+        this.actorMap[actor.id] = actor;
+        return actor;
       });
+
+    const allFriendlies = data.friendlies
+      .concat(data.friendlyPets)
+      .map((friendlyData) => {
+        const actor = new Actor(friendlyData, true);
+        this.actorMap[actor.id] = actor;
+
+        if (friendlyData.icon === 'Priest-Shadow') {
+          this.shadowPriests.push(actor);
+        }
+        return actor;
+      });
+
+    this.actors = allEnemies.concat(allFriendlies);
+
+    // Find shadowfiends and assign to their respective priests
+    const fiends = this.actors.filter((a) => a.friendly && a.pet && a.name === 'Shadowfiend');
+    for (const fiend of fiends) {
+      if (fiend.owner !== undefined) {
+        const priest = this.actorMap[fiend.owner];
+        if (priest) {
+          priest.shadowFiendId = fiend.id;
+        }
+      }
+    }
+  }
+
+  get friendlies() {
+    return this.actors.filter((a) => a.friendly);
+  }
+
+  get enemies() {
+    return this.actors.filter((a) => !a.friendly);
   }
 
   getEncounter(id: number) {
     return this.encounters.find((e) => e.id === id);
   }
 
-  getPlayer(id: number) {
-    return this.players.find((p) => p.id === id);
+  getActor(id: number) {
+    return this.actors.find((a) => a.id === id);
   }
 
-  getPlayerEncounters(id: number) {
-    const player = this.getPlayer(id);
-    if (!player) {
+  getActorByName(name: string) {
+    return this.actors.find((a) => a.name === name);
+  }
+
+  getActorEncounters(id: number) {
+    const actor = this.getActor(id);
+    if (!actor) {
       return [];
     }
 
-    return this.encounters.filter((e) => player.encounterIds.includes(e.id))
+    return this.encounters.filter((e) => actor.encounterIds.includes(e.id))
   }
 
-  getPlayerByName(name: string) {
-    return this.players.find((p) => p.name === name);
-  }
+  getActorName(id: number, instance?: number) {
+    let actor = this.actorMap[id],
+      name = actor?.name;
 
-  getUnitName(id: number, instance?: number) {
-    let name = this.names[id];
-
-    if (name && instance) {
+    if (actor && instance) {
       name = `${name} #${instance}`;
     }
 

@@ -160,7 +160,7 @@ export class EventAnalyzer {
     // than the damage ticks, shows up as "Unknown Actor," and isn't returned as an enemy in the summary
     // since we're already matching against spell ID and timestamp, I think it's OK to relax the check
     // on targetID if and only if the instance matches and the target name doesn't exist
-    if (next.targetID !== cast.targetId && this.log.getUnitName(cast.targetId) !== undefined) {
+    if (next.targetID !== cast.targetId && this.log.getActorName(cast.targetId) !== undefined) {
       return false;
     }
 

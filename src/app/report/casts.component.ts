@@ -86,7 +86,7 @@ export class CastsComponent implements OnChanges  {
   }
 
   targetName(targetId: number, targetInstance: number) {
-    return this.log.getUnitName(targetId, targetInstance);
+    return this.log.getActorName(targetId, targetInstance);
   }
 
   offsetTime(timestamp: number) {
