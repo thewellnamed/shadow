@@ -22,9 +22,15 @@ export class CastsAnalyzer {
         continue;
       }
 
-      const prevCastData = this.findPreviousCast(current, i);
+      let prevCastData;
       switch (spellData.damageType) {
         case DamageType.DOT:
+          prevCastData = this.findPreviousCast(current, i, (c) => {
+            // ignore dots that didn't resist, but also didn't tick with enough time to have done so
+            // happens because of weird immunities/phase transitions, e.g. on Leotheras
+            const minTimeToTick = spellData.maxDuration / spellData.maxDamageInstances;
+            return c.hitType !== HitType.NONE || (current.castStart - c.castEnd < minTimeToTick);
+          });
           this.setDotDetails(current, prevCastData);
           break;
 
@@ -33,10 +39,13 @@ export class CastsAnalyzer {
           break;
       }
 
-      if (spellData.cooldown > 0 && prevCastData.onAll) {
-        const delta = current.castStart - prevCastData.onAll.castEnd;
-        if ((delta - (spellData.cooldown * 1000)) <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME) {
-          current.timeOffCooldown = (delta - (spellData.cooldown * 1000)) / 1000;
+      if (spellData.cooldown > 0) {
+        prevCastData = this.findPreviousCast(current, i);
+        if (prevCastData.onAll) {
+          const delta = current.castStart - prevCastData.onAll.castEnd;
+          if ((delta - (spellData.cooldown * 1000)) <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME) {
+            current.timeOffCooldown = (delta - (spellData.cooldown * 1000)) / 1000;
+          }
         }
       }
     }
@@ -78,7 +87,7 @@ export class CastsAnalyzer {
   }
 
   // find the last time this spell was cast on the same target
-  private findPreviousCast(cast: CastDetails, currentIndex: number): IPreviousCast {
+  private findPreviousCast(cast: CastDetails, currentIndex: number, condition?: CastPredicate): IPreviousCast {
     const prev: IPreviousCast = {};
     if (currentIndex === 0) {
       return prev;
@@ -86,7 +95,7 @@ export class CastsAnalyzer {
 
     for (let i = currentIndex - 1; i >= 0; i--) {
       const test = this.casts[i];
-      if (test.spellId === cast.spellId && test.hitType !== HitType.RESIST) {
+      if (test.spellId === cast.spellId && test.hitType !== HitType.RESIST && (!condition || condition(test))) {
         if (!prev.onTarget && test.hasSameTarget(cast)) {
           prev.onTarget = test;
         }
@@ -109,3 +118,5 @@ interface IPreviousCast {
   onTarget?: CastDetails;
   onAll?: CastDetails;
 }
+
+type CastPredicate = (cast: CastDetails) => boolean;

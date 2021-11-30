@@ -4,18 +4,30 @@ import { ICastData, IDamageData } from 'src/app/logs/logs.service';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
+import { LogSummary } from 'src/app/logs/models/log-summary';
 
 export class EventAnalyzer {
   private static EVENT_LEEWAY = 50 // ms. allow damage to occur just slightly later than "should" be possible given
                                    // strict debuff times. Blah blah server doesn't keep time exactly.
 
+  log: LogSummary;
+  castData: ICastData[];
+  damageData: IDamageData[];
+
+  constructor(log: LogSummary, castData: ICastData[], damageData: IDamageData[]) {
+    this.log = log;
+    this.castData = castData;
+    this.damageData = damageData;
+  }
+
   /**
    * Generate basic data on casts
+   * @param {LogSummary} log
    * @param {ICastData[]} castData
    * @param {IDamageData[]} damageData
    * @returns {CastsSummary}
    */
-  public static createCasts(castData: ICastData[], damageData: IDamageData[]): CastDetails[] {
+  public createCasts(): CastDetails[] {
     let currentCast: ICastData, startingCast: ICastData|null = null;
     let nextCast: ICastData|null, nextDamage: IDamageData|null;
     const casts: CastDetails[] = [];
@@ -30,14 +42,14 @@ export class EventAnalyzer {
 
     // partition damage data by spell ID to make it easier
     // to associate instances of damage with casts.
-    for (const event of damageData) {
+    for (const event of this.damageData) {
       if (damageBySpell.hasOwnProperty(event.ability.guid)) {
         damageBySpell[event.ability.guid].push(event);
       }
     }
 
-    while (castData.length > 0) {
-      currentCast = castData.shift() as ICastData;
+    while (this.castData.length > 0) {
+      currentCast = this.castData.shift() as ICastData;
 
       if (currentCast.type === 'begincast') {
         startingCast = currentCast;
@@ -76,13 +88,13 @@ export class EventAnalyzer {
           let instances: DamageInstance[] = [];
 
           do {
-            nextCast = castData.length > i ? castData[i] : null;
+            nextCast = this.castData.length > i ? this.castData[i] : null;
             if (nextCast === null || this.castIsReplacement(details, nextCast)) {
               maxDamageTimestamp = nextCast?.timestamp || maxDamageTimestamp;
               break;
             }
             i++;
-          } while (nextCast.timestamp <= maxDamageTimestamp + this.EVENT_LEEWAY);
+          } while (nextCast.timestamp <= maxDamageTimestamp + EventAnalyzer.EVENT_LEEWAY);
 
           // Process damage instances for this spell within the window
           nextDamage = damageEvents[0];
@@ -125,16 +137,23 @@ export class EventAnalyzer {
   // -- the cast completed (type is 'cast', not 'begincast')
   // -- on the same kind of mob (targetID)
   // -- on the same instance of that mob (e.g. in WCL "Spellbinder 3" is a different instance from "Spellbinder 2"
-  private static castIsReplacement(cast: CastDetails, next: ICastData) {
+  private castIsReplacement(cast: CastDetails, next: ICastData) {
     return next.type === 'cast' &&
       next.ability.guid === cast.spellId &&
       next.targetID === cast.targetId &&
       next.targetInstance === cast.targetInstance;
   }
 
-  private static matchDamage(cast: CastDetails, next: IDamageData, maxTimestamp: number) {
-    // must match target and be unread
-    if (next.read || next.targetID !== cast.targetId || next.targetInstance !== cast.targetInstance) {
+  private matchDamage(cast: CastDetails, next: IDamageData, maxTimestamp: number) {
+    if (next.read || next.targetInstance !== cast.targetInstance) {
+      return false;
+    }
+
+    // There's a weird bug in WCL sometimes where the cast on a target has a different target ID
+    // than the damage ticks, shows up as "Unknown Actor," and isn't returned as an enemy in the summary
+    // since we're already matching against spell ID and timestamp, I think it's OK to relax the check
+    // on targetID if and only if the instance matches and the target name doesn't exist
+    if (next.targetID !== cast.targetId && this.log.getUnitName(cast.targetId) !== undefined) {
       return false;
     }
 
@@ -142,10 +161,10 @@ export class EventAnalyzer {
     // for dots, allow EVENT_LEEWAY for each tick
     const spellData = SpellData[cast.spellId];
     const leeway = spellData.maxDamageInstances > 1 ?
-      (spellData.maxDamageInstances * this.EVENT_LEEWAY) :
-      this.EVENT_LEEWAY;
+      (spellData.maxDamageInstances * EventAnalyzer.EVENT_LEEWAY) :
+      EventAnalyzer.EVENT_LEEWAY;
 
-    if (next.timestamp < (cast.castEnd - this.EVENT_LEEWAY) || next.timestamp > (maxTimestamp + leeway)) {
+    if (next.timestamp < (cast.castEnd - EventAnalyzer.EVENT_LEEWAY) || next.timestamp > (maxTimestamp + leeway)) {
       return false;
     }
 

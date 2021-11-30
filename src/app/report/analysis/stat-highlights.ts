@@ -24,15 +24,15 @@ export class StatHighlights {
   };
 
   // if value > x, return this status
-  private static thresholds: IStatThresholds = {
+  public static thresholds: IStatThresholds = {
     dotDowntime: {
       [Status.WARNING]: 4,
-      [Status.NOTICE]: 1
+      [Status.NOTICE]: 2
     },
 
     timeOffCooldown: {
       [Status.WARNING]: 4,
-      [Status.NOTICE]: 1
+      [Status.NOTICE]: 2
     },
 
     nextCastLatency: {
@@ -47,7 +47,7 @@ export class StatHighlights {
   };
 
   /**
-   * Determine overall status for a given cast
+   * Overall status highlight
    * @param {CastDetails} cast
    * @return {string} CSS style
    */
@@ -56,18 +56,38 @@ export class StatHighlights {
   }
 
   /**
-   * Highlighting of damage ticks for DoT/channel
-   * @param cast
+   * Highlight tick count for DoT/Channel
+   * @param {CastDetails} cast
+   * @return {string} CSS style
    */
   ticks(cast: CastDetails) {
     return this.textHighlight(this.evaluateTicks(cast));
   }
 
+  dotDowntime(data: CastDetails|SpellStats) {
+    const downtime = data instanceof CastDetails ? data.dotDowntime : data.dotDowntimeStats.avgDowntime;
+    return this.textHighlight(this.evaluateDowntime('dotDowntime', downtime));
+  }
+
+  cooldown(data: CastDetails|SpellStats) {
+    const downtime = data instanceof CastDetails ? data.timeOffCooldown : data.cooldownStats.avgOffCooldown;
+    return this.textHighlight(this.evaluateDowntime('timeOffCooldown', downtime));
+  }
+
+  /**
+   * Higlight next-cast latency for channels
+   * @param {CastDetails|SpellStats} data
+   * @return {string} CSS style
+   */
   latency(data: CastDetails|SpellStats) {
     const value = data instanceof CastDetails ? data.nextCastLatency : data.channelStats.avgNextCastLatency;
     return this.textHighlight(this.evaluateLatency(value));
   }
 
+  /**
+   * Highlight
+   * @param stats
+   */
   clippedDots(stats: SpellStats) {
     return this.textHighlight(this.evaluateDotClips(stats));
   }
@@ -129,6 +149,10 @@ export class StatHighlights {
 
   private evaluateDotClips(stats: SpellStats): Status {
     return this.thresholdStatus('missedTickPercent', stats.clipStats.missedTickPercent);
+  }
+
+  private evaluateDowntime(statName: string, dotDowntime: number|undefined): Status {
+    return this.thresholdStatus(statName, dotDowntime);
   }
 
   // TODO -- detect if target has died

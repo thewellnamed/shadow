@@ -17,7 +17,7 @@
     <div class="aggregates dots" *ngIf="stats.hasClipStats">
       <div>
         Avg per-cast DoT Downtime:
-        <span [ngClass]="downtimeClass(stats.dotDowntimeStats.avgDowntime)">
+        <span [ngClass]="highlight.dotDowntime(stats)">
           {{ format(stats.dotDowntimeStats.avgDowntime, 1, 's') }}
         </span>
       </div>
@@ -46,7 +46,7 @@
         </div>
         <div>
           Avg Time Off Cooldown:
-          <span [ngClass]="downtimeClass(stats.cooldownStats.avgOffCooldown)">{{ format(stats.cooldownStats.avgOffCooldown, 1, 's') }}</span>
+          <span [ngClass]="highlight.cooldown(stats)">{{ format(stats.cooldownStats.avgOffCooldown, 1, 's') }}</span>
         </div>
         <div *ngIf="spellData">
           Total Off Cooldown:
@@ -81,10 +81,10 @@
 
         <mat-panel-description *ngIf="isDamage(cast)">
           <span class="downtime" *ngIf="spellId && isDot(cast)">
-            Downtime: <span [ngClass]="downtimeClass(cast.dotDowntime)">{{ format(cast.dotDowntime) }}</span>
+            Downtime: <span [ngClass]="highlight.dotDowntime(cast)">{{ format(cast.dotDowntime) }}</span>
           </span>
           <span class="downtime" *ngIf="spellId && hasCooldown(cast)">
-            Downtime: <span [ngClass]="downtimeClass(cast.timeOffCooldown)">{{ format(cast.timeOffCooldown) }}</span>
+            Downtime: <span [ngClass]="highlight.cooldown(cast)">{{ format(cast.timeOffCooldown) }}</span>
           </span>
 
           <span class="ticks" *ngIf="cast.ticks > 0">
@@ -102,7 +102,8 @@
           <div *ngIf="cast.totalAbsorbed > 0">Absorbed: {{ cast.totalAbsorbed }}</div>
           <div *ngIf="cast.totalResisted > 0">Resisted: {{ cast.totalResisted }}</div>
           <div *ngIf="isDot(cast)">
-            DoT downtime: <span [ngClass]="downtimeClass(cast.dotDowntime)">{{ format(cast.dotDowntime, 1, 's') }}</span>
+            DoT downtime:
+            <span [ngClass]="highlight.dotDowntime(cast)">{{ format(cast.dotDowntime, 1, 's') }}</span>
           </div>
           <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
           <div *ngIf="isChannel(cast)">
@@ -110,7 +111,8 @@
             <span [ngClass]="highlight.latency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
           </div>
           <div *ngIf="hasCooldown(cast)">
-            Time off cooldown: <span [ngClass]="downtimeClass(cast.timeOffCooldown)">{{ format(cast.timeOffCooldown, 1, 's') }}</span>
+            Time off cooldown:
+            <span [ngClass]="highlight.cooldown(cast)">{{ format(cast.timeOffCooldown, 1, 's') }}</span>
           </div>
         </div>
 
