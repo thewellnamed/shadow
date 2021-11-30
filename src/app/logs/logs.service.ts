@@ -63,6 +63,8 @@ export class LogsService {
     const url = `${LogsService.API_URL}/report/fights/${id}`;
     return this.http.get<IEncountersResponse>(url, { params: this.makeParams() }).pipe(
       map((response) => {
+        // eslint-disable-next-line no-console
+        console.log(response);
         const summary = new LogSummary(id, response);
         this.summaryCache[id] = summary;
         return summary;
@@ -84,7 +86,7 @@ export class LogsService {
     const params = {
       start: encounter!.start,
       end: encounter!.end,
-      filter: `source.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})`
+      filter: `(source.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})) OR source.name="Shadowfiend"`
     };
 
     return combineLatest(
