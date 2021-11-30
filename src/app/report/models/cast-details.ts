@@ -1,7 +1,7 @@
 import { IAbilityData } from 'src/app/logs/logs.service';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
-import { HitType } from 'src/app/logs/models/hit-type';
+import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class CastDetails {
   spellId: SpellId;
@@ -46,18 +46,30 @@ export class CastDetails {
   setInstances(instances: DamageInstance[]) {
     this.instances = instances;
 
-    let damage = 0, absorbed = 0, resisted = 0;
+    let ticks = 0, damage = 0, absorbed = 0, resisted = 0;
     for (const next of instances) {
       damage += next.amount;
       absorbed += next.absorbed;
       resisted += next.resisted;
+
+      if (next.hitType !== HitType.RESIST) {
+        ticks++;
+      }
     }
 
     this.setHitType();
     this.totalDamage = damage;
     this.totalAbsorbed = absorbed;
     this.totalResisted = resisted;
-    this.ticks = this.instances.length;
+    this.ticks = ticks;
+  }
+
+  get dealtDamage() {
+    return ![HitType.RESIST, HitType.NONE].includes(this.hitType);
+  }
+
+  get resisted() {
+    return this.hitType === HitType.RESIST;
   }
 
   hasSameTarget(other: CastDetails) {

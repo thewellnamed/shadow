@@ -27,11 +27,11 @@
       </div>
       <div>
         Clipped DoTs:
-        <span [ngClass]="clipClass(stats.clipStats.missedTickPercent)">{{ stats.clipStats.clipCount }}</span>
+        <span [ngClass]="highlight.clippedDots(stats)">{{ stats.clipStats.clipCount }}</span>
       </div>
       <div>
         Clipped Ticks:
-        <span [ngClass]="clipClass(stats.clipStats.missedTickPercent)">
+        <span [ngClass]="highlight.clippedDots(stats)">
           {{ stats.clipStats.clippedTicks }}
           ({{ format(stats.clipStats.missedTickPercent * 100, 2) }}%)
         </span>
@@ -56,7 +56,7 @@
 
       <div *ngIf="stats.hasChannelStats">
         Avg post-channel MF latency:
-        <span [ngClass]="latencyClass(stats.channelStats.avgNextCastLatency)">
+        <span [ngClass]="highlight.latency(stats)">
           {{ format(stats.channelStats.avgNextCastLatency, 2, 's') }}
         </span>
       </div>
@@ -72,7 +72,7 @@
     <mat-expansion-panel *ngFor="let cast of casts" hideToggle>
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <span class="cast-status" [ngClass]="statusClass(cast)"></span>
+          <span class="cast-status" [ngClass]="highlight.overall(cast)"></span>
           <span class="timestamp table-accent">{{ offsetTime(cast.castEnd) }}</span>
           <span class="icon" [ngClass]="iconClass(cast)"></span>
           <span class="name spell-accent"> {{ cast.name }}</span>
@@ -81,15 +81,18 @@
 
         <mat-panel-description *ngIf="isDamage(cast)">
           <span class="downtime" *ngIf="spellId && isDot(cast)">
-            Downtime: <span [ngClass]="downtimeClass(cast.dotDowntime)">{{ format(cast.dotDowntime, 1, 's') }}</span>
+            Downtime: <span [ngClass]="downtimeClass(cast.dotDowntime)">{{ format(cast.dotDowntime) }}</span>
           </span>
           <span class="downtime" *ngIf="spellId && hasCooldown(cast)">
-            Downtime: <span [ngClass]="downtimeClass(cast.timeOffCooldown)">{{ format(cast.timeOffCooldown, 1, 's') }}</span>
+            Downtime: <span [ngClass]="downtimeClass(cast.timeOffCooldown)">{{ format(cast.timeOffCooldown) }}</span>
           </span>
 
-          <span class="ticks" *ngIf="cast.ticks > 0">Hits: <span [ngClass]="tickClass(cast)">{{ cast.ticks }}/{{ expectedTicks(cast) }}</span></span>
+          <span class="ticks" *ngIf="cast.ticks > 0">
+            Hits: <span [ngClass]="highlight.ticks(cast)">{{ cast.ticks }}/{{ expectedTicks(cast) }}</span>
+          </span>
           <span class="power">Power: <span class="table-accent">{{ cast.spellPower }}</span></span>
-          <span class="damage">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
+          <span class="damage" *ngIf="cast.dealtDamage">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
+          <span class="damage" *ngIf="cast.resisted"><span class="text-warning">Resisted</span></span>
         </mat-panel-description>
       </mat-expansion-panel-header>
 
@@ -103,14 +106,15 @@
           </div>
           <div *ngIf="isDot(cast)">Clipped Previous: {{ cast.clippedPreviousCast }}</div>
           <div *ngIf="isChannel(cast)">
-            Post-Channel latency: {{ format(cast.nextCastLatency, 2, 's') }}
+            Post-Channel latency:
+            <span [ngClass]="highlight.latency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
           </div>
           <div *ngIf="hasCooldown(cast)">
             Time off cooldown: <span [ngClass]="downtimeClass(cast.timeOffCooldown)">{{ format(cast.timeOffCooldown, 1, 's') }}</span>
           </div>
         </div>
 
-        <div class="instances" *ngIf="cast.instances.length > 0">
+        <div class="instances" *ngIf="cast.dealtDamage">
           Hits:
           <div class="instance" *ngFor="let instance of cast.instances">
             <span class="timestamp">{{ offsetTime(instance.timestamp) }}</span>

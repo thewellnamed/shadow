@@ -1,5 +1,5 @@
 import { IDamageData } from 'src/app/logs/logs.service';
-import { HitType } from 'src/app/logs/models/hit-type';
+import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class DamageInstance {
   timestamp: number;

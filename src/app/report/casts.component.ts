@@ -7,6 +7,7 @@ import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { SpellSummary } from 'src/app/report/models/spell-summary';
 import { SpellStats } from 'src/app/report/models/spell-stats';
+import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 
 @Component({
   selector: 'casts',
@@ -25,6 +26,7 @@ export class CastsComponent implements OnChanges  {
   spellData: ISpellData;
   spellSummary: SpellSummary;
   encounter: EncounterSummary;
+  highlight = new StatHighlights();
   stats?: SpellStats;
 
   constructor(private changeDetectorRef: ChangeDetectorRef) {}
@@ -48,21 +50,6 @@ export class CastsComponent implements OnChanges  {
     this.stats = this.targetId ? stats.targetStats(this.targetId) : stats;
     this.casts = this.stats?.casts || [];
     this.changeDetectorRef.detectChanges();
-
-    // eslint-disable-next-line no-console
-    console.log(this.casts);
-  }
-
-  offsetTime(timestamp: number) {
-    return this.duration(timestamp - this.encounter.start);
-  }
-
-  castTime(cast: CastDetails) {
-    if (this.isChannel(cast) && cast.lastDamageTimestamp) {
-      return this.duration(cast.lastDamageTimestamp - cast.castStart, 'S.dd');
-    }
-
-    return this.duration(cast.castEnd - cast.castStart, 'S.dd');
   }
 
   duration(lengthMs: number, format = 'mm:ss.dd') {
@@ -89,17 +76,6 @@ export class CastsComponent implements OnChanges  {
     return out;
   }
 
-  activeDps(stats: SpellStats) {
-    return this.format((stats.totalDamage * 1000) / stats.activeDuration);
-  }
-
-  powerMetric(stats: SpellStats) {
-    const duration = stats.activeDuration,
-      dps = (stats.totalDamage * 1000) / duration;
-
-    return this.format(dps / stats.avgSpellpower, 3);
-  }
-
   format(value: number|undefined, decimals = 1, suffix = '') {
     if (value === undefined) {
       return '---';
@@ -107,6 +83,22 @@ export class CastsComponent implements OnChanges  {
 
     const factor = 10 ** decimals;
     return (Math.round(value * factor) / factor) + suffix;
+  }
+
+  targetName(targetId: number, targetInstance: number) {
+    return this.log.getUnitName(targetId, targetInstance);
+  }
+
+  offsetTime(timestamp: number) {
+    return this.duration(timestamp - this.encounter.start);
+  }
+
+  castTime(cast: CastDetails) {
+    if (this.isChannel(cast) && cast.lastDamageTimestamp) {
+      return this.duration(cast.lastDamageTimestamp - cast.castStart, 'S.dd');
+    }
+
+    return this.duration(cast.castEnd - cast.castStart, 'S.dd');
   }
 
   isDamage(cast: CastDetails) {
@@ -129,86 +121,21 @@ export class CastsComponent implements OnChanges  {
     return SpellData[cast.spellId].maxDamageInstances;
   }
 
+  activeDps(stats: SpellStats) {
+    return this.format((stats.totalDamage * 1000) / stats.activeDuration);
+  }
+
+  powerMetric(stats: SpellStats) {
+    const duration = stats.activeDuration,
+      dps = (stats.totalDamage * 1000) / duration;
+
+    return this.format(dps / stats.avgSpellpower, 3);
+  }
+
   iconClass(cast: CastDetails) {
     return {
       [`spell-${cast.spellId}`]: true
     };
-  }
-
-  targetName(targetId: number, targetInstance: number) {
-    return this.log.getUnitName(targetId, targetInstance);
-  }
-
-  statusClass(cast: CastDetails) {
-    const data = SpellData[cast.spellId];
-
-    if (this.isDot(cast) && cast.clippedPreviousCast) {
-      return 'warning';
-    }
-
-    if (cast.spellId === SpellId.MIND_FLAY && cast.ticks < 2) {
-      return 'warning';
-    }
-
-    if ((cast.timeOffCooldown || 0) > 5 || (cast.dotDowntime || 0) > 5) {
-      return 'warning';
-    }
-
-    if (this.isDot(cast) && cast.ticks < data.maxDamageInstances) {
-      return 'notice';
-    }
-
-    if (this.isChannel(cast) && (cast.nextCastLatency || 0) >= 0.4) {
-      return 'notice';
-    }
-
-    if ((cast.timeOffCooldown || 0) > 1 || (cast.dotDowntime || 0) > 1) {
-      return 'notice';
-    }
-
-    return 'normal';
-  }
-
-  tickClass(cast: CastDetails) {
-    const data = SpellData[cast.spellId];
-
-    if (cast.spellId === SpellId.MIND_FLAY && cast.ticks < 2) {
-      return 'text-warning';
-    }
-
-    if (cast.spellId !== SpellId.MIND_FLAY && cast.ticks < data.maxDamageInstances) {
-      return 'text-notice';
-    }
-
-    return 'table-accent';
-  }
-
-  latencyClass(latency: number|undefined) {
-    if (latency === undefined) {
-      return 'table-accent';
-    }
-
-    if (latency >= 1) {
-      return 'text-warning';
-    }
-
-    if (latency >= 0.4) {
-      return 'text-notice';
-    }
-
-    return 'table-accent';
-  }
-
-  clipClass(missedPercent: number) {
-    if (missedPercent >= 0.02) {
-      return 'text-warning';
-    }
-
-    if (missedPercent > 0) {
-      return 'text-notice';
-    }
-
-    return 'table-accent';
   }
 
   downtimeClass(downtime: number|undefined) {

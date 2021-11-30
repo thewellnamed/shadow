@@ -1,7 +1,7 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
-import { HitType } from 'src/app/logs/models/hit-type';
+import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class CastsAnalyzer {
   private static MAX_ACTIVE_LATENCY = 3000; // ignore "next cast latency" for gaps over 5s (not trying to chain-cast)
@@ -35,7 +35,7 @@ export class CastsAnalyzer {
 
       if (spellData.cooldown > 0 && prevCastData.onAll) {
         const delta = current.castStart - prevCastData.onAll.castEnd;
-        if (delta <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME) {
+        if ((delta - (spellData.cooldown * 1000)) <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME) {
           current.timeOffCooldown = (delta - (spellData.cooldown * 1000)) / 1000;
         }
       }
@@ -64,7 +64,7 @@ export class CastsAnalyzer {
   }
 
   private setChannelDetails(current: CastDetails, index: number) {
-    if (index >= this.casts.length - 1) {
+    if (index >= this.casts.length - 1 || current.hitType !== HitType.HIT) {
       return;
     }
 
