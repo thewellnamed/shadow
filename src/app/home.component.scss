@@ -19,6 +19,16 @@
       width: 500px;
     }
   }
+
+  .footer {
+    font-size: smaller;
+    color: #fff;
+
+    span.separator {
+      margin-left: 6px;
+      margin-right: 6px;
+    }
+  }
 }
 
 @media screen and (max-width: 500px) {
