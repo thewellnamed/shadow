@@ -24,6 +24,10 @@ Definitions of stats/terms available via the [Glossary](GLOSSARY.md)
 [Todo List](TODO.md)
 
 ### Changelog
+- 2021/12/01
+  - Improved mobile styles (I hope).
+
+
 - 2021/11/30
   - Added Starshards and Devouring Plague, visible in the timeline
   - Added support for AoE spells

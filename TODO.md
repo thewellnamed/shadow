@@ -1,14 +1,9 @@
 # Todo List
 
-### Analyzer
-> - Add additional spells: starshards, devouring plague, engi bombs
-> - support AoE type damage (engi bombs)
-> - Don't flag missed ticks if target died
-
-### Report Detail
-> - Icons for tab labels?
-> - Switch to dropdown menu with all spells instead of tabs? How best to display other damage spells (bombs?)
-> - Display AoE hits without max damage instances
+### Haste
+> - Investigate:
+>   - confirm that current stats are not impacted by changes in player haste
+>   - Can we determine haste rating or effective haste % per cast from log data?
 
 ### Testing
 > - Create integration test with canned JSON data for a given log
