@@ -117,8 +117,13 @@
 
       <ng-template matExpansionPanelContent>
         <span class="cast-status" [ngClass]="highlight.overall(cast)"></span>
-        <div class="stats">
+        <div class="cast-details">
           <div>Cast Time: {{ castTime(cast) }}s</div>
+          <div class="spellpower hidden">Spellpower: {{ cast.spellPower }}</div>
+          <div class="hits hidden" *ngIf="expectHits(cast)">
+            Hits:
+            <span [ngClass]="highlight.hits(cast)">{{ hits(cast) }}</span>
+          </div>
           <div *ngIf="cast.totalAbsorbed > 0">Absorbed: {{ cast.totalAbsorbed }}</div>
           <div *ngIf="cast.totalResisted > 0">Resisted: {{ cast.totalResisted }}</div>
           <div *ngIf="isDot(cast)">

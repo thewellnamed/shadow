@@ -1,6 +1,10 @@
 .casts-list {
   margin: 0.5em;
 
+  .hidden {
+    display: none
+  }
+
   .stats {
     max-height: 100px;
     display: flex;
@@ -21,10 +25,6 @@
         height: 100px;
         padding: 0;
         margin: 0;
-
-        &.hidden {
-          display: none
-        }
       }
     }
   }
@@ -81,6 +81,15 @@
     width: 20px;
   }
 
+  .cast-details {
+    display: flex;
+    flex-flow: row wrap;
+
+    > div {
+      padding: 0.25em 0.5em;
+    }
+  }
+
   .instances {
     margin-top: 2em;
     padding: 0.5em;
@@ -127,6 +136,48 @@
         &.total-downtime {
           display: none;
         }
+      }
+    }
+
+    .cast-status {
+      width: 6px;
+    }
+
+    span {
+      margin-right: 0.25em;
+
+      &.damage {
+        min-width: 80px;
+      }
+    }
+
+    .cast-details > div {
+      width: 100%;
+
+      &.spellpower, &.hits {
+        display: block;
+      }
+    }
+
+    ::ng-deep.mat-expansion-panel-header {
+      padding: 0 8px !important;
+    }
+
+    ::ng-deep.mat-expansion-panel-header-title {
+      .name {
+        display: none;
+      }
+
+      .target {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    }
+
+    ::ng-deep.mat-expansion-panel-header-description {
+      .downtime, .ticks, .power {
+        display: none;
       }
     }
   }
