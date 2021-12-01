@@ -5,6 +5,7 @@ import { catchError, delay, map, switchMap } from 'rxjs/operators';
 
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 @Injectable()
 export class LogsService {
@@ -26,7 +27,7 @@ export class LogsService {
   ];
 
   private summaryCache: { [id: string]: LogSummary} = {};
-  private eventCache: { [id: string]: IPlayerEvents} = {};
+  private eventCache: { [id: string]: IEncounterEvents} = {};
 
   constructor(private http: HttpClient) {}
 
@@ -73,8 +74,8 @@ export class LogsService {
     );
   }
 
-  getEvents(log: LogSummary, playerName: string, encounterId: number): Observable<IPlayerEvents> {
-    const encounter = log.getEncounter(encounterId);
+  getEvents(log: LogSummary, playerName: string, encounterId: number): Observable<IEncounterEvents> {
+    const encounter = log.getEncounter(encounterId) as EncounterSummary;
     const cacheId = `${log.id}:${encounterId}:${playerName}`;
 
     if (this.eventCache.hasOwnProperty(cacheId)) {
@@ -82,19 +83,30 @@ export class LogsService {
     }
 
     const params = {
-      start: encounter!.start,
-      end: encounter!.end,
+      start: encounter.start,
+      end: encounter.end,
       filter: `(source.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})) OR source.name="Shadowfiend"`
     };
 
     return combineLatest(
       [
         this.requestEvents<ICastData>(log.id,'casts', this.makeParams(params)),
-        this.requestEvents<IDamageData>(log.id,'damage-done', this.makeParams(params))
+        this.requestEvents<IDamageData>(log.id,'damage-done', this.makeParams(params)),
+        this.requestEvents<IDeathData>(log.id, 'deaths', this.makeParams({
+          start: encounter.start,
+          end: encounter.end,
+          hostility: 1
+        }))
       ])
       .pipe(
-        map(([casts, damage]) => {
-          const data = { casts, damage };
+        map(([casts, damage, deaths]) => {
+          const deathLookup = deaths.reduce((lookup, death) => {
+            const key = `${death.targetID}:${death.targetInstance}`;
+            lookup[key] = death.timestamp;
+            return lookup;
+          }, {} as IDeathLookup);
+
+          const data: IEncounterEvents = { casts, damage, deaths: deathLookup };
           this.eventCache[cacheId] = data;
           return this.playerEvents(data)
         }),
@@ -106,12 +118,13 @@ export class LogsService {
    * @param data
    * @private
    */
-  private playerEvents(data: IPlayerEvents): IPlayerEvents {
+  private playerEvents(data: IEncounterEvents): IEncounterEvents {
     return {
       casts: [...data.casts],
       damage: data.damage.map((d) => Object.assign({}, d, {
         read: false
-      }))
+      })),
+      deaths: data.deaths
     };
   }
 
@@ -197,10 +210,9 @@ export interface IAbilityData {
 }
 
 export interface IEventData {
-  type: 'cast' | 'begincast' | 'damage';
+  type: 'cast' | 'begincast' | 'damage' | 'death';
   ability: IAbilityData;
   timestamp: number;
-  sourceID: number;
   targetID: number;
   targetInstance: number;
   read: boolean;
@@ -208,11 +220,13 @@ export interface IEventData {
 
 export interface ICastData extends IEventData {
   type: 'cast' | 'begincast';
+  sourceID: number;
   spellPower: number;
 }
 
 export interface IDamageData extends IEventData {
   type: 'damage';
+  sourceID: number;
   amount: number;
   hitType: number;
   absorbed?: number;
@@ -220,7 +234,17 @@ export interface IDamageData extends IEventData {
   tick: boolean;
 }
 
-export interface IPlayerEvents {
+export interface IDeathData extends IEventData {
+  type: 'death';
+}
+
+// key = <targetID>.<targetInstance>
+export interface IDeathLookup {
+  [key: string]: number;
+}
+
+export interface IEncounterEvents {
   casts: ICastData[];
-  damage: IDamageData[]
+  damage: IDamageData[];
+  deaths: IDeathLookup;
 }

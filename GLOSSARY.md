@@ -84,3 +84,8 @@ Power = [Avg Spellpower](#avg-spellpower)
 ```
 stats.powerMetric = DPS / Power
 ```
+
+### Truncated
+
+If a DoT or Mind Flay is cut off early because the mob died, then the cast is marked as truncated. DoTs truncated with less than
+half of the expected ticks are flagged, as are Mind Flay casts with no ticks.

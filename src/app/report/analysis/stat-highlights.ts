@@ -127,7 +127,6 @@ export class StatHighlights {
       return Status.WARNING;
     }
 
-    // TODO -- detect that target has died
     if (this.missingTicks(cast, spellData)) {
       return Status.NOTICE;
     }
@@ -165,14 +164,17 @@ export class StatHighlights {
     return this.thresholdStatus(statName, dotDowntime);
   }
 
-  // TODO -- detect if target has died
   private clippedMindFlay(cast: CastDetails) {
-    return (cast.spellId === SpellId.MIND_FLAY && cast.hits === 1);
+    return cast.spellId === SpellId.MIND_FLAY && (cast.hits === 0 || (cast.hits === 1 && !cast.truncated));
   }
 
-  // TODO -- detect if target has died
   private missingTicks(cast: CastDetails, spellData: ISpellData) {
-    return spellData.damageType === DamageType.DOT && !cast.resisted && cast.hits < spellData.maxDamageInstances;
+    const hitPercent = cast.hits / spellData.maxDamageInstances;
+
+    return spellData.damageType === DamageType.DOT &&
+      !cast.resisted &&
+      cast.hits < spellData.maxDamageInstances &&
+      (!cast.truncated || hitPercent < 0.5);
   }
 
   private checkThresholds(cast: CastDetails, level: Status): boolean {

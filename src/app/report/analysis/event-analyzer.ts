@@ -1,6 +1,6 @@
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { ICastData, IDamageData } from 'src/app/logs/logs.service';
+import { ICastData, IDamageData, IDeathLookup, IEncounterEvents } from 'src/app/logs/logs.service';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
@@ -15,13 +15,15 @@ export class EventAnalyzer {
   encounter: EncounterSummary;
   castData: ICastData[];
   damageData: IDamageData[];
+  deaths: IDeathLookup;
   damageBySpell: {[spellId: number]: IDamageData[]};
 
-  constructor(log: LogSummary, encounterId: number, castData: ICastData[], damageData: IDamageData[]) {
+  constructor(log: LogSummary, encounterId: number, data: IEncounterEvents) {
     this.log = log;
     this.encounter = log.getEncounter(encounterId) as EncounterSummary;
-    this.castData = castData;
-    this.damageData = damageData;
+    this.castData = data.casts;
+    this.damageData = data.damage;
+    this.deaths = data.deaths;
   }
 
   /**
@@ -87,6 +89,9 @@ export class EventAnalyzer {
         // be responsible for ticks up until the next cast on a given target
         if (spellData.maxDamageInstances > 1) {
           this.setMultiInstanceDamage(details, spellData, damageEvents);
+
+          // check for lost ticks to enemy death
+          this.setTruncationByDeath(details, spellData);
         } else {
           // find the next instance of damage for this spell for this target.
           const damage = damageEvents.find((d) => this.matchDamage(details, d, details.castEnd));
@@ -181,6 +186,23 @@ export class EventAnalyzer {
       nextDamage = events[++i];
     }
     cast.setInstances(instances);
+  }
+
+  // if a channeled spell or DoT didn't get all ticks,
+  // check to see if it was truncated by the target's death
+  private setTruncationByDeath(cast: CastDetails, spellData: ISpellData) {
+    const key = `${cast.targetId}:${cast.targetInstance}`;
+    const targetDeathTimestamp = this.deaths[key];
+    const checkTruncation = [DamageType.CHANNEL, DamageType.DOT].includes(spellData.damageType);
+
+    if (checkTruncation && cast.hits < spellData.maxDamageInstances && targetDeathTimestamp) {
+      const lastTick = cast.lastDamageTimestamp || cast.castEnd;
+      const nextTickBy = lastTick + ((spellData.maxDuration / spellData.maxDamageInstances) * 1000);
+
+      if (targetDeathTimestamp < nextTickBy + EventAnalyzer.EVENT_LEEWAY) {
+        cast.truncated = true;
+      }
+    }
   }
 
   // next replaces the current cast if ALL of these conditions are true

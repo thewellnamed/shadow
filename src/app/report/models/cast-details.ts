@@ -32,6 +32,9 @@ export class CastDetails {
   // for spells with a cooldown, delta from the point the spell was off cooldown until this cast started
   timeOffCooldown?: number;
 
+  // damage truncated by death of mob?
+  truncated = false;
+
   constructor(params: ICastDetailsParams) {
     this.spellId = params.spellId;
     this.name = params.ability.name;

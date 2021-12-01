@@ -6,7 +6,7 @@ import { switchMap } from 'rxjs/operators';
 import { CastsAnalyzer } from 'src/app/report/analysis/casts-analyzer';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
-import { IDamageData, IPlayerEvents, LogsService } from 'src/app/logs/logs.service';
+import { IDamageData, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
@@ -97,9 +97,9 @@ export class ReportDetailsComponent implements OnInit {
     return this.logs.getEvents(this.log, this.playerName, this.encounterId);
   }
 
-  private analyze(data: IPlayerEvents) {
+  private analyze(data: IEncounterEvents) {
     if (data) {
-      const events = new EventAnalyzer(this.log, this.encounterId, data.casts, data.damage).createCasts();
+      const events = new EventAnalyzer(this.log, this.encounterId, data).createCasts();
       this.castSummary = new CastsAnalyzer(events).run();
 
       this.targets = this.castSummary.targetIds
