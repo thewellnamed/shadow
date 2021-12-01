@@ -55,7 +55,11 @@
       </casts>
     </mat-tab>
 
-    <mat-tab label="VT">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <span class="icon spell-vt"></span>
+        <span class="label">VT</span>
+      </ng-template>
       <casts [log]="log"
              [encounterId]="encounterId"
              [targetId]="target.value"
@@ -64,7 +68,11 @@
       </casts>
     </mat-tab>
 
-    <mat-tab label="SW:P">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <span class="icon spell-swp"></span>
+        <span class="label">SW:P</span>
+      </ng-template>
       <casts [log]="log"
              [encounterId]="encounterId"
              [targetId]="target.value"
@@ -73,7 +81,11 @@
       </casts>
     </mat-tab>
 
-    <mat-tab label="Mind Blast">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <span class="icon spell-mb"></span>
+        <span class="label">MB</span>
+      </ng-template>
       <casts [log]="log"
              [encounterId]="encounterId"
              [targetId]="target.value"
@@ -82,7 +94,11 @@
       </casts>
     </mat-tab>
 
-    <mat-tab label="SW:D">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <span class="icon spell-swd"></span>
+        <span class="label">SW:D</span>
+      </ng-template>
       <casts [log]="log"
              [encounterId]="encounterId"
              [targetId]="target.value"
@@ -91,7 +107,11 @@
       </casts>
     </mat-tab>
 
-    <mat-tab label="Mind Flay">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <span class="icon spell-flay"></span>
+        <span class="label">MF</span>
+      </ng-template>
       <casts [log]="log"
              [encounterId]="encounterId"
              [targetId]="target.value"

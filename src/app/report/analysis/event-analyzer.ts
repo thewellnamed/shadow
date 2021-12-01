@@ -8,8 +8,8 @@ import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 export class EventAnalyzer {
-  private static EVENT_LEEWAY = 50 // ms. allow damage to occur just slightly later than "should" be possible given
-                                   // strict debuff times. Blah blah server doesn't keep time exactly.
+  private static EVENT_LEEWAY = 100 // ms. allow damage to occur just slightly later than "should" be possible given
+                                    // strict debuff times. Blah blah server doesn't keep time exactly.
 
   log: LogSummary;
   encounter: EncounterSummary;

@@ -2,100 +2,109 @@
  * Priest Abilities
  */
 
-// VT
-.spell-34917 {
-  background: no-repeat url('/shadow/assets/vt.jpg');
+.icon {
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  // VT
+  &.spell-34917, &.spell-vt {
+    background-image: url('/shadow/assets/vt.jpg');
+  }
+
+  // SW:P
+  &.spell-25368, &.spell-swp {
+    background-image: url('/shadow/assets/swp.jpg');
+  }
+
+  // Mind Blast
+  &.spell-25375, &.spell-mb {
+    background-image: url('/shadow/assets/mb.jpg');
+  }
+
+  // Mind Flay
+  &.spell-25387, &.spell-flay {
+    background-image: url('/shadow/assets/flay.jpg');
+  }
+
+  // SW: Death
+  &.spell-32996, &.spell-swd {
+    background-image: url('/shadow/assets/swd.jpg');
+  }
+
+  // VE
+  &.spell-15286, &.spell-ve {
+    background-image: url('/shadow/assets/ve.jpg');
+  }
+
+  // Shield
+  &.spell-25218, &.spell-shield {
+    background-image: url('/shadow/assets/shield.jpg');
+  }
+
+  // Fade
+  &.spell-25429, &.spell-fade {
+    background-image: url('/shadow/assets/fade.jpg');
+  }
+
+  // Shadow friend
+  &.spell-34433, &.spell-fiend {
+    background-image: url('/shadow/assets/fiend.jpg');
+  }
+
+  // Devouring Plague
+  &.spell-25467, &.spell-plague {
+    background-image: url('/shadow/assets/plague.jpg');
+  }
+
+  // Starshards
+  &.spell-25446, &.spell-starshards {
+    background-image: url('/shadow/assets/starshards.jpg');
+  }
+
+  /**
+   * Engineering
+   */
+
+  // Adamantite Grenade
+  &.spell-30217, &.spell-boom {
+    background-image: url('/shadow/assets/boom.jpg');
+  }
+
+  // Dense Dynamite
+  &.spell-23063 {
+    background-image: url('/shadow/assets/boom.jpg');
+  }
+
+  // Goblin land mine
+  &.spell-4100 {
+    background-image: url('/shadow/assets/mine.jpg');
+  }
+
+  // Goblin Sapper
+  &.spell-13241 {
+    background-image: url('/shadow/assets/boom.jpg');
+  }
+
+  // Super Sapper Charge
+  &.spell-30486 {
+    background-image: url('/shadow/assets/boom.jpg');
+  }
+
+  /**
+   * Misc
+   */
+
+  // Netherweave net
+  &.spell-31367, &.spell-net {
+    background-image: url('/shadow/assets/net.jpg');
+  }
+
+  // Plant Thornling
+  &.spell-22792, &.spell-thornling {
+    background-image: url('/shadow/assets/thornling.jpg');
+  }
 }
 
-// SW:P
-.spell-25368 {
-  background: no-repeat url('/shadow/assets/swp.jpg');
-}
 
-// Mind Blast
-.spell-25375 {
-  background: no-repeat url('/shadow/assets/mb.jpg');
-}
 
-// Mind Flay
-.spell-25387 {
-  background: no-repeat url('/shadow/assets/flay.jpg');
-}
-
-// SW: Death
-.spell-32996 {
-  background: no-repeat url('/shadow/assets/swd.jpg');
-}
-
-// VE
-.spell-15286 {
-  background: no-repeat url('/shadow/assets/ve.jpg');
-}
-
-// Shield
-.spell-25218 {
-  background: no-repeat url('/shadow/assets/shield.jpg');
-}
-
-// Fade
-.spell-25429 {
-  background: no-repeat url('/shadow/assets/fade.jpg');
-}
-
-// Shadow friend
-.spell-34433 {
-  background: no-repeat url('/shadow/assets/fiend.jpg');
-}
-
-// Devouring Plague
-.spell-25467 {
-  background: no-repeat url('/shadow/assets/plague.jpg');
-}
-
-// Starshards
-.spell-25446 {
-  background: no-repeat url('/shadow/assets/starshards.jpg');
-}
-
-/**
- * Engineering
- */
-
-// Adamantite Grenade
-.spell-30217 {
-  background: no-repeat url('/shadow/assets/boom.jpg');
-}
-
-// Dense Dynamite
-.spell-23063 {
-  background: no-repeat url('/shadow/assets/boom.jpg');
-}
-
-// Goblin land mine
-.spell-4100 {
-  background: no-repeat url('/shadow/assets/mine.jpg');
-}
-
-// Goblin Sapper
-.spell-13241 {
-  background: no-repeat url('/shadow/assets/boom.jpg');
-}
-
-// Super Sapper Charge
-.spell-30486 {
-  background: no-repeat url('/shadow/assets/boom.jpg');
-}
-
-/**
- * Misc
- */
-
-// Netherweave net
-.spell-31367 {
-  background: no-repeat url('/shadow/assets/net.jpg');
-}
-
-// Plant Thornling
-.spell-22792 {
-  background: no-repeat url('/shadow/assets/thornling.jpg');
-}
