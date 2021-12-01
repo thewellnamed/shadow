@@ -70,7 +70,7 @@ export class CastDetails {
   }
 
   get dealtDamage() {
-    return ![HitType.RESIST, HitType.NONE].includes(this.hitType);
+    return this.totalDamage > 0;
   }
 
   get resisted() {

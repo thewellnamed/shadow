@@ -51,6 +51,13 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     cooldown: 180
   },
 
+  [SpellId.GOBLIN_LAND_MINE]: {
+    damageType: DamageType.NONE,
+    maxDamageInstances: 0,
+    maxDuration: 0,
+    cooldown: 60
+  },
+
   [SpellId.GOBLIN_SAPPER]: {
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
@@ -77,6 +84,13 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     maxDamageInstances: 3,
     maxDuration: 3,
     cooldown: 0
+  },
+
+  [SpellId.NETHERWEAVE_NET]: {
+    damageType: DamageType.NONE,
+    maxDamageInstances: 0,
+    maxDuration: 0,
+    cooldown: 60
   },
 
   [SpellId.PAIN]: {
@@ -112,6 +126,13 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     maxDamageInstances: 20,
     maxDuration: 0,
     cooldown: 300
+  },
+
+  [SpellId.THORNLING]: {
+    damageType: DamageType.NONE,
+    maxDamageInstances: 0,
+    maxDuration: 10,
+    cooldown: 900
   },
 
   [SpellId.VAMPIRIC_EMBRACE]: {

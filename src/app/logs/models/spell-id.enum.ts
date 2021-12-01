@@ -20,10 +20,13 @@ export enum SpellId {
   // Engineering
   ADAMANTITE_GRENDADE = 30217,
   DENSE_DYNAMITE = 23063,
+  GOBLIN_LAND_MINE = 4100,
   GOBLIN_SAPPER = 13241,
   SUPER_SAPPER = 30486,
 
   // Misc spells
+  NETHERWEAVE_NET = 31367,
+  THORNLING = 22792,
 
   // Pseudo spell IDs (map to WCL negative values)
   MELEE = PSEUDO_SPELL_BASE + 32

@@ -27,8 +27,13 @@ export class LogsService {
     // Engineering
     SpellId.ADAMANTITE_GRENDADE,
     SpellId.DENSE_DYNAMITE,
+    SpellId.GOBLIN_LAND_MINE,
     SpellId.GOBLIN_SAPPER,
     SpellId.SUPER_SAPPER,
+
+    // Misc
+    SpellId.NETHERWEAVE_NET,
+    SpellId.THORNLING
   ];
 
   private static API_KEY = '259b121232ec91e17f4d2b48300801be';
