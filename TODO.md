@@ -7,6 +7,7 @@
 
 ### Report Detail
 > - Icons for tab labels?
+> - Switch to dropdown menu with all spells instead of tabs? How best to display other damage spells?
 > - Display AoE hits without max damage instances
 
 ### Testing

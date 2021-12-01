@@ -24,6 +24,8 @@ Definitions of stats/terms available via the [Glossary](GLOSSARY.md)
 [Todo List](TODO.md)
 
 ### Changelog
+- 2021/11/30
+  - Added Starshards and Devouring Plague, visible in the timeline
 
 - 2021/11/29
   - Fixed various bugs related to associating damage events to casts, causing inaccurate stats
