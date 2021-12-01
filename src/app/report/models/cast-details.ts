@@ -57,7 +57,7 @@ export class CastDetails {
       absorbed += next.absorbed;
       resisted += next.resisted;
 
-      if (next.hitType !== HitType.RESIST) {
+      if (![HitType.RESIST, HitType.IMMUNE].includes(next.hitType)) {
         hits++;
       }
     }
@@ -73,8 +73,16 @@ export class CastDetails {
     return this.totalDamage > 0;
   }
 
+  get failed() {
+    return [HitType.RESIST, HitType.IMMUNE].includes(this.hitType);
+  }
+
   get resisted() {
     return this.hitType === HitType.RESIST;
+  }
+
+  get immune() {
+    return this.hitType === HitType.IMMUNE;
   }
 
   hasSameTarget(other: CastDetails) {

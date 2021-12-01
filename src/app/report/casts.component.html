@@ -68,6 +68,25 @@
     </div>
   </section>
 
+  <section class="spell-filter">
+    <mat-form-field class="fill" appearance="standard" *ngIf="filterSpells">
+      <mat-label>Filter Spells</mat-label>
+      <mat-select [formControl]="spellFilter" multiple>
+        <mat-select-trigger>
+          <ng-container *ngIf="spellFilter.value && spellFilter.value.length < 3">
+            {{ getSpellNames(spellFilter.value) }}
+          </ng-container>
+          <ng-container *ngIf="spellFilter.value?.length >= 3 && spellFilter.value?.length !== spells.length">
+            {{ spellFilter.value.length }} spells
+          </ng-container>
+        </mat-select-trigger>
+        <mat-option *ngFor="let option of spells" [value]="option.id">
+          {{option.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </section>
+
   <mat-accordion multi>
     <mat-expansion-panel *ngFor="let cast of casts" hideToggle>
       <mat-expansion-panel-header>
@@ -92,12 +111,14 @@
             <span [ngClass]="highlight.hits(cast)">{{ hits(cast) }}</span>
           </span>
           <span class="power">Power: <span class="table-accent">{{ cast.spellPower }}</span></span>
-          <span class="damage" *ngIf="!cast.resisted">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
+          <span class="damage" *ngIf="!cast.failed">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
           <span class="damage" *ngIf="cast.resisted"><span class="text-warning">Resisted</span></span>
+          <span class="damage" *ngIf="cast.immune"><span class="text-warning">Immune</span></span>
         </mat-panel-description>
       </mat-expansion-panel-header>
 
       <ng-template matExpansionPanelContent>
+        <span class="cast-status" [ngClass]="highlight.overall(cast)"></span>
         <div class="stats">
           <div>Cast Time: {{ castTime(cast) }}s</div>
           <div *ngIf="cast.totalAbsorbed > 0">Absorbed: {{ cast.totalAbsorbed }}</div>

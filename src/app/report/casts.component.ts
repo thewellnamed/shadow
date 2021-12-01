@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges
+} from '@angular/core';
+import { FormControl } from '@angular/forms';
+
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
@@ -15,7 +25,7 @@ import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
   styleUrls: ['./casts.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CastsComponent implements OnChanges  {
+export class CastsComponent implements OnInit, OnChanges  {
   @Input() log: LogSummary;
   @Input() summary: CastsSummary;
   @Input() encounterId: number;
@@ -27,9 +37,20 @@ export class CastsComponent implements OnChanges  {
   spellSummary: SpellSummary;
   encounter: EncounterSummary;
   highlight = new StatHighlights();
+  spellFilter = new FormControl();
+  spells: { id: string; name: string }[] = [];
+  spellNames: { [id: string]: string };
   stats?: SpellStats;
 
+  private allCasts: CastDetails[];
+
   constructor(private changeDetectorRef: ChangeDetectorRef) {}
+
+  ngOnInit() {
+    this.spellFilter.valueChanges.subscribe(() => {
+      this.filterCasts();
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (!this.spellId) {
@@ -48,8 +69,32 @@ export class CastsComponent implements OnChanges  {
     }
 
     this.stats = this.targetId ? stats.targetStats(this.targetId) : stats;
-    this.casts = this.stats?.casts || [];
+    this.allCasts = this.stats?.casts || [];
+
+
+    if (this.spellId === SpellId.NONE) {
+      this.spellNames = this.allCasts.reduce((lookup, cast) => {
+        if (!lookup.hasOwnProperty(cast.spellId)) {
+          lookup[cast.spellId] = cast.name;
+        }
+        return lookup;
+      }, {} as {[id: string]: string});
+
+      this.spells = Object.keys(this.spellNames)
+        .map((spellId) => ({ id: spellId, name: this.spellNames[spellId] }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    }
+
+    this.filterCasts();
     this.changeDetectorRef.detectChanges();
+  }
+
+  get filterSpells() {
+    return this.spellId === SpellId.NONE;
+  }
+
+  getSpellNames(spellIds: SpellId[]) {
+    return spellIds.map((id) => this.spellNames[id]).join(', ');
   }
 
   duration(lengthMs: number, format = 'mm:ss.dd') {
@@ -153,19 +198,14 @@ export class CastsComponent implements OnChanges  {
     };
   }
 
-  downtimeClass(downtime: number|undefined) {
-    if (downtime === undefined) {
-      return 'table-accent';
-    }
+  filterCasts() {
+    const filterValues = this.spellFilter.value;
 
-    if (downtime > 5) {
-      return 'text-warning';
+    if (Array.isArray(filterValues) && filterValues.length > 0 && filterValues.length !== this.spells.length) {
+      const spellIds = filterValues.map((v) => parseInt(v));
+      this.casts = this.allCasts.filter((c) => spellIds.includes(c.spellId));
+    } else {
+      this.casts = this.allCasts;
     }
-
-    if (downtime >= 2) {
-      return 'text-notice';
-    }
-
-    return 'table-accent';
   }
 }

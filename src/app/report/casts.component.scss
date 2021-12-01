@@ -4,10 +4,20 @@
   .aggregates {
     font-size: 0.9em;
     color: #fff;
-    margin-bottom: 2em;
+    margin-top: 0.6em;
+    margin-bottom: 1em;
 
     > div {
       padding: 0.25em;
+    }
+  }
+
+  .spell-filter {
+    height: 60px;
+    font-size: smaller;
+
+    ::ng-deep.mat-form-field-flex {
+      padding-top: 0;
     }
   }
 
