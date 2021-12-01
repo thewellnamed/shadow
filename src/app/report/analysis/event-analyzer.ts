@@ -34,8 +34,10 @@ export class EventAnalyzer {
    * @returns {CastsSummary}
    */
   public createCasts(): CastDetails[] {
-    let currentCast: ICastData, startingCast: ICastData|null = null;
-    let nextCast: ICastData|null, nextDamage: IDamageData|null;
+    let currentCast: ICastData,
+      startingCast: ICastData|null = null,
+      nextDamage: IDamageData|null;
+
     const casts: CastDetails[] = [];
 
     // sometimes casts that start before combat begins for the logger are omitted,
@@ -145,7 +147,7 @@ export class EventAnalyzer {
 
     while (nextDamage && nextDamage.timestamp <= maxDamageTimestamp) {
       const actor = this.log.getActor(cast.sourceId);
-      if (actor && nextDamage.sourceID === actor.shadowFiendId) {
+      if (actor && !nextDamage.read && nextDamage.sourceID === actor.shadowFiendId) {
         instances.push(new DamageInstance(nextDamage));
         nextDamage.read = true;
       }
