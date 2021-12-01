@@ -2,21 +2,21 @@
   <section class="stats" *ngIf="!!stats">
     <div class="aggregates casts">
       <div>Casts: <span class="table-accent">{{ stats.castCount }}</span></div>
-      <div>Total Damage: <span class="table-accent">{{ stats.totalDamage }}</span></div>
+      <div>Damage: <span class="table-accent">{{ stats.totalDamage }}</span></div>
       <div>Active DPS: <span class="table-accent">{{ activeDps(stats) }}</span></div>
       <div>Active Time: <span class="table-accent">{{ duration(stats.activeDuration, 'M:ss') }}</span></div>
     </div>
 
     <div class="aggregates hits" *ngIf="spellData && spellData.maxDamageInstances > 1">
-      <div>Damage per Cast: <span class="table-accent">{{ format(stats.avgDamage) }}</span></div>
-      <div>Total Hits: <span class="table-accent">{{ stats.totalHits }}</span></div>
-      <div>Hits per Cast: <span class="table-accent">{{ format(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</span></div>
+      <div>Avg Cast: <span class="table-accent">{{ format(stats.avgDamage) }}</span></div>
+      <div>Hits: <span class="table-accent">{{ stats.totalHits }}</span></div>
+      <div>Hits/Cast: <span class="table-accent">{{ format(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</span></div>
       <div>Avg Hit: <span class="table-accent">{{ format(stats.avgHit) }}</span></div>
     </div>
 
     <div class="aggregates dots" *ngIf="stats.hasClipStats">
       <div>
-        Avg per-cast DoT Downtime:
+        Avg DoT Downtime:
         <span [ngClass]="highlight.dotDowntime(stats)">
           {{ format(stats.dotDowntimeStats.avgDowntime, 1, 's') }}
         </span>
@@ -41,11 +41,11 @@
     <div class="aggregates details">
       <ng-container *ngIf="stats.hasCooldownStats">
         <div *ngIf="spellData">
-          Damage per Cast:
+          Avg Cast:
           <span class="table-accent">{{ format(stats.avgDamage) }}</span>
         </div>
         <div>
-          Avg Time Off Cooldown:
+          Avg Off Cooldown:
           <span [ngClass]="highlight.cooldown(stats)">{{ format(stats.cooldownStats.avgOffCooldown, 1, 's') }}</span>
         </div>
         <div *ngIf="spellData">
@@ -55,7 +55,7 @@
       </ng-container>
 
       <div *ngIf="stats.hasChannelStats">
-        Avg post-channel MF latency:
+        Avg MF latency:
         <span [ngClass]="highlight.latency(stats)">
           {{ format(stats.channelStats.avgNextCastLatency, 2, 's') }}
         </span>

@@ -1,14 +1,20 @@
 .casts-list {
   margin: 0.5em;
 
-  .aggregates {
-    font-size: 0.9em;
-    color: #fff;
-    margin-top: 0.6em;
-    margin-bottom: 1em;
+  .stats {
+    display: flex;
 
-    > div {
-      padding: 0.25em;
+    .aggregates {
+      font-size: 0.9em;
+      color: #fff;
+      margin-top: 0.6em;
+      margin-bottom: 1em;
+      padding-left: 0.5em;
+      padding-right: 1em;
+
+      > div {
+        padding: 0.25em;
+      }
     }
   }
 
@@ -59,15 +65,6 @@
     width: 20px;
   }
 
-  .stats {
-    display: flex;
-
-    div {
-      padding-left: 0.5em;
-      padding-right: 1em;
-    }
-  }
-
   .instances {
     margin-top: 2em;
     padding: 0.5em;
@@ -86,6 +83,35 @@
   .text-notice {
     ::ng-deep.mat-content {
       color: gold;
+    }
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .casts-list {
+    margin: 0.25em 0;
+
+    .stats {
+      flex-flow: column wrap;
+
+      .aggregates {
+        font-size: 0.8em;
+        color: #fff;
+        margin-top: 0.2em;
+        margin-bottom: 0.5em;
+        padding-left: 0;
+        padding-right: 8px;
+
+        > div {
+          display: inline-block;
+          min-width: 10%;
+          padding-right: 0.6em;
+
+          span {
+            display: block;
+          }
+        }
+      }
     }
   }
 }

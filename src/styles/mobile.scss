@@ -1,0 +1,17 @@
+@media screen and (max-width: 500px) {
+  body,
+  .mat-tab-label,
+  .mat-expansion-panel-header-title,
+  .mat-expansion-panel-body {
+    font-size: smaller;
+  }
+
+  .logo {
+    height: 40px;
+    width: 40px;
+  }
+
+  .mat-expansion-panel-header {
+    padding: 0 12px !important;
+  }
+}
