@@ -4,15 +4,30 @@ export enum DamageType {
   NONE,
   DIRECT,
   DOT,
-  CHANNEL
+  CHANNEL,
+  AOE
 }
 
 export const SpellData: {[spellId: number]: ISpellData} = {
+  [SpellId.ADAMANTITE_GRENDADE]: {
+    damageType: DamageType.AOE,
+    maxDamageInstances: 20,
+    maxDuration: 0,
+    cooldown: 60
+  },
+
   [SpellId.DEATH]: {
     damageType: DamageType.DIRECT,
     maxDamageInstances: 1,
     maxDuration: 0,
     cooldown: 12
+  },
+
+  [SpellId.DENSE_DYNAMITE]: {
+    damageType: DamageType.AOE,
+    maxDamageInstances: 20,
+    maxDuration: 0,
+    cooldown: 60
   },
 
   [SpellId.DEVOURING_PLAGUE]: {
@@ -34,6 +49,20 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     maxDamageInstances: 0,
     maxDuration: 180,
     cooldown: 180
+  },
+
+  [SpellId.GOBLIN_SAPPER]: {
+    damageType: DamageType.AOE,
+    maxDamageInstances: 20,
+    maxDuration: 0,
+    cooldown: 300
+  },
+
+  [SpellId.MELEE]: {
+    damageType: DamageType.DIRECT,
+    maxDamageInstances: 0,
+    maxDuration: 0,
+    cooldown: 0
   },
 
   [SpellId.MIND_BLAST]: {
@@ -78,6 +107,13 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     cooldown: 30
   },
 
+  [SpellId.SUPER_SAPPER]: {
+    damageType: DamageType.AOE,
+    maxDamageInstances: 20,
+    maxDuration: 0,
+    cooldown: 300
+  },
+
   [SpellId.VAMPIRIC_EMBRACE]: {
     damageType: DamageType.NONE,
     maxDamageInstances: 0,
@@ -89,13 +125,6 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     damageType: DamageType.DOT,
     maxDamageInstances: 5,
     maxDuration: 15,
-    cooldown: 0
-  },
-
-  [SpellId.MELEE]: {
-    damageType: DamageType.DIRECT,
-    maxDamageInstances: 0,
-    maxDuration: 0,
     cooldown: 0
   }
 }

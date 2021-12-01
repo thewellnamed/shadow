@@ -118,6 +118,10 @@ export class CastsComponent implements OnChanges  {
   }
 
   expectHits(cast: CastDetails) {
+    return ([DamageType.DOT, DamageType.CHANNEL, DamageType.AOE].includes(SpellData[cast.spellId].damageType));
+  }
+
+  maxHits(cast: CastDetails) {
     return ([DamageType.DOT, DamageType.CHANNEL].includes(SpellData[cast.spellId].damageType));
   }
 
@@ -125,7 +129,7 @@ export class CastsComponent implements OnChanges  {
     const spellData = SpellData[cast.spellId];
     let hits = cast.hits.toString();
 
-    if (this.expectHits(cast)) {
+    if (this.maxHits(cast)) {
       return `${hits}/${spellData.maxDamageInstances}`;
     }
 

@@ -2,6 +2,8 @@ export const PSEUDO_SPELL_BASE = 10000000;
 
 export enum SpellId {
   NONE = 0,
+
+  // Shadow Priest Abilities
   DEATH = 32996,
   DEVOURING_PLAGUE = 25467,
   FADE = 25429,
@@ -14,6 +16,14 @@ export enum SpellId {
   STARSHARDS = 25446,
   VAMPIRIC_EMBRACE = 15286,
   VAMPIRIC_TOUCH = 34917,
+
+  // Engineering
+  ADAMANTITE_GRENDADE = 30217,
+  DENSE_DYNAMITE = 23063,
+  GOBLIN_SAPPER = 13241,
+  SUPER_SAPPER = 30486,
+
+  // Misc spells
 
   // Pseudo spell IDs (map to WCL negative values)
   MELEE = PSEUDO_SPELL_BASE + 32

@@ -10,6 +10,7 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 @Injectable()
 export class LogsService {
   public static TRACKED_ABILITIES = [
+    // Priest Abilities
     SpellId.DEATH,
     SpellId.DEVOURING_PLAGUE,
     SpellId.FADE,
@@ -21,7 +22,13 @@ export class LogsService {
     SpellId.SHIELD,
     SpellId.STARSHARDS,
     SpellId.VAMPIRIC_EMBRACE,
-    SpellId.VAMPIRIC_TOUCH
+    SpellId.VAMPIRIC_TOUCH,
+
+    // Engineering
+    SpellId.ADAMANTITE_GRENDADE,
+    SpellId.DENSE_DYNAMITE,
+    SpellId.GOBLIN_SAPPER,
+    SpellId.SUPER_SAPPER,
   ];
 
   private static API_KEY = '259b121232ec91e17f4d2b48300801be';
