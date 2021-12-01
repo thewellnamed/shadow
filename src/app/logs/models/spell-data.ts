@@ -13,7 +13,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
     maxDuration: 0,
-    cooldown: 60
+    cooldown: 0
   },
 
   [SpellId.DEATH]: {
@@ -27,7 +27,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
     maxDuration: 0,
-    cooldown: 60
+    cooldown: 0
   },
 
   [SpellId.DEVOURING_PLAGUE]: {
@@ -55,14 +55,14 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     damageType: DamageType.NONE,
     maxDamageInstances: 0,
     maxDuration: 0,
-    cooldown: 60
+    cooldown: 0
   },
 
   [SpellId.GOBLIN_SAPPER]: {
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
     maxDuration: 0,
-    cooldown: 300
+    cooldown: 0
   },
 
   [SpellId.MELEE]: {
@@ -125,14 +125,14 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
     maxDuration: 0,
-    cooldown: 300
+    cooldown: 0
   },
 
   [SpellId.THORNLING]: {
     damageType: DamageType.NONE,
     maxDamageInstances: 0,
     maxDuration: 10,
-    cooldown: 900
+    cooldown: 0
   },
 
   [SpellId.VAMPIRIC_EMBRACE]: {

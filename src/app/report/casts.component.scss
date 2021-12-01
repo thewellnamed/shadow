@@ -77,19 +77,15 @@
     padding-top: 0.25em;
   }
 
-  .warning {
-    background-color: orangered;
-  }
-
-  .notice {
-    background-color: gold;
-  }
-
   .text-warning {
-    color: orangered;
+    ::ng-deep.mat-content {
+      color: orangered;
+    }
   }
 
   .text-notice {
-    color: gold;
+    ::ng-deep.mat-content {
+      color: gold;
+    }
   }
 }

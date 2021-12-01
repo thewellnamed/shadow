@@ -164,5 +164,11 @@
         </div>
       </ng-template>
     </mat-expansion-panel>
+    <mat-expansion-panel *ngIf="spellData && casts.length === 0" class="text-notice" disabled>
+      <mat-expansion-panel-header>
+        No casts found. Are you using max rank?
+      </mat-expansion-panel-header>
+    </mat-expansion-panel>
   </mat-accordion>
+
 </section>

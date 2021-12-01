@@ -42,7 +42,7 @@ export class EventAnalyzer {
 
     // sometimes casts that start before combat begins for the logger are omitted,
     // but the damage is recorded. In that case, infer the cast...
-    this.finesseMissingFirstCast();
+    this.inferMissingCasts();
 
     // partition damage events by spell ID for association with casts
     this.initializeDamageBuckets();
@@ -217,15 +217,7 @@ export class EventAnalyzer {
   }
 
   private matchDamage(cast: CastDetails, next: IDamageData, maxTimestamp: number) {
-    if (next.read || (cast.targetInstance && next.targetInstance !== cast.targetInstance)) {
-      return false;
-    }
-
-    // There's a weird bug in WCL sometimes where the cast on a target has a different target ID
-    // than the damage ticks, shows up as "Unknown Actor," and isn't returned as an enemy in the summary
-    // since we're already matching against spell ID and timestamp, I think it's OK to relax the check
-    // on targetID if and only if the instance matches and the target name doesn't exist
-    if (cast.targetId && next.targetID !== cast.targetId && this.log.getActorName(cast.targetId) !== undefined) {
+    if (next.read || !this.matchTarget(cast, next)) {
       return false;
     }
 
@@ -243,28 +235,63 @@ export class EventAnalyzer {
     return true;
   }
 
+  private matchTarget(source: CastDetails|ICastData, dest: IDamageData) {
+    const sourceId = source instanceof CastDetails ? source.targetId : source.targetID;
+
+    // must match instance if one exists
+    if (source.targetInstance && source.targetInstance !== dest.targetInstance) {
+      return false;
+    }
+
+    // Must match targetId if one exists... usually
+    // There's a weird bug in WCL sometimes where the cast on a target has a different target ID
+    // than the damage ticks, shows up as "Unknown Actor," and isn't returned as an enemy in the summary
+    // since we're already matching against spell ID and timestamp, I think it's OK to relax the check
+    // on targetID if and only if the instance matches and the target name doesn't exist
+    if (sourceId && sourceId !== dest.targetID && this.log.getActorName(sourceId) !== undefined) {
+      return false;
+    }
+
+    return true;
+  }
+
   // sometimes casts that start before combat begins for the logger are omitted,
-  // but the damage is recorded. In that case, infer the cast...
-  private finesseMissingFirstCast() {
-    const firstCast = this.castData.find((c) => {
+  // but the damage is recorded. Check the first few damage spells and create casts
+  // if one is not found.
+  private inferMissingCasts() {
+    const instancesToCheck = this.damageData.length >= 3 ? 2 : this.damageData.length - 1,
+      spellIdsInferred: number[] = [];
+
+    // find first damage cast so we can borrow its spellpower if we find a missing cast
+    const firstDamageCast = this.castData.find((c) => {
       const spellId = mapSpellId(c.ability.guid);
       return c.type === 'cast' && SpellData[spellId].damageType !== DamageType.NONE
     });
 
-    if (this.damageData.length > 0 && firstCast) {
-      const firstDamage = this.damageData[0];
+    for (let i = instancesToCheck; i >= 0; i--) {
+      const instance = this.damageData[i];
+      let castIndex = 0, match = false, nextCast = this.castData[castIndex];
 
-      if (firstDamage.timestamp < firstCast.timestamp) {
+      do {
+        if (nextCast.ability.guid === instance.ability.guid && this.matchTarget(nextCast, instance)) {
+          match = true;
+          break;
+        }
+        nextCast = this.castData[++castIndex];
+      } while (nextCast && nextCast.timestamp < instance.timestamp +EventAnalyzer.EVENT_LEEWAY);
+
+      if (!match && !spellIdsInferred.includes(instance.ability.guid)) {
         this.castData.unshift({
           type: 'cast',
-          ability: firstDamage.ability,
-          timestamp: this.inferCastTimestamp(firstDamage),
-          sourceID: firstDamage.sourceID,
-          targetID: firstDamage.targetID,
-          targetInstance: firstDamage.targetInstance,
+          ability: instance.ability,
+          timestamp: this.inferCastTimestamp(instance),
+          sourceID: instance.sourceID,
+          targetID: instance.targetID,
+          targetInstance: instance.targetInstance,
           read: false,
-          spellPower: firstCast.spellPower // we really have no idea, but it should be close to this almost always
-        })
+          spellPower: firstDamageCast?.spellPower || 0 // we really have no idea, but it should be close to this
+        });
+        spellIdsInferred.push(instance.ability.guid);
       }
     }
   }
@@ -272,11 +299,20 @@ export class EventAnalyzer {
   private inferCastTimestamp(damage: IDamageData) {
     const spellData = SpellData[mapSpellId(damage.ability.guid)];
 
-    if (spellData.maxDamageInstances > 1) {
-      return Math.max(
-        damage.timestamp - ((spellData.maxDuration / spellData.maxDamageInstances) * 1000),
-        this.encounter.start
-      );
+    if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData.damageType)) {
+      // First find the earliest tick we want to associate to our inferred cast,
+      // then infer the cast time based on how frequently the spell ticks
+      const timeToTick = (spellData.maxDuration / spellData.maxDamageInstances) * 1000,
+        earliestPossible = damage.timestamp - (spellData.maxDuration * 1000);
+
+      const earliestInstance = this.damageData.find((d) =>
+        d.ability.guid === damage.ability.guid &&
+          d.timestamp >= earliestPossible - EventAnalyzer.EVENT_LEEWAY &&
+          d.targetID === damage.targetID &&
+          d.targetInstance === damage.targetInstance
+      ) as IDamageData;
+
+      return Math.max(earliestInstance.timestamp - timeToTick, this.encounter.start);
     }
 
     return damage.timestamp;
