@@ -2,18 +2,29 @@
   margin: 0.5em;
 
   .stats {
+    max-height: 100px;
     display: flex;
+    flex-flow: column wrap;
+    align-content: flex-start;
+    font-size: 0.9em;
+    color: #fff;
+    margin-top: 0.6em;
+    margin-bottom: 1em;
 
-    .aggregates {
-      font-size: 0.9em;
-      color: #fff;
-      margin-top: 0.6em;
-      margin-bottom: 1em;
-      padding-left: 0.5em;
-      padding-right: 1em;
+    > div {
+      flex: initial;
+      width: 180px;
+      padding: 0.25em;
 
-      > div {
-        padding: 0.25em;
+      &.break {
+        width: 0;
+        height: 100px;
+        padding: 0;
+        margin: 0;
+
+        &.hidden {
+          display: none
+        }
       }
     }
   }
@@ -25,6 +36,11 @@
     ::ng-deep.mat-form-field-flex {
       padding-top: 0;
     }
+  }
+
+  .mat-accordion {
+    position: relative;
+    top: -10px;
   }
 
   .mat-expansion-panel:not(.mat-expanded) {
@@ -87,29 +103,29 @@
   }
 }
 
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 760px) {
   .casts-list {
     margin: 0.25em 0;
 
     .stats {
-      flex-flow: column wrap;
+      height: 80px;
+      font-size: 0.75em;
+      color: #fff;
+      margin: 0.2em 0 0.5em 0;
 
-      .aggregates {
-        font-size: 0.8em;
-        color: #fff;
-        margin-top: 0.2em;
-        margin-bottom: 0.5em;
-        padding-left: 0;
-        padding-right: 8px;
+      > div {
+        padding-bottom: 2px;
+        width: calc(33% - 4px);
 
-        > div {
-          display: inline-block;
-          min-width: 10%;
-          padding-right: 0.6em;
+        &.break.hidden {
+          display: block;
+        }
 
-          span {
-            display: block;
-          }
+        &.break.spellpower,
+        &.break.clipped-ticks,
+        &.total-cooldown,
+        &.total-downtime {
+          display: none;
         }
       }
     }

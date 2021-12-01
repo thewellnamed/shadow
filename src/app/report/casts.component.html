@@ -1,71 +1,69 @@
 <section class="casts-list">
   <section class="stats" *ngIf="!!stats">
-    <div class="aggregates casts">
-      <div>Casts: <span class="table-accent">{{ stats.castCount }}</span></div>
-      <div>Damage: <span class="table-accent">{{ stats.totalDamage }}</span></div>
-      <div>Active DPS: <span class="table-accent">{{ activeDps(stats) }}</span></div>
-      <div>Active Time: <span class="table-accent">{{ duration(stats.activeDuration, 'M:ss') }}</span></div>
-    </div>
+    <div class="casts">Casts: <span class="table-accent">{{ stats.castCount }}</span></div>
+    <div class="damage">Damage: <span class="table-accent">{{ stats.totalDamage }}</span></div>
+    <div class="dps">Active DPS: <span class="table-accent">{{ activeDps(stats) }}</span></div>
+    <div class="time">Active Time: <span class="table-accent">{{ duration(stats.activeDuration, 'M:ss') }}</span></div>
+    <div class="break basic hidden"></div>
 
-    <div class="aggregates hits" *ngIf="spellData && spellData.maxDamageInstances > 1">
-      <div>Avg Cast: <span class="table-accent">{{ format(stats.avgDamage) }}</span></div>
-      <div>Hits: <span class="table-accent">{{ stats.totalHits }}</span></div>
-      <div>Hits/Cast: <span class="table-accent">{{ format(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</span></div>
-      <div>Avg Hit: <span class="table-accent">{{ format(stats.avgHit) }}</span></div>
-    </div>
+    <ng-container *ngIf="spellData && spellData.maxDamageInstances > 1">
+      <div class="avg-cast">Avg Cast: <span class="table-accent">{{ format(stats.avgDamage) }}</span></div>
+      <div class="hits">Hits: <span class="table-accent">{{ stats.totalHits }}</span></div>
+      <div class="avg-hits">Hits/Cast: <span class="table-accent">{{ format(stats.avgHitCount) }}/{{ spellData.maxDamageInstances }}</span></div>
+      <div class="avg-hit">Avg Hit: <span class="table-accent">{{ format(stats.avgHit) }}</span></div>
+      <div class="break hits hidden"></div>
+    </ng-container>
 
-    <div class="aggregates dots" *ngIf="stats.hasClipStats">
-      <div>
+    <ng-container *ngIf="stats.hasClipStats">
+      <div class="avg-downtime">
         Avg DoT Downtime:
         <span [ngClass]="highlight.dotDowntime(stats)">
           {{ format(stats.dotDowntimeStats.avgDowntime, 1, 's') }}
         </span>
       </div>
-      <div *ngIf="targetId > 0">
+      <div class="total-downtime" *ngIf="targetId > 0">
         Total DoT Downtime:
         <span class="table-accent">{{ format(stats.dotDowntimeStats.totalDowntime, 1, 's') }}</span>
       </div>
-      <div>
+      <div class="clipped-dots">
         Clipped DoTs:
         <span [ngClass]="highlight.clippedTicks(stats)">{{ stats.clipStats.clipCount }}</span>
       </div>
-      <div>
+      <div class="clipped-ticks">
         Clipped Ticks:
         <span [ngClass]="highlight.clippedTicks(stats)">
           {{ stats.clipStats.clippedTicks }}
           ({{ format(stats.clipStats.missedTickPercent * 100, 2) }}%)
         </span>
       </div>
-    </div>
+      <div class="break clipped-ticks" [ngClass]="{ 'hidden': targetId > 0 }"></div>
+    </ng-container>
 
-    <div class="aggregates details">
-      <ng-container *ngIf="stats.hasCooldownStats">
-        <div *ngIf="spellData">
-          Avg Cast:
-          <span class="table-accent">{{ format(stats.avgDamage) }}</span>
-        </div>
-        <div>
-          Avg Off Cooldown:
-          <span [ngClass]="highlight.cooldown(stats)">{{ format(stats.cooldownStats.avgOffCooldown, 1, 's') }}</span>
-        </div>
-        <div *ngIf="spellData">
-          Total Off Cooldown:
-          <span class="table-accent">{{ format(stats.cooldownStats.totalOffCooldown, 1, 's') }}</span>
-        </div>
-      </ng-container>
-
-      <div *ngIf="stats.hasChannelStats">
-        Avg MF latency:
-        <span [ngClass]="highlight.latency(stats)">
-          {{ format(stats.channelStats.avgNextCastLatency, 2, 's') }}
-        </span>
+    <ng-container *ngIf="stats.hasCooldownStats">
+      <div class="avg-cast" *ngIf="spellData">
+        Avg Cast:
+        <span class="table-accent">{{ format(stats.avgDamage) }}</span>
       </div>
+      <div class="avg-cooldown">
+        Avg Off Cooldown:
+        <span [ngClass]="highlight.cooldown(stats)">{{ format(stats.cooldownStats.avgOffCooldown, 1, 's') }}</span>
+      </div>
+      <div class="total-cooldown" *ngIf="spellData">
+        Total Off Cooldown:
+        <span class="table-accent">{{ format(stats.cooldownStats.totalOffCooldown, 1, 's') }}</span>
+      </div>
+    </ng-container>
+
+    <div class="avg-latency" *ngIf="stats.hasChannelStats">
+      Avg MF latency:
+      <span [ngClass]="highlight.latency(stats)">
+        {{ format(stats.channelStats.avgNextCastLatency, 2, 's') }}
+      </span>
     </div>
 
-    <div class="aggregates spellpower">
-      <div>Avg Spellpower: <span class="table-accent">{{ format(stats.avgSpellpower) }}</span></div>
-      <div>DPS/Power: <span class="table-accent">{{ powerMetric(stats) }}</span></div>
-    </div>
+    <div class="break spellpower" [ngClass]="{ 'hidden': stats.hasChannelStats }"></div>
+    <div class="avg-spellpower">Avg Spellpower: <span class="table-accent">{{ format(stats.avgSpellpower) }}</span></div>
+    <div class="power-metric">DPS/Power: <span class="table-accent">{{ powerMetric(stats) }}</span></div>
   </section>
 
   <section class="spell-filter">
