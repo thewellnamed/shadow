@@ -11,7 +11,7 @@ between start of cast and the last damage tick. For Mind Blast and SW:D, active 
 Mind Blast via cast time. Unfortunately this isn't available for instant-cast spells (GCD is not tracked directly), so for SW:D active time is just
 `(number of casts) * 1.5`.
 
-### Avg Per-cast DoT Downtime
+### Avg DoT Downtime
 
 If the player casts the same DoT (SW:P, VT) on a target multiple times per encounter, the downtime for each cast is the delta between the start
 of the current cast and the last tick of the previous cast:
@@ -23,7 +23,7 @@ current.dotDowntime = current.castEnd - previous.lastDamageTimestamp
 The Avg per-cast downtime is the mean of the downtime for all included casts.
 Casts with downtime greater than 10s are ignored for the average as outliers likely to represent time moving for mechanics, phase transitions, etc. 
 
-### Avg Time Off Cooldown
+### Avg Off Cooldown
 
 For spells with cooldowns (MB, SW:D), the time off cooldown for a given cast is the delta between the end of the previous cast and the start of
 the current cast, minus the cooldown of the spell:
@@ -35,7 +35,7 @@ cast.timeOffCooldown = current.castStart - previous.castEnd - spell.cooldown
 The Avg Time Off Cooldown is the mean of the downtime for all included casts. Casts with downtime greater than 10s are ignored for the
 average as outliers likely to represent time moving for mechanics, phase transitions, etc.
 
-### Avg Post-channel MF Latency
+### Avg MF Latency
 
 Because Mind Flay is a channeled spell, it's possible to interrupt the cast between damage ticks, and begin a cast of a new spell. This is 
 particularly useful for Shadow Priest rotation because it is often desirable to clip the channel after the second tick.
