@@ -26,7 +26,11 @@ export class SpellStats {
   private _channelStats: IChannelStats = {
     castCount: 0,
     totalNextCastLatency: 0,
-    avgNextCastLatency: 0
+    avgNextCastLatency: 0,
+    clipCount: 0,
+    clippedTicks: 0,
+    missedTickPercent: 0,
+    expectedTicks: 0
   };
 
   private _cooldownStats: ICooldownStats = {
@@ -208,6 +212,14 @@ export class SpellStats {
     if (this.addChannelStats(cast)) {
       this._channelStats.castCount++;
       this._channelStats.totalNextCastLatency += cast.nextCastLatency as number;
+      this._channelStats.expectedTicks += spellData.maxDamageInstances;
+      
+
+      if (cast.hits < spellData.maxDamageInstances) {
+        this._channelStats.clipCount++;
+        this._channelStats.clippedTicks += (spellData.maxDamageInstances - cast.hits);
+        console.log('this._channelStats.clipCount: ', this._channelStats.clipCount)
+      }
     }
 
     if (this.addCooldownStats(cast)) {
@@ -264,6 +276,10 @@ export class SpellStats {
       if (next.hasChannelStats) {
         this._channelStats.castCount += next.channelStats.castCount;
         this._channelStats.totalNextCastLatency += next.channelStats.totalNextCastLatency;
+        this._channelStats.clippedTicks += next.channelStats.clippedTicks;
+        this._channelStats.clipCount += next.channelStats.clipCount;
+        this._channelStats.expectedTicks += next.channelStats.expectedTicks;
+        this._channelStats.totalNextCastLatency += next.channelStats.totalNextCastLatency;
       }
 
       if (next.hasCooldownStats) {
@@ -309,6 +325,11 @@ export class SpellStats {
 
     if (this.hasChannelStats) {
       this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._channelStats.castCount;
+
+      // what percentage of the total ticks I should have gotten were missed
+      if (this._channelStats.expectedTicks > 0) {
+        this._channelStats.missedTickPercent = this._channelStats.clippedTicks / this._channelStats.expectedTicks;
+      }
     }
 
     if (this.hasCooldownStats) {
@@ -409,6 +430,10 @@ export interface IChannelStats {
   castCount: number;
   totalNextCastLatency: number;
   avgNextCastLatency: number;
+  clipCount: number;
+  clippedTicks: number;
+  expectedTicks: number;
+  missedTickPercent: number;
 }
 
 export interface ICooldownStats {

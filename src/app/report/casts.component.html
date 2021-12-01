@@ -60,6 +60,17 @@
           {{ format(stats.channelStats.avgNextCastLatency, 2, 's') }}
         </span>
       </div>
+      <div *ngIf="stats.hasChannelStats">
+        Clipped MF Casts:
+        <span [ngClass]="highlight.clippedTicks(stats)">{{ stats.channelStats.clipCount }}</span>
+      </div>
+      <div *ngIf="stats.hasChannelStats">
+        Clipped Ticks:
+        <span [ngClass]="highlight.clippedTicks(stats)">
+          {{ format(stats.channelStats.clippedTicks) }}
+          ({{ format(stats.channelStats.missedTickPercent * 100, 2) }}%)
+        </span>
+      </div>
     </div>
 
     <div class="aggregates spellpower">
