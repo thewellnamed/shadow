@@ -218,7 +218,6 @@ export class SpellStats {
       if (cast.hits < spellData.maxDamageInstances) {
         this._channelStats.clipCount++;
         this._channelStats.clippedTicks += (spellData.maxDamageInstances - cast.hits);
-        console.log('this._channelStats.clipCount: ', this._channelStats.clipCount)
       }
     }
 
