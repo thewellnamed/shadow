@@ -80,6 +80,22 @@ form mat-form-field {
   color: mat.get-color-from-palette(mat.$pink-palette, 100);
 }
 
+.warning {
+  background-color: orangered;
+}
+
+.notice {
+  background-color: gold;
+}
+
+.text-warning {
+  color: orangered;
+}
+
+.text-notice {
+  color: gold;
+}
+
 a {
   color: mat.get-color-from-palette(mat.$indigo-palette, 200);
 }
