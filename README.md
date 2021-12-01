@@ -27,7 +27,7 @@ Definitions of stats/terms available via the [Glossary](GLOSSARY.md)
 - 2021/11/30
   - Added Starshards and Devouring Plague, visible in the timeline
   - Added support for AoE spells
-  - Added some engineering bombs and Lady Vashj paraphane paraphernalia (nets, thornlings, land mines)
+  - Added some engineering bombs and Lady Vashj paraphernalia (nets, thornlings, land mines)
 
 - 2021/11/29
   - Fixed various bugs related to associating damage events to casts, causing inaccurate stats
