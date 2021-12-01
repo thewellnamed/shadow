@@ -9,12 +9,9 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 @Injectable()
 export class LogsService {
-  private static API_KEY = '259b121232ec91e17f4d2b48300801be';
-  private static API_URL = 'https://classic.warcraftlogs.com/v1';
-
-  private static MAX_EVENT_REQUESTS = 10;
-  private static TRACKED_ABILITIES = [
+  public static TRACKED_ABILITIES = [
     SpellId.DEATH,
+    SpellId.DEVOURING_PLAGUE,
     SpellId.FADE,
     SpellId.FEAR_WARD,
     SpellId.MIND_BLAST,
@@ -22,9 +19,14 @@ export class LogsService {
     SpellId.PAIN,
     SpellId.SHADOW_FIEND,
     SpellId.SHIELD,
+    SpellId.STARSHARDS,
     SpellId.VAMPIRIC_EMBRACE,
     SpellId.VAMPIRIC_TOUCH
   ];
+
+  private static API_KEY = '259b121232ec91e17f4d2b48300801be';
+  private static API_URL = 'https://classic.warcraftlogs.com/v1';
+  private static MAX_EVENT_REQUESTS = 10;
 
   private summaryCache: { [id: string]: LogSummary} = {};
   private eventCache: { [id: string]: IEncounterEvents} = {};

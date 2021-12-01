@@ -1,6 +1,6 @@
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { ICastData, IDamageData, IDeathLookup, IEncounterEvents } from 'src/app/logs/logs.service';
+import { ICastData, IDamageData, IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
@@ -120,14 +120,12 @@ export class EventAnalyzer {
   }
 
   private initializeDamageBuckets() {
-    this.damageBySpell = {
-      [SpellId.DEATH]: [],
-      [SpellId.PAIN]: [],
-      [SpellId.MIND_BLAST]: [],
-      [SpellId.MIND_FLAY]: [],
-      [SpellId.VAMPIRIC_TOUCH]: [],
-      [SpellId.MELEE]: []
-    };
+    this.damageBySpell = LogsService.TRACKED_ABILITIES
+      .concat(SpellId.MELEE)
+      .reduce((lookup, spellId) => {
+        lookup[spellId] = [];
+        return lookup;
+      }, {} as {[spellId: number]: IDamageData[]});
 
     for (const event of this.damageData) {
       const spellId = mapSpellId(event.ability.guid);
