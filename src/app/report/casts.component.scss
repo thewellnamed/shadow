@@ -30,11 +30,24 @@
   }
 
   .spell-filter {
+    display: flex;
     height: 60px;
     font-size: smaller;
+    margin-left: 4px;
+    margin-right: 4px;
 
     ::ng-deep.mat-form-field-flex {
       padding-top: 0;
+    }
+
+    > div {
+      flex: 1 1 100%;
+
+      &.help {
+        text-align: right;
+        position: relative;
+        top: 22px;
+      }
     }
   }
 
