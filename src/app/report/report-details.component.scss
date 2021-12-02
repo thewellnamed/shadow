@@ -46,8 +46,8 @@
   padding-right: 1em;
 
   .icon {
-    height: 24px;
-    width: 24px;
+    height: 32px;
+    width: 32px;
   }
 
   ::ng-deep.mat-tab-link, ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
@@ -79,13 +79,19 @@
     }
   }
 
+  .inputs {
+    .mat-form-field {
+      width: 45%;
+    }
+  }
+
   .content {
     ::ng-deep.mat-tab-link, ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
       min-width: 50px;
       max-width: 60px;
 
       .label {
-        margin-left: 3px;
+        display: none;
       }
     }
   }

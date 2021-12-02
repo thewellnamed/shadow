@@ -48,6 +48,7 @@
   }
 
   .mat-expansion-panel-header-description {
+    justify-items: flex-end;
     margin-right: 0;
   }
 
@@ -60,8 +61,20 @@
     height: 100%;
   }
 
-  span {
-    margin-right: 0.5em;
+  ::ng-deep.mat-expansion-panel-header {
+    padding: 0 8px 0 16px;
+  }
+
+
+  ::ng-deep.mat-expansion-panel-header-title > span,
+  ::ng-deep.mat-expansion-panel-header-description > span {
+    margin-right: 0.75em;
+
+    &.name, &.target {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     &.timestamp {
       margin-right: 1em;
@@ -71,9 +84,17 @@
       min-width: 110px;
     }
 
-    &.downtime {
-      min-width: 110px;
+    &.cooldown, &.downtime {
+      min-width: 100px;
     }
+
+    .cd-label, .hits-label-abbrev {
+      display: none;
+    }
+  }
+
+  ::ng-deep.mat-expansion-panel-header-description > span:last-of-type {
+    margin-right: 0;
   }
 
   .icon {
@@ -117,17 +138,17 @@
     margin: 0.25em 0;
 
     .stats {
-      height: 80px;
-      font-size: 0.75em;
+      height: 150px;
+      max-height: 150px;
       color: #fff;
       margin: 0.5em 0;
 
       > div {
         padding-bottom: 2px;
-        width: calc(33% - 4px);
+        width: calc(50% - 6px);
 
-        &.break.hidden {
-          display: block;
+        &.break {
+          display: none;
         }
 
         &.break.spellpower,
@@ -141,14 +162,6 @@
 
     .cast-status {
       width: 6px;
-    }
-
-    span {
-      margin-right: 0.25em;
-
-      &.damage {
-        min-width: 80px;
-      }
     }
 
     .icon {
@@ -169,20 +182,49 @@
     }
 
     ::ng-deep.mat-expansion-panel-header-title {
-      .name {
-        display: none;
-      }
+      span {
+        margin-right: 6px;
 
-      .target {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+        &.timestamp {
+          margin-right: 6px;
+        }
+
+        &.name:not(.no-target) {
+          display: none;
+        }
+
+        &.target, &.name.no-target {
+          max-width: 60%;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
       }
     }
 
-    ::ng-deep.mat-expansion-panel-header-description {
-      .downtime, .ticks, .power {
+    ::ng-deep.mat-expansion-panel-header-description > span {
+      margin-right: 0;
+
+      &.damage {
+        margin-left: 4px;
+        min-width: 40px;
+        text-align: right;
+      }
+
+      &.cooldown {
+        min-width: 40px;
+      }
+
+      span.damage-label {
         display: none;
+      }
+
+      &.downtime, &.power, span.downtime-label, span.hits-label {
+        display: none;
+      }
+
+      span.hits-label-abbrev, span.cd-label {
+        display: inline;
       }
     }
   }

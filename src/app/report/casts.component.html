@@ -92,24 +92,31 @@
           <span class="cast-status" [ngClass]="highlight.overall(cast)"></span>
           <span class="timestamp table-accent">{{ offsetTime(cast.castEnd) }}</span>
           <span class="icon" [ngClass]="iconClass(cast)"></span>
-          <span class="name spell-accent"> {{ cast.name }}</span>
+          <span class="name spell-accent" [ngClass]="{ 'no-target': !cast.targetId }">{{ cast.name }}</span>
           <span class="target"> {{ targetName(cast.targetId, cast.targetInstance) }}</span>
         </mat-panel-title>
 
         <mat-panel-description *ngIf="isDamage(cast)">
           <span class="downtime" *ngIf="spellId && isDot(cast)">
-            Downtime: <span [ngClass]="highlight.dotDowntime(cast)">{{ format(cast.dotDowntime) }}</span>
+            <span class="downtime-label">Downtime: </span>
+            <span [ngClass]="highlight.dotDowntime(cast)">{{ format(cast.dotDowntime) }}</span>
           </span>
-          <span class="downtime" *ngIf="spellId && hasCooldown(cast)">
-            Downtime: <span [ngClass]="highlight.cooldown(cast)">{{ format(cast.timeOffCooldown) }}</span>
+          <span class="cooldown" *ngIf="spellId && hasCooldown(cast)">
+            <span class="downtime-label">Downtime: </span>
+            <span class="cd-label">CD: </span>
+            <span [ngClass]="highlight.cooldown(cast)">{{ format(cast.timeOffCooldown) }}</span>
           </span>
 
           <span class="ticks" *ngIf="expectHits(cast)">
-            Hits:
+            <span class="hits-label">Hits: </span>
+            <span class="hits-label-abbrev">H: </span>
             <span [ngClass]="highlight.hits(cast)">{{ hits(cast) }}</span>
           </span>
           <span class="power">Power: <span class="table-accent">{{ cast.spellPower }}</span></span>
-          <span class="damage" *ngIf="!cast.failed">Damage: <span class="spell-accent">{{ cast.totalDamage }}</span></span>
+          <span class="damage" *ngIf="!cast.failed">
+            <span class="damage-label">Damage: </span>
+            <span class="spell-accent">{{ cast.totalDamage }}</span>
+          </span>
           <span class="damage" *ngIf="cast.resisted"><span class="text-warning">Resisted</span></span>
           <span class="damage" *ngIf="cast.immune"><span class="text-warning">Immune</span></span>
         </mat-panel-description>
