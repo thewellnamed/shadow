@@ -30,6 +30,13 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     cooldown: 0
   },
 
+  [SpellId.DESPERATE_PRAYER]: {
+    damageType: DamageType.NONE,
+    maxDamageInstances: 0,
+    maxDuration: 0,
+    cooldown: 0
+  },
+
   [SpellId.DEVOURING_PLAGUE]: {
     damageType: DamageType.DOT,
     maxDamageInstances: 8,

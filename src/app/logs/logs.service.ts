@@ -4,37 +4,15 @@ import { combineLatest, Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, switchMap } from 'rxjs/operators';
 
 import { LogSummary } from 'src/app/logs/models/log-summary';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { PSEUDO_SPELL_BASE, SpellId } from 'src/app/logs/models/spell-id.enum';
+import { SpellData } from 'src/app/logs/models/spell-data';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 @Injectable()
 export class LogsService {
-  public static TRACKED_ABILITIES = [
-    // Priest Abilities
-    SpellId.DEATH,
-    SpellId.DEVOURING_PLAGUE,
-    SpellId.FADE,
-    SpellId.FEAR_WARD,
-    SpellId.MIND_BLAST,
-    SpellId.MIND_FLAY,
-    SpellId.PAIN,
-    SpellId.SHADOW_FIEND,
-    SpellId.SHIELD,
-    SpellId.STARSHARDS,
-    SpellId.VAMPIRIC_EMBRACE,
-    SpellId.VAMPIRIC_TOUCH,
-
-    // Engineering
-    SpellId.ADAMANTITE_GRENDADE,
-    SpellId.DENSE_DYNAMITE,
-    SpellId.GOBLIN_LAND_MINE,
-    SpellId.GOBLIN_SAPPER,
-    SpellId.SUPER_SAPPER,
-
-    // Misc
-    SpellId.NETHERWEAVE_NET,
-    SpellId.THORNLING
-  ];
+  public static TRACKED_ABILITIES = Object.keys(SpellData)
+    .map((k) => parseInt(k))
+    .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
 
   private static API_KEY = '259b121232ec91e17f4d2b48300801be';
   private static API_URL = 'https://classic.warcraftlogs.com/v1';
