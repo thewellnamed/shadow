@@ -6,6 +6,7 @@ import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-dat
 import { DamageInstance } from 'src/app/report/models/damage-instance';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
+import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class EventAnalyzer {
   private static EVENT_LEEWAY = 100 // ms. allow damage to occur just slightly later than "should" be possible given
@@ -165,8 +166,10 @@ export class EventAnalyzer {
 
     do {
       nextCast = this.castData.length > i ? this.castData[i] : null;
-      if (nextCast === null || this.castIsReplacement(cast, nextCast)) {
-        maxDamageTimestamp = nextCast?.timestamp || maxDamageTimestamp;
+      if (nextCast === null || this.castIsReplacement(cast, nextCast, events)) {
+        if (nextCast) {
+          maxDamageTimestamp = nextCast.timestamp;
+        }
         break;
       }
       i++;
@@ -176,15 +179,25 @@ export class EventAnalyzer {
     nextDamage = events[0];
     let count = 0;
     i = 0;
+
     while (nextDamage && count < spellData.maxDamageInstances) {
       if (this.matchDamage(cast, nextDamage, maxDamageTimestamp)) {
-        instances.push(new DamageInstance(nextDamage));
-        nextDamage.read = true;
-        count++;
-      }
+        // If we encounter a full resist it must be that a cast failed
+        // It's *this* cast only if it's the first instance. Otherwise we just ignore it
+        if (count === 0 || nextDamage.hitType !== HitType.RESIST) {
+          instances.push(new DamageInstance(nextDamage));
+          nextDamage.read = true;
+          count++;
+        }
 
+        // if it is this cast being resisted, don't add more damage
+        if (count === 0 && nextDamage.hitType === HitType.RESIST) {
+          break;
+        }
+      }
       nextDamage = events[++i];
     }
+
     cast.setInstances(instances);
   }
 
@@ -209,11 +222,24 @@ export class EventAnalyzer {
   // -- the cast completed (type is 'cast', not 'begincast')
   // -- on the same kind of mob (targetID)
   // -- on the same instance of that mob (e.g. in WCL "Spellbinder 3" is a different instance from "Spellbinder 2"
-  private castIsReplacement(cast: CastDetails, next: ICastData) {
-    return next.type === 'cast' &&
-      mapSpellId(next.ability.guid) === cast.spellId &&
-      next.targetID === cast.targetId &&
-      next.targetInstance === cast.targetInstance;
+  // -- and the cast was not resisted (requires finding an associated damage instance)
+  private castIsReplacement(cast: CastDetails, next: ICastData, events: IDamageData[]) {
+    // check for matching target
+    if (next.type !== 'cast' || mapSpellId(next.ability.guid) !== cast.spellId ||
+      next.targetID !== cast.targetId || next.targetInstance !== cast.targetInstance) {
+      return false;
+    }
+
+    // check for resist
+    const resist = events.find((e) =>
+      e.hitType === HitType.RESIST && this.matchTarget(next, e) &&
+        e.timestamp > next.timestamp - 50 && e.timestamp < next.timestamp + 50
+    );
+    if (resist) {
+      return false;
+    }
+
+    return true;
   }
 
   private matchDamage(cast: CastDetails, next: IDamageData, maxTimestamp: number) {
