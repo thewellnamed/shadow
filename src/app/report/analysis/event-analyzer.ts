@@ -205,7 +205,7 @@ export class EventAnalyzer {
   // check to see if it was truncated by the target's death
   private setTruncationByDeath(cast: CastDetails, spellData: ISpellData) {
     const key = `${cast.targetId}:${cast.targetInstance}`;
-    const targetDeathTimestamp = this.deaths[key];
+    const targetDeathTimestamp = this.deaths[key] || this.encounter.end;
     const checkTruncation = [DamageType.CHANNEL, DamageType.DOT].includes(spellData.damageType);
 
     if (checkTruncation && cast.hits < spellData.maxDamageInstances && targetDeathTimestamp) {

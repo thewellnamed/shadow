@@ -217,7 +217,10 @@ export class SpellStats {
 
     if (this.addClipStats(cast)) {
       this._clipStats.castCount++;
-      this._clipStats.expectedTicks += spellData.maxDamageInstances;
+
+      if (!cast.resisted) {
+        this._clipStats.expectedTicks += cast.truncated ? cast.instances.length : spellData.maxDamageInstances;
+      }
 
       if (cast.clippedPreviousCast) {
         this._clipStats.clipCount++;
