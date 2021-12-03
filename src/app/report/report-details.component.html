@@ -8,117 +8,118 @@
   </span>
 </nav>
 
-<form class="inputs" *ngIf="!!log" [formGroup]="form">
-  <mat-form-field appearance="outline">
-    <mat-label>Select Player</mat-label>
-    <mat-select #selectPlayer formControlName="player">
-      <mat-option *ngFor="let option of log?.shadowPriests" [value]="option.id">
-        {{option.name}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline">
-    <mat-label>Select Encounter</mat-label>
-    <mat-select #selectEncounter formControlName="encounter">
-      <mat-option *ngFor="let option of encounters" [value]="option.id">
-        {{option.description}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-</form>
-
-<section class="loading" *ngIf="loading">
-  <mat-spinner diameter="64"></mat-spinner>
-</section>
-
-<section class="content" *ngIf="!loading && !!castSummary">
-  <form class="target-form" [formGroup]="form">
-    <mat-form-field class="fill" appearance="standard">
-      <mat-label>Filter by Target</mat-label>
-      <mat-select formControlName="target">
-        <mat-option [value]="0">All Targets</mat-option>
-        <mat-option *ngFor="let option of targets" [value]="option.id">
+<section class="report">
+  <form class="inputs" *ngIf="!!log" [formGroup]="form">
+    <mat-form-field appearance="outline">
+      <mat-label>Select Player</mat-label>
+      <mat-select #selectPlayer formControlName="player">
+        <mat-option *ngFor="let option of log?.shadowPriests" [value]="option.id">
           {{option.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Select Encounter</mat-label>
+      <mat-select #selectEncounter formControlName="encounter">
+        <mat-option *ngFor="let option of encounters" [value]="option.id">
+          {{option.description}}
         </mat-option>
       </mat-select>
     </mat-form-field>
   </form>
 
-  <mat-tab-group>
-    <mat-tab label="Timeline">
-      <casts [log]="log"
-             [encounterId]="encounterId"
-             [targetId]="target.value"
-             [summary]="castSummary"
-             [spellId]="SpellId.NONE">
-      </casts>
-    </mat-tab>
+  <section class="loading" *ngIf="loading">
+    <mat-spinner diameter="64"></mat-spinner>
+  </section>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <span class="icon spell-vt"></span>
-        <span class="label">VT</span>
-      </ng-template>
-      <casts [log]="log"
-             [encounterId]="encounterId"
-             [targetId]="target.value"
-             [summary]="castSummary"
-             [spellId]="SpellId.VAMPIRIC_TOUCH">
-      </casts>
-    </mat-tab>
+  <section class="content" *ngIf="!loading && !!castSummary">
+    <form class="target-form" [formGroup]="form">
+      <mat-form-field class="fill" appearance="standard">
+        <mat-label>Filter by Target</mat-label>
+        <mat-select formControlName="target">
+          <mat-option [value]="0">All Targets</mat-option>
+          <mat-option *ngFor="let option of targets" [value]="option.id">
+            {{option.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <span class="icon spell-swp"></span>
-        <span class="label">SW:P</span>
-      </ng-template>
-      <casts [log]="log"
-             [encounterId]="encounterId"
-             [targetId]="target.value"
-             [summary]="castSummary"
-             [spellId]="SpellId.PAIN">
-      </casts>
-    </mat-tab>
+    <mat-tab-group>
+      <mat-tab label="Timeline">
+        <casts [log]="log"
+               [encounterId]="encounterId"
+               [targetId]="target.value"
+               [summary]="castSummary"
+               [spellId]="SpellId.NONE">
+        </casts>
+      </mat-tab>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <span class="icon spell-mb"></span>
-        <span class="label">MB</span>
-      </ng-template>
-      <casts [log]="log"
-             [encounterId]="encounterId"
-             [targetId]="target.value"
-             [summary]="castSummary"
-             [spellId]="SpellId.MIND_BLAST">
-      </casts>
-    </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="icon spell-vt"></span>
+          <span class="label">VT</span>
+        </ng-template>
+        <casts [log]="log"
+               [encounterId]="encounterId"
+               [targetId]="target.value"
+               [summary]="castSummary"
+               [spellId]="SpellId.VAMPIRIC_TOUCH">
+        </casts>
+      </mat-tab>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <span class="icon spell-swd"></span>
-        <span class="label">SW:D</span>
-      </ng-template>
-      <casts [log]="log"
-             [encounterId]="encounterId"
-             [targetId]="target.value"
-             [summary]="castSummary"
-             [spellId]="SpellId.DEATH">
-      </casts>
-    </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="icon spell-swp"></span>
+          <span class="label">SW:P</span>
+        </ng-template>
+        <casts [log]="log"
+               [encounterId]="encounterId"
+               [targetId]="target.value"
+               [summary]="castSummary"
+               [spellId]="SpellId.PAIN">
+        </casts>
+      </mat-tab>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <span class="icon spell-flay"></span>
-        <span class="label">MF</span>
-      </ng-template>
-      <casts [log]="log"
-             [encounterId]="encounterId"
-             [targetId]="target.value"
-             [summary]="castSummary"
-             [spellId]="SpellId.MIND_FLAY">
-      </casts>
-    </mat-tab>
-  </mat-tab-group>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="icon spell-mb"></span>
+          <span class="label">MB</span>
+        </ng-template>
+        <casts [log]="log"
+               [encounterId]="encounterId"
+               [targetId]="target.value"
+               [summary]="castSummary"
+               [spellId]="SpellId.MIND_BLAST">
+        </casts>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="icon spell-swd"></span>
+          <span class="label">SW:D</span>
+        </ng-template>
+        <casts [log]="log"
+               [encounterId]="encounterId"
+               [targetId]="target.value"
+               [summary]="castSummary"
+               [spellId]="SpellId.DEATH">
+        </casts>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="icon spell-flay"></span>
+          <span class="label">MF</span>
+        </ng-template>
+        <casts [log]="log"
+               [encounterId]="encounterId"
+               [targetId]="target.value"
+               [summary]="castSummary"
+               [spellId]="SpellId.MIND_FLAY">
+        </casts>
+      </mat-tab>
+    </mat-tab-group>
+  </section>
 </section>
-

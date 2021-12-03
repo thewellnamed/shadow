@@ -79,19 +79,25 @@
   }
 
 
-  ::ng-deep.mat-expansion-panel-header-title > span,
-  ::ng-deep.mat-expansion-panel-header-description > span {
-    margin-right: 0.75em;
+  ::ng-deep.mat-expansion-panel-header-title > span {
+    &.timestamp {
+      margin-left: 4px;
+      margin-right: 0.5em;
+    }
+
+    &.icon, &.name, &.target {
+      margin-right: 6px;
+    }
 
     &.name, &.target {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+  }
 
-    &.timestamp {
-      margin-right: 1em;
-    }
+  ::ng-deep.mat-expansion-panel-header-description > span {
+    margin-right: 0.75em;
 
     &.damage {
       min-width: 110px;
@@ -209,7 +215,7 @@
 
         &.target, &.name.no-target {
           display: inline-block;
-          max-width: calc(100vw - 210px);
+          max-width: calc(100vw - 215px);
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
@@ -234,7 +240,7 @@
         display: none;
       }
 
-      &.downtime, &.power, span.downtime-label, span.hits-label {
+      &.downtime, &.power, &.hits.resist, span.downtime-label, span.hits-label {
         display: none;
       }
 

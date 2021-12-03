@@ -23,50 +23,58 @@
   }
 }
 
-.inputs {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1em;
+.report {
+  max-width: 1400px;
+  margin: 0 auto;
 
-  .mat-form-field {
-    display: inline-block;
-    width: 30%;
-    margin: 0 1em 0 1em;
-  }
-}
 
-.target-form {
-  margin-left: 10px;
-  width: 250px;
-}
+  .inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1em;
 
-.content {
-  padding-left: 1em;
-  padding-right: 1em;
-
-  .icon {
-    height: 32px;
-    width: 32px;
-  }
-
-  ::ng-deep.mat-tab-link, ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
-    min-width: 60px;
-
-    .label {
-      margin-left: 6px;
+    .mat-form-field {
+      display: inline-block;
+      min-width: 30%;
+      max-width: 45%;
+      margin: 0 1em 0 1em;
     }
   }
 
-  ::ng-deep.mat-tab-label-active {
-    opacity: 1;
+  .target-form {
+    margin-left: 10px;
+    width: 250px;
+  }
+
+  .content {
+    padding-left: 1em;
+    padding-right: 1em;
+
+    .icon {
+      height: 32px;
+      width: 32px;
+    }
+
+    ::ng-deep.mat-tab-link, ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
+      min-width: 60px;
+
+      .label {
+        margin-left: 6px;
+      }
+    }
+
+    ::ng-deep.mat-tab-label-active {
+      opacity: 1;
+    }
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
   }
 }
 
-.loading {
-  display: flex;
-  justify-content: center;
-}
 
 @media screen and (max-width: 500px) {
   .app-bar {
@@ -79,19 +87,21 @@
     }
   }
 
-  .inputs {
-    .mat-form-field {
-      width: 45%;
+  .report {
+    .inputs {
+      .mat-form-field {
+        width: 45%;
+      }
     }
-  }
 
-  .content {
-    ::ng-deep.mat-tab-link, ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
-      min-width: 50px;
-      max-width: 60px;
+    .content {
+      ::ng-deep.mat-tab-link, ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
+        min-width: 50px;
+        max-width: 60px;
 
-      .label {
-        display: none;
+        .label {
+          display: none;
+        }
       }
     }
   }

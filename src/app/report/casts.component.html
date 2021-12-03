@@ -112,7 +112,7 @@
             <span [ngClass]="highlight.cooldown(cast)">{{ format(cast.timeOffCooldown) }}</span>
           </span>
 
-          <span class="ticks" *ngIf="expectHits(cast)">
+          <span class="hits" *ngIf="expectHits(cast)" [ngClass]="{ 'resist': cast.resisted }">
             <span class="hits-label">Hits: </span>
             <span class="hits-label-abbrev">H: </span>
             <span [ngClass]="highlight.hits(cast)">{{ hits(cast) }}</span>
