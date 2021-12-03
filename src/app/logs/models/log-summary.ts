@@ -12,7 +12,7 @@ export class LogSummary {
   encounters: EncounterSummary[];
   actors: Actor[];
   shadowPriests: Actor[] = [];
-  public actorMap: {[id: number]: Actor} = {};
+  names: {[id: number]: string} = {};
 
   constructor(public id: string, data: IEncountersResponse) {
     this.title = data.title;
@@ -30,7 +30,7 @@ export class LogSummary {
       .concat(data.enemyPets)
       .map((enemyData) => {
         const actor = new Actor(enemyData, false);
-        this.actorMap[actor.id] = actor;
+        this.names[actor.id] = actor.name;
         return actor;
       });
 
@@ -38,7 +38,7 @@ export class LogSummary {
       .concat(data.friendlyPets)
       .map((friendlyData) => {
         const actor = new Actor(friendlyData, true);
-        this.actorMap[actor.id] = actor;
+        this.names[actor.id] = actor.name;
 
         if (friendlyData.icon === 'Priest-Shadow') {
           this.shadowPriests.push(actor);
@@ -52,7 +52,7 @@ export class LogSummary {
     const fiends = this.actors.filter((a) => a.friendly && a.pet && a.name === 'Shadowfiend');
     for (const fiend of fiends) {
       if (fiend.owner !== undefined) {
-        const priest = this.actorMap[fiend.owner];
+        const priest = this.getActor(fiend.owner);
         if (priest) {
           priest.shadowFiendId = fiend.id;
         }
@@ -60,28 +60,20 @@ export class LogSummary {
     }
   }
 
-  get friendlies() {
-    return this.actors.filter((a) => a.friendly);
-  }
-
-  get enemies() {
-    return this.actors.filter((a) => !a.friendly);
-  }
-
   getEncounter(id: number) {
     return this.encounters.find((e) => e.id === id);
   }
 
-  getActor(id: number) {
-    return this.actors.find((a) => a.id === id);
+  getActor(id: number, friendly = true) {
+    return this.actors.find((a) => a.id === id && a.friendly === friendly);
   }
 
   getActorByName(name: string) {
     return this.actors.find((a) => a.name === name);
   }
 
-  getActorEncounters(id: number) {
-    const actor = this.getActor(id);
+  getActorEncounters(id: number, friendly = true) {
+    const actor = this.getActor(id, friendly);
     if (!actor) {
       return [];
     }
@@ -90,19 +82,12 @@ export class LogSummary {
   }
 
   getActorName(id: number, instance?: number) {
-    let actor = this.actorMap[id],
-      name = actor?.name;
+    let name = this.names[id];
 
-    if (actor && instance) {
+    if (name && instance) {
       name = `${name} #${instance}`;
     }
 
     return name;
   }
-}
-
-export interface IPlayerSummary {
-  id: number;
-  name: string;
-  encounterIds: number[];
 }
