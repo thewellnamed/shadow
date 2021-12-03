@@ -115,6 +115,10 @@ export class StatHighlights {
       return Status.NORMAL;
     }
 
+    if (cast.immune) {
+      return Status.NOTICE;
+    }
+
     if (cast.clippedPreviousCast) {
       return Status.WARNING;
     }
@@ -165,14 +169,16 @@ export class StatHighlights {
   }
 
   private clippedMindFlay(cast: CastDetails) {
-    return cast.spellId === SpellId.MIND_FLAY && (cast.hits === 0 || (cast.hits === 1 && !cast.truncated));
+    return cast.spellId === SpellId.MIND_FLAY &&
+      !cast.failed &&
+      (cast.hits === 0 || (cast.hits === 1 && !cast.truncated));
   }
 
   private missingTicks(cast: CastDetails, spellData: ISpellData) {
     const hitPercent = cast.hits / spellData.maxDamageInstances;
 
     return spellData.damageType === DamageType.DOT &&
-      !cast.resisted &&
+      !cast.failed &&
       cast.hits < spellData.maxDamageInstances &&
       (!cast.truncated || hitPercent < 0.5);
   }

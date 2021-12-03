@@ -218,7 +218,7 @@ export class SpellStats {
     if (this.addClipStats(cast)) {
       this._clipStats.castCount++;
 
-      if (!cast.resisted) {
+      if (!cast.failed) {
         this._clipStats.expectedTicks += cast.truncated ? cast.instances.length : spellData.maxDamageInstances;
       }
 

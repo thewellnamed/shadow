@@ -182,16 +182,16 @@ export class EventAnalyzer {
 
     while (nextDamage && count < spellData.maxDamageInstances) {
       if (this.matchDamage(cast, nextDamage, maxDamageTimestamp)) {
-        // If we encounter a full resist it must be that a cast failed
+        // If we encounter a full resist/immune it must be that a cast failed
         // It's *this* cast only if it's the first instance. Otherwise we just ignore it
-        if (count === 0 || nextDamage.hitType !== HitType.RESIST) {
+        if (count === 0 || !this.failed(nextDamage.hitType)) {
           instances.push(new DamageInstance(nextDamage));
           nextDamage.read = true;
           count++;
         }
 
-        // if it is this cast being resisted, don't add more damage
-        if (count === 0 && nextDamage.hitType === HitType.RESIST) {
+        // if it is this cast that failed, don't add more damage
+        if (count === 0 && this.failed(nextDamage.hitType)) {
           break;
         }
       }
@@ -230,16 +230,20 @@ export class EventAnalyzer {
       return false;
     }
 
-    // check for resist
-    const resist = events.find((e) =>
-      e.hitType === HitType.RESIST && this.matchTarget(next, e) &&
+    // check for resist/immune
+    const failed = events.find((e) =>
+      this.failed(e.hitType) && this.matchTarget(next, e) &&
         e.timestamp > next.timestamp - 50 && e.timestamp < next.timestamp + 50
     );
-    if (resist) {
+    if (failed) {
       return false;
     }
 
     return true;
+  }
+
+  private failed(hitType: HitType) {
+    return hitType === HitType.RESIST || hitType === HitType.IMMUNE;
   }
 
   private matchDamage(cast: CastDetails, next: IDamageData, maxTimestamp: number) {

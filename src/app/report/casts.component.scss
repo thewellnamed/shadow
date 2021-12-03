@@ -240,7 +240,7 @@
         display: none;
       }
 
-      &.downtime, &.power, &.hits.resist, span.downtime-label, span.hits-label {
+      &.downtime, &.power, &.hits.failed, span.downtime-label, span.hits-label {
         display: none;
       }
 

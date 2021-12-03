@@ -95,7 +95,7 @@ export class CastsAnalyzer {
 
     for (let i = currentIndex - 1; i >= 0; i--) {
       const test = this.casts[i];
-      if (test.spellId === cast.spellId && test.hitType !== HitType.RESIST && (!condition || condition(test))) {
+      if (test.spellId === cast.spellId && !this.failed(test) && (!condition || condition(test))) {
         if (!prev.onTarget && test.hasSameTarget(cast)) {
           prev.onTarget = test;
         }
@@ -111,6 +111,10 @@ export class CastsAnalyzer {
     }
 
     return prev;
+  }
+
+  private failed(cast: CastDetails) {
+    return cast.hitType === HitType.RESIST || cast.hitType === HitType.IMMUNE;
   }
 }
 
