@@ -38,8 +38,10 @@ export class CastsComponent implements OnInit, OnChanges  {
   encounter: EncounterSummary;
   highlight = new StatHighlights();
   spellFilter = new FormControl();
+  hitCount = new FormControl(-1);
   spells: { id: string; name: string }[] = [];
   spellNames: { [id: string]: string };
+  hitCounts: number[] = [];
   stats?: SpellStats;
 
   private allCasts: CastDetails[];
@@ -49,6 +51,21 @@ export class CastsComponent implements OnInit, OnChanges  {
   ngOnInit() {
     this.spellFilter.valueChanges.subscribe(() => {
       this.filterCasts();
+    });
+
+    this.hitCount.valueChanges.subscribe(() => {
+      if (!this.spellSummary?.hasStatsByHitCount()) {
+        return;
+      }
+
+      let stats: SpellStats;
+      if (this.hitCount.value < 0) {
+        stats = this.spellSummary;
+      } else {
+        stats = this.spellSummary.statsByHitCount(this.hitCount.value);
+      }
+
+      this.updateStats(stats);
     });
   }
 
@@ -63,14 +80,30 @@ export class CastsComponent implements OnInit, OnChanges  {
     if (this.spellId > SpellId.NONE) {
       this.spellData = SpellData[this.spellId];
       this.spellSummary = this.summary.getSpellSummary(this.spellId);
-      stats = this.spellSummary;
+
+      const hitStats = this.targetId ? this.spellSummary.targetStats(this.targetId) : this.spellSummary;
+      this.hitCounts = hitStats?.hitCounts || [];
+
+      if (this.spellSummary.hasStatsByHitCount() && this.hitCount.value > -1) {
+        if (this.hitCounts.includes(parseInt(this.hitCount.value))) {
+          stats = this.spellSummary.statsByHitCount(this.hitCount.value);
+        } else {
+          stats = this.spellSummary;
+          this.hitCount.setValue('-1');
+        }
+      } else {
+        stats = this.spellSummary;
+      }
     } else {
       stats = this.summary.stats;
     }
 
+    this.updateStats(stats);
+  }
+
+  private updateStats(stats: SpellStats) {
     this.stats = this.targetId ? stats.targetStats(this.targetId) : stats;
     this.allCasts = this.stats?.casts || [];
-
 
     if (this.spellId === SpellId.NONE) {
       this.spellNames = this.allCasts.reduce((lookup, cast) => {
@@ -91,6 +124,10 @@ export class CastsComponent implements OnInit, OnChanges  {
 
   get filterSpells() {
     return this.spellId === SpellId.NONE;
+  }
+
+  get showStatsByHitCount() {
+    return this.spellData?.statsByTick === true;
   }
 
   getSpellNames(spellIds: SpellId[]) {

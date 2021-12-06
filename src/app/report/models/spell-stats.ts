@@ -17,6 +17,7 @@ export class SpellStats {
   private _activeDuration = 0;
   private _includeTargetStats = false;
   private _targetIds: Set<number> = new Set();
+  private _hitCounts: Set<number> = new Set();
   private _avgDamage = 0;
   private _avgHitCount = 0;
   private _avgHit = 0;
@@ -59,6 +60,10 @@ export class SpellStats {
 
   get targetIds() {
     return [... this._targetIds];
+  }
+
+  get hitCounts(): number[] {
+    return [... this._hitCounts].sort();
   }
 
   get casts() {
@@ -174,6 +179,7 @@ export class SpellStats {
     this.recalculate = true;
 
     this._targetIds.add(cast.targetId);
+
     if (this._includeTargetStats) {
       if (!this._targetStats.hasOwnProperty(cast.targetId)) {
         this._targetStats[cast.targetId] = new SpellStats();
@@ -186,11 +192,14 @@ export class SpellStats {
       return;
     }
 
+    this._hitCounts.add(cast.hits);
     if (cast.totalDamage > 0) {
       this.successCount++;
       this.totalDamage += cast.totalDamage;
       this.totalHits += this.evaluateHits(cast);
       this.totalWeightedSpellpower += (cast.spellPower * cast.totalDamage);
+    } else {
+      this.totalWeightedSpellpower += cast.spellPower;
     }
 
     if (cast.instances.length > 0) {
@@ -306,9 +315,9 @@ export class SpellStats {
 
   updateStats() {
     this._avgDamage = this.totalDamage / this.castCount;
-    this._avgHit = this.totalDamage / this.totalHits;
-    this._avgHitCount = this.totalHits / this.successCount;
-    this._avgSpellpower = this.totalWeightedSpellpower / this.totalDamage;
+    this._avgHit = this.totalHits > 0 ? this.totalDamage / this.totalHits : 0;
+    this._avgHitCount = this.successCount > 0 ? this.totalHits / this.successCount : 0;
+    this._avgSpellpower = this.totalWeightedSpellpower / (this.totalDamage || this.castCount);
 
     if (this.hasChannelStats) {
       this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._channelStats.castCount;

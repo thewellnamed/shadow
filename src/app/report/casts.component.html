@@ -84,6 +84,14 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
+
+      <mat-form-field class="fill" appearance="standard" *ngIf="showStatsByHitCount">
+        <mat-label>Filter Hits</mat-label>
+        <mat-select [formControl]="hitCount">
+          <mat-option value="-1">All Casts</mat-option>
+          <mat-option *ngFor="let option of hitCounts" [value]="option">{{option}}</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
     <div class="help">
       <a href="https://github.com/thewellnamed/shadow/blob/main/GLOSSARY.md" target="_blank">Glossary</a>
@@ -170,7 +178,7 @@
     </mat-expansion-panel>
     <mat-expansion-panel *ngIf="spellData && casts.length === 0" class="text-notice" disabled>
       <mat-expansion-panel-header>
-        No casts found. Are you using max rank?
+        No casts found. Check target/spell/hit filters. Also, are you using max rank?
       </mat-expansion-panel-header>
     </mat-expansion-panel>
   </mat-accordion>
