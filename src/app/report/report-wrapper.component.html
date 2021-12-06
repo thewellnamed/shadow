@@ -1,0 +1,33 @@
+<nav class="app-bar" *ngIf="!!log">
+  <a [routerLink]="['/']"><span class="logo"></span></a>
+  <span class="title text-primary">
+    {{ log.title }} ({{ log.owner }})
+  </span>
+  <span class="link">
+    <a [href]="log.url" target="_blank" class="text-subdued" title="view on WCL"><mat-icon>article</mat-icon></a>
+  </span>
+</nav>
+
+<section class="report">
+  <form class="inputs" *ngIf="!!log" [formGroup]="form">
+    <mat-form-field appearance="outline">
+      <mat-label>Select Player</mat-label>
+      <mat-select #selectPlayer formControlName="player">
+        <mat-option *ngFor="let option of log?.shadowPriests" [value]="option.id">
+          {{option.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Select Encounter</mat-label>
+      <mat-select #selectEncounter formControlName="encounter">
+        <mat-option *ngFor="let option of encounters" [value]="option.id">
+          {{option.description}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+
+  <router-outlet></router-outlet>
+</section>

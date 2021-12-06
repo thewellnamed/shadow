@@ -1,0 +1,39 @@
+.content {
+  padding-left: 1em;
+  padding-right: 1em;
+
+  .icon {
+    height: 32px;
+    width: 32px;
+  }
+
+  ::ng-deep.mat-tab-link, ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
+    min-width: 60px;
+
+    .label {
+      margin-left: 6px;
+    }
+  }
+
+  ::ng-deep.mat-tab-label-active {
+    opacity: 1;
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+}
+
+@media screen and (max-width: 500px) {
+  .content {
+    ::ng-deep.mat-tab-link, ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
+      min-width: 50px;
+      max-width: 60px;
+
+      .label {
+        display: none;
+      }
+    }
+  }
+}

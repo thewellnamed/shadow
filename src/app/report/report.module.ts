@@ -13,13 +13,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 
-import { CastsComponent } from 'src/app/report/casts.component';
-import { ReportDetailsComponent } from 'src/app/report/report-details.component';
+import { CastsComponent } from 'src/app/report/details/casts.component';
+import { ReportDetailsComponent } from 'src/app/report/details/report-details.component';
+import { ReportWrapperComponent } from 'src/app/report/report-wrapper.component';
 
 @NgModule({
   declarations: [
     CastsComponent,
-    ReportDetailsComponent
+    ReportDetailsComponent,
+    ReportWrapperComponent
   ],
   imports: [
     CommonModule,

@@ -2,15 +2,16 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 import { CastsAnalyzer } from 'src/app/report/analysis/casts-analyzer';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
-import { IDamageData, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
+import { IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { MatSelect } from '@angular/material/select';
+
 
 @Component({
   selector: 'report-details',
@@ -23,7 +24,6 @@ export class ReportDetailsComponent implements OnInit {
 
   logId: string;
   encounterId: number;
-  encounters: EncounterSummary[];
   playerName: string;
   form: FormGroup;
   log: LogSummary;
@@ -41,56 +41,6 @@ export class ReportDetailsComponent implements OnInit {
       player: new FormControl(null),
       target: new FormControl(0)
     });
-
-    this.activatedRoute.paramMap.pipe(
-      switchMap((params) => {
-        this.logId = params.get('logId') as string;
-        this.encounterId = parseInt(params.get('encounterId') as string, 10);
-        this.playerName = params.get('player') as string;
-
-        return this.logs.getSummary(this.logId);
-      }),
-      switchMap((log: LogSummary) => {
-        this.log = log;
-
-        this.encounter.setValue(this.encounterId);
-        this.player.setValue(this.log.getActorByName(this.playerName)!.id);
-        this.filterEncounters();
-
-        return this.fetchData();
-      })
-    ).subscribe((data) => {
-      this.analyze(data);
-
-      this.encounter.valueChanges.subscribe(() => {
-        this.encounterId = this.encounter.value;
-        this.target.setValue(0);
-
-        if (this.encounterId > 0) {
-          this.update();
-        }
-      });
-
-      this.player.valueChanges.subscribe(() => {
-        this.playerName = this.log.getActor(this.player.value)!.name;
-        this.filterEncounters();
-
-        if (this.encounters.find((e) => e.id === this.encounterId)) {
-          this.update();
-        } else {
-          this.castSummary = null;
-          this.encounter.setValue(null);
-          this.encounterSelect.focus();
-        }
-      })
-    });
-  }
-
-  private filterEncounters() {
-    const playerId = this.player.value;
-    this.encounters = playerId ?
-      this.log.getActorEncounters(this.player.value) :
-      this.log.encounters as EncounterSummary[];
   }
 
   private fetchData() {
@@ -113,21 +63,6 @@ export class ReportDetailsComponent implements OnInit {
 
       this.loading = false;
     }
-  }
-
-  private update() {
-    this.loading = true;
-    this.fetchData().subscribe((data) => {
-      this.analyze(data);
-    })
-  }
-
-  get encounter() {
-    return this.form.get('encounter') as FormControl;
-  }
-
-  get player() {
-    return this.form.get('player') as FormControl;
   }
 
   get target() {
