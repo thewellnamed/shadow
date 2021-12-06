@@ -59,6 +59,11 @@ export const SpellData: {[spellId: number]: ISpellData} = {
     cooldown: 180
   }),
 
+  [SpellId.FEL_IRON_BOMB]: spellData({
+    damageType: DamageType.AOE,
+    maxDamageInstances: 20,
+  }),
+
   [SpellId.GOBLIN_LAND_MINE]: spellData({
     damageType: DamageType.NONE,
   }),
