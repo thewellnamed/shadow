@@ -1,13 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
-import { switchMap } from 'rxjs/operators';
+import { MatSelect } from '@angular/material/select';
+import { switchMap, withLatestFrom } from 'rxjs/operators';
 
 import { LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
-import { MatSelect } from '@angular/material/select';
-import { of } from 'rxjs';
 
 @Component({
   selector: 'report',
@@ -25,8 +24,9 @@ export class ReportWrapperComponent implements OnInit {
   form: FormGroup;
   log: LogSummary;
 
-  constructor(private route: ActivatedRoute,
-              private logs: LogsService) { }
+  constructor(private router: Router,
+              private route: ActivatedRoute,
+              private logs: LogsService) {}
 
   ngOnInit() {
     this.form = new FormGroup({
@@ -37,10 +37,9 @@ export class ReportWrapperComponent implements OnInit {
 
     this.encounter.valueChanges.subscribe(() => {
       this.encounterId = this.encounter.value;
-      this.target.setValue(0);
 
       if (this.encounterId > 0) {
-        // this.update();
+        this.updateDetails();
       }
     });
 
@@ -49,33 +48,33 @@ export class ReportWrapperComponent implements OnInit {
       this.filterEncounters();
 
       if (this.encounters.find((e) => e.id === this.encounterId)) {
-        // this.update();
+        this.updateDetails();
       } else {
-        // this.castSummary = null;
         this.encounter.setValue(null);
         this.encounterSelect.focus();
       }
     })
 
-    this.route.paramMap
-      .pipe(
-        switchMap((params) => {
-          this.logId = params.get('logId') as string;
-          this.encounterId = parseInt(params.get('encounterId') as string, 10);
-          this.playerName = params.get('player') as string;
+    this.route.paramMap.pipe(
+      withLatestFrom(this.route.firstChild!.paramMap),
+      switchMap(([params, detailsParams]) => {
+        this.logId = params.get('logId') as string;
+        this.encounterId = parseInt(detailsParams.get('encounterId') as string, 10);
+        this.playerName = detailsParams.get('player') as string;
 
-          // eslint-disable-next-line no-console
-          console.log(`logId: ${this.logId}`);
+        return this.logs.getSummary(this.logId);
+      })
+    ).subscribe((log: LogSummary) => {
+      this.log = log;
 
-          return of(null); //this.logs.getSummary(this.logId);
-        })
-      ).subscribe((log: LogSummary|null) => {
-        //this.log = log;
+      this.encounter.setValue(this.encounterId);
+      this.player.setValue(this.log.getActorByName(this.playerName)!.id);
+      this.filterEncounters();
+    });
+  }
 
-        //this.encounter.setValue(this.encounterId);
-        //this.player.setValue(this.log.getActorByName(this.playerName)!.id);
-        //this.filterEncounters();
-      });
+  private updateDetails() {
+    this.router.navigate([this.playerName, this.encounterId], { relativeTo: this.route });
   }
 
   private filterEncounters() {
@@ -91,9 +90,5 @@ export class ReportWrapperComponent implements OnInit {
 
   get player() {
     return this.form.get('player') as FormControl;
-  }
-
-  get target() {
-    return this.form.get('target') as FormControl;
   }
 }
