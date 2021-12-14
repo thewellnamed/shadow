@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
@@ -7,6 +8,7 @@ import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
+import { makeParams, urlQuery } from 'src/app/util/query.utils';
 
 @Component({
   selector: 'report',
@@ -24,7 +26,8 @@ export class ReportWrapperComponent implements OnInit {
   form: FormGroup;
   log: LogSummary;
 
-  constructor(private router: Router,
+  constructor(private location: Location,
+              private router: Router,
               private route: ActivatedRoute,
               private logs: LogsService) {}
 
@@ -34,26 +37,6 @@ export class ReportWrapperComponent implements OnInit {
       player: new FormControl(null),
       target: new FormControl(0)
     });
-
-    this.encounter.valueChanges.subscribe(() => {
-      this.encounterId = this.encounter.value;
-
-      if (this.encounterId > 0) {
-        this.updateDetails();
-      }
-    });
-
-    this.player.valueChanges.subscribe(() => {
-      this.playerName = this.log.getActor(this.player.value)!.name;
-      this.filterEncounters();
-
-      if (this.encounters.find((e) => e.id === this.encounterId)) {
-        this.updateDetails();
-      } else {
-        this.encounter.setValue(null);
-        this.encounterSelect.focus();
-      }
-    })
 
     this.route.paramMap.pipe(
       withLatestFrom(this.route.firstChild!.paramMap),
@@ -70,10 +53,12 @@ export class ReportWrapperComponent implements OnInit {
       this.encounter.setValue(this.encounterId);
       this.player.setValue(this.log.getActorByName(this.playerName)!.id);
       this.filterEncounters();
+      this.handleFormUpdates();
     });
   }
 
   private updateDetails() {
+    const query = urlQuery(this.location.path());
     this.router.navigate([this.playerName, this.encounterId], { relativeTo: this.route });
   }
 
@@ -82,6 +67,27 @@ export class ReportWrapperComponent implements OnInit {
     this.encounters = playerId ?
       this.log.getActorEncounters(this.player.value) :
       this.log.encounters as EncounterSummary[];
+  }
+
+  private handleFormUpdates() {
+    this.encounter.valueChanges.subscribe(() => {
+      this.encounterId = this.encounter.value;
+      if (this.encounterId > 0) {
+        this.updateDetails();
+      }
+    });
+
+    this.player.valueChanges.subscribe(() => {
+      this.playerName = this.log.getActor(this.player.value)!.name;
+      this.filterEncounters();
+
+      if (this.encounters.find((e) => e.id === this.encounterId)) {
+        this.updateDetails();
+      } else {
+        this.encounter.setValue(null);
+        this.encounterSelect.focus();
+      }
+    });
   }
 
   get encounter() {

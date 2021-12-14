@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
@@ -10,6 +11,7 @@ import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
 import { IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { urlPath, urlQuery } from 'src/app/util/query.utils';
 
 @Component({
   selector: 'report-details',
@@ -24,6 +26,7 @@ export class ReportDetailsComponent implements OnInit {
   logId: string;
   encounterId: number;
   playerName: string;
+  activeTab = 0;
   form: FormGroup;
   log: LogSummary;
   castSummary: CastsSummary | null;
@@ -32,6 +35,7 @@ export class ReportDetailsComponent implements OnInit {
   SpellId = SpellId;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+              private location: Location,
               private route: ActivatedRoute,
               private logs: LogsService) {
   }
@@ -42,6 +46,14 @@ export class ReportDetailsComponent implements OnInit {
       player: new FormControl(null),
       target: new FormControl(0)
     });
+
+    const query = urlQuery(this.location.path());
+    if (query.has('tab')) {
+      const tab = parseInt(query.get('tab') as string);
+      if (tab >= 0 && tab <= 5) {
+        this.activeTab = tab;
+      }
+    }
 
     this.route.paramMap.pipe(
       withLatestFrom(this.route.parent!.paramMap),
@@ -62,6 +74,16 @@ export class ReportDetailsComponent implements OnInit {
     ).subscribe((data) => {
       this.analyze(data);
     });
+  }
+
+  onTabChange(event: { index: number }) {
+    const url = this.location.path(),
+      path = urlPath(url),
+      params = urlQuery(url),
+      updated = params.set('tab', event.index);
+
+    this.activeTab = event.index;
+    this.location.replaceState(path, updated.toString());
   }
 
   private fetchData() {
