@@ -1,14 +1,14 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 
+import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
-import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
-import { makeParams, urlQuery } from 'src/app/util/query.utils';
+import { ParamsService } from 'src/app/params.service';
+import { NavigationType } from 'src/app/navigation-type.enum';
 
 @Component({
   selector: 'report',
@@ -26,10 +26,10 @@ export class ReportWrapperComponent implements OnInit {
   form: FormGroup;
   log: LogSummary;
 
-  constructor(private location: Location,
-              private router: Router,
+  constructor(private router: Router,
               private route: ActivatedRoute,
-              private logs: LogsService) {}
+              private logs: LogsService,
+              private params: ParamsService) {}
 
   ngOnInit() {
     this.form = new FormGroup({
@@ -57,9 +57,11 @@ export class ReportWrapperComponent implements OnInit {
     });
   }
 
-  private updateDetails() {
-    const query = urlQuery(this.location.path());
-    this.router.navigate([this.playerName, this.encounterId], { relativeTo: this.route });
+  private updateDetails(navType: NavigationType) {
+    this.router.navigate([this.playerName, this.encounterId], {
+      relativeTo: this.route,
+      queryParams: this.params.forNavigation(navType)
+    });
   }
 
   private filterEncounters() {
@@ -73,7 +75,7 @@ export class ReportWrapperComponent implements OnInit {
     this.encounter.valueChanges.subscribe(() => {
       this.encounterId = this.encounter.value;
       if (this.encounterId > 0) {
-        this.updateDetails();
+        this.updateDetails(NavigationType.ENCOUNTER);
       }
     });
 
@@ -82,7 +84,7 @@ export class ReportWrapperComponent implements OnInit {
       this.filterEncounters();
 
       if (this.encounters.find((e) => e.id === this.encounterId)) {
-        this.updateDetails();
+        this.updateDetails(NavigationType.PLAYER);
       } else {
         this.encounter.setValue(null);
         this.encounterSelect.focus();

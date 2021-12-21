@@ -12,11 +12,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 
-import { AppRoutingModule } from './app-routing.module';
+import { AppRoutingModule } from 'src/app/app-routing.module';
 import { LogsModule } from 'src/app/logs/logs.module';
 import { ReportModule } from 'src/app/report/report.module';
-import { AppComponent } from './app.component';
-import { HomeComponent } from './home.component';
+import { AppComponent } from 'src/app/app.component';
+import { HomeComponent } from 'src/app/home.component';
+import { ParamsService } from 'src/app/params.service';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,9 @@ import { HomeComponent } from './home.component';
     ReactiveFormsModule,
     ReportModule
   ],
-  providers: [],
+  providers: [
+    ParamsService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
