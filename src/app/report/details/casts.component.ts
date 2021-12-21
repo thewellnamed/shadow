@@ -18,6 +18,7 @@ import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { SpellSummary } from 'src/app/report/models/spell-summary';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
+import { ParamsService, ParamType } from 'src/app/params.service';
 
 @Component({
   selector: 'casts',
@@ -45,10 +46,43 @@ export class CastsComponent implements OnInit, OnChanges  {
   stats?: SpellStats;
 
   private allCasts: CastDetails[];
+  private initialized = false;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) {}
+  constructor(private changeDetectorRef: ChangeDetectorRef,
+              private params: ParamsService) {}
 
   ngOnInit() {
+    if (!this.spellId) {
+      this.spellId = SpellId.NONE;
+    }
+
+    this.initializeParams();
+    this.initializeFormHandlers();
+    this.updateStats(this.getBaseStats());
+
+    this.initialized = true;
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.encounterId && changes.encounterId.currentValue !== changes.encounterId.previousValue) {
+      this.encounter = this.log.getEncounter(this.encounterId) as EncounterSummary;
+    }
+
+    if (this.initialized) {
+      this.updateStats(this.getBaseStats());
+    }
+  }
+
+  private initializeParams() {
+    if (this.params.has(ParamType.TICKS)) {
+      const ticks = parseInt(this.params.get(ParamType.TICKS));
+      if (ticks >= 0 && ticks <= 3) {
+        this.hitCount.setValue(ticks);
+      }
+    }
+  }
+
+  private initializeFormHandlers() {
     this.spellFilter.valueChanges.subscribe(() => {
       this.filterCasts();
     });
@@ -61,44 +95,14 @@ export class CastsComponent implements OnInit, OnChanges  {
       let stats: SpellStats;
       if (this.hitCount.value < 0) {
         stats = this.spellSummary;
+        this.params.clear(ParamType.TICKS);
       } else {
         stats = this.spellSummary.statsByHitCount(this.hitCount.value);
+        this.params.set(ParamType.TICKS, this.hitCount.value);
       }
 
       this.updateStats(stats);
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (!this.spellId) {
-      this.spellId = SpellId.NONE;
-    }
-
-    this.encounter = this.log.getEncounter(this.encounterId) as EncounterSummary;
-    let stats: SpellStats;
-
-    if (this.spellId > SpellId.NONE) {
-      this.spellData = SpellData[this.spellId];
-      this.spellSummary = this.summary.getSpellSummary(this.spellId);
-
-      const hitStats = this.targetId ? this.spellSummary.targetStats(this.targetId) : this.spellSummary;
-      this.hitCounts = hitStats?.hitCounts || [];
-
-      if (this.spellSummary.hasStatsByHitCount() && this.hitCount.value > -1) {
-        if (this.hitCounts.includes(parseInt(this.hitCount.value))) {
-          stats = this.spellSummary.statsByHitCount(this.hitCount.value);
-        } else {
-          stats = this.spellSummary;
-          this.hitCount.setValue('-1');
-        }
-      } else {
-        stats = this.spellSummary;
-      }
-    } else {
-      stats = this.summary.stats;
-    }
-
-    this.updateStats(stats);
   }
 
   private updateStats(stats: SpellStats) {
@@ -120,6 +124,32 @@ export class CastsComponent implements OnInit, OnChanges  {
 
     this.filterCasts();
     this.changeDetectorRef.detectChanges();
+  }
+
+  private getBaseStats() {
+    let stats: SpellStats;
+    if (this.spellId > SpellId.NONE) {
+      this.spellData = SpellData[this.spellId];
+      this.spellSummary = this.summary.getSpellSummary(this.spellId);
+
+      const hitStats = this.targetId ? this.spellSummary.targetStats(this.targetId) : this.spellSummary;
+      this.hitCounts = hitStats?.hitCounts || [];
+
+      if (this.spellSummary.hasStatsByHitCount() && this.hitCount.value > -1) {
+        if (this.hitCounts.includes(parseInt(this.hitCount.value))) {
+          stats = this.spellSummary.statsByHitCount(this.hitCount.value);
+        } else {
+          stats = this.spellSummary;
+          this.hitCount.setValue('-1');
+        }
+      } else {
+        stats = this.spellSummary;
+      }
+    } else {
+      stats = this.summary.stats;
+    }
+
+    return stats;
   }
 
   get filterSpells() {

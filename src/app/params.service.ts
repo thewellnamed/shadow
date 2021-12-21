@@ -4,13 +4,14 @@ import { Params } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 
 import { NavigationType } from 'src/app/navigation-type.enum';
+import { Tab } from 'src/app/report/details/tabs';
 
 @Injectable()
 export class ParamsService {
   constructor(private location: Location) {}
 
   all() {
-    return this.makeParams(this.currentQuery);
+    return this.makeParams(this.currentQuery) as ShadowParams;
   }
 
   has(param: ParamType) {
@@ -18,7 +19,7 @@ export class ParamsService {
   }
 
   get(param: ParamType) {
-    return this.currentQuery.get(param);
+    return this.currentQuery.get(param) as string;
   }
 
   set(param: ParamType, value: string|number) {
@@ -29,11 +30,20 @@ export class ParamsService {
     this.location.replaceState(path, updated.toString());
   }
 
-  forNavigation(type: NavigationType) {
+  clear(param: ParamType) {
+    const path = this.currentPath,
+      query = this.currentQuery,
+      updated = query.delete(param);
+
+    this.location.replaceState(path, updated.toString());
+  }
+
+  forNavigation(_type: NavigationType) {
     const params = this.all();
 
-    if (type === NavigationType.ENCOUNTER) {
-      delete params[ParamType.TARGET];
+    // reset MF ticks if we're navigating to a new player/encounter and not actively viewing MF tab
+    if (params.tab !== Tab.Flay.toString()) {
+      delete params.ticks;
     }
 
     return params;
@@ -72,3 +82,5 @@ export enum ParamType {
   SPELL_ID = 'spellId',
   TICKS = 'ticks'
 }
+
+export type ShadowParams = {[key in ParamType]?: string};

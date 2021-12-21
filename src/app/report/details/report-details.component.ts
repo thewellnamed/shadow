@@ -10,8 +10,8 @@ import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
 import { IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { ParamsService, ParamType } from 'src/app/params.service';
+import { TabDefinitions } from 'src/app/report/details/tabs';
 
 @Component({
   selector: 'report-details',
@@ -32,7 +32,7 @@ export class ReportDetailsComponent implements OnInit {
   castSummary: CastsSummary | null;
   targets: { id: number; name: string }[];
   loading = true;
-  SpellId = SpellId;
+  tabs = TabDefinitions;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private location: Location,
@@ -42,18 +42,7 @@ export class ReportDetailsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.form = new FormGroup({
-      encounter: new FormControl(null),
-      player: new FormControl(null),
-      target: new FormControl(0)
-    });
-
-    if (this.params.has(ParamType.TAB)) {
-      const tab = parseInt(this.params.get(ParamType.TAB) as string);
-      if (tab >= 0 && tab <= 5) {
-        this.activeTab = tab;
-      }
-    }
+    this.initializeForm();
 
     this.route.paramMap.pipe(
       withLatestFrom(this.route.parent!.paramMap),
@@ -78,7 +67,32 @@ export class ReportDetailsComponent implements OnInit {
 
   onTabChange(event: { index: number }) {
     this.activeTab = event.index;
-    this.params.set(ParamType.TAB, this.activeTab);
+
+    if (this.activeTab > 0) {
+      this.params.set(ParamType.TAB, this.activeTab);
+    } else {
+      this.params.clear(ParamType.TAB);
+    }
+  }
+
+  onTargetChange(event: { value: number }) {
+    this.setTarget(event.value);
+  }
+
+  private initializeForm() {
+    if (this.params.has(ParamType.TAB)) {
+      const tab = parseInt(this.params.get(ParamType.TAB));
+      if (tab >= 0 && tab <= 5) {
+        this.activeTab = tab;
+      }
+    }
+
+    const target = this.params.has(ParamType.TARGET) ? parseInt(this.params.get(ParamType.TARGET)) : 0;
+    this.form = new FormGroup({
+      encounter: new FormControl(null),
+      player: new FormControl(null),
+      target: new FormControl(target)
+    });
   }
 
   private fetchData() {
@@ -96,13 +110,25 @@ export class ReportDetailsComponent implements OnInit {
         .sort((a, b) => a.name.localeCompare(b.name));
 
       if (this.targets.length === 1) {
-        this.target.setValue(this.targets[0].id);
-      } else {
-        this.target.setValue(null);
+        this.setTarget(this.targets[0].id);
+      } else if (this.target.value && !this.castSummary.targetIds.includes(this.target.value)) {
+        this.setTarget(0);
       }
 
       this.loading = false;
       this.changeDetectorRef.detectChanges();
+    }
+  }
+
+  private setTarget(targetId: number) {
+    if (targetId > 0) {
+      this.params.set(ParamType.TARGET, targetId);
+    } else {
+      this.params.clear(ParamType.TARGET);
+    }
+
+    if (this.target.value !== targetId) {
+      this.target.setValue(targetId);
     }
   }
 
