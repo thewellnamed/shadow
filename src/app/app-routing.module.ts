@@ -11,6 +11,10 @@ const routes: Routes = [
     component: ReportWrapperComponent,
     children: [
       {
+        path: ':player',
+        component: ReportDetailsComponent
+      },
+      {
         path: ':player/:encounterId',
         component: ReportDetailsComponent
       }

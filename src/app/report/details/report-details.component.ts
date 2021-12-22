@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 import { CastsAnalyzer } from 'src/app/report/analysis/casts-analyzer';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
@@ -48,8 +49,11 @@ export class ReportDetailsComponent implements OnInit {
       withLatestFrom(this.route.parent!.paramMap),
       switchMap(([params, parentParams]) => {
         this.logId = parentParams.get('logId') as string;
-        this.encounterId = parseInt(params.get('encounterId') as string, 10);
         this.playerName = params.get('player') as string;
+
+        if (params.has('encounterId')) {
+          this.encounterId = parseInt(params.get('encounterId') as string, 10);
+        }
 
         this.loading = true;
         this.changeDetectorRef.detectChanges();
@@ -61,7 +65,10 @@ export class ReportDetailsComponent implements OnInit {
         return this.fetchData();
       })
     ).subscribe((data) => {
-      this.analyze(data);
+      if (data) this.analyze(data);
+
+      this.loading = false;
+      this.changeDetectorRef.detectChanges();
     });
   }
 
@@ -96,7 +103,11 @@ export class ReportDetailsComponent implements OnInit {
   }
 
   private fetchData() {
-    return this.logs.getEvents(this.log, this.playerName, this.encounterId);
+    if (this.encounterId > 0) {
+      return this.logs.getEvents(this.log, this.playerName, this.encounterId);
+    } else {
+      return of(null);
+    }
   }
 
   private analyze(data: IEncounterEvents) {
@@ -114,9 +125,6 @@ export class ReportDetailsComponent implements OnInit {
       } else if (this.target.value && !this.castSummary.targetIds.includes(this.target.value)) {
         this.setTarget(0);
       }
-
-      this.loading = false;
-      this.changeDetectorRef.detectChanges();
     }
   }
 

@@ -58,7 +58,8 @@ export class ReportWrapperComponent implements OnInit {
   }
 
   private updateDetails(navType: NavigationType) {
-    this.router.navigate([this.playerName, this.encounterId], {
+    const route = this.encounterId > 0 ? [this.playerName, this.encounterId] : [this.playerName];
+    this.router.navigate(route, {
       relativeTo: this.route,
       queryParams: this.params.forNavigation(navType)
     });
@@ -81,14 +82,18 @@ export class ReportWrapperComponent implements OnInit {
 
     this.player.valueChanges.subscribe(() => {
       this.playerName = this.log.getActor(this.player.value)!.name;
+
       this.filterEncounters();
 
-      if (this.encounters.find((e) => e.id === this.encounterId)) {
-        this.updateDetails(NavigationType.PLAYER);
-      } else {
-        this.encounter.setValue(null);
-        this.encounterSelect.focus();
+      if (!this.encounters.find((e) => e.id === this.encounterId)) {
+        this.encounterId = -1;
+        setTimeout(() => {
+          this.encounter.setValue(undefined);
+          this.encounterSelect.focus();
+        }, 10);
       }
+
+      this.updateDetails(NavigationType.PLAYER);
     });
   }
 
