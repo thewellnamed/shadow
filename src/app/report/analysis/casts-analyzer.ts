@@ -6,6 +6,7 @@ import { HitType } from 'src/app/logs/models/hit-type.enum';
 export class CastsAnalyzer {
   private static MAX_ACTIVE_LATENCY = 3000; // ignore "next cast latency" for gaps over 5s (not trying to chain-cast)
   private static MAX_ACTIVE_DOWNTIME = 10000; // ignore cooldown/dot downtime for gaps over 10s (movement?)
+  private static EARLY_CLIP_THRESHOLD = 0.75; // clipped MF 75% of the way to the next tick
   private static MAX_GCD = 1.5;
   private static MIN_GCD = 1.0;
 
@@ -101,6 +102,14 @@ export class CastsAnalyzer {
 
     if (delta <= CastsAnalyzer.MAX_ACTIVE_LATENCY) {
       current.nextCastLatency = delta/1000;
+
+      if (current.hits > 0 && current.hits < SpellData[current.spellId].maxDamageInstances && !current.truncated) {
+        // find the tick period using the cast and first damage tick, which will incorporate haste
+        let timeToTick = current.instances[0].timestamp - current.castEnd;
+
+        // if we clipped very close to the next expected tick, flag the cast.
+        current.clippedEarly = (delta < timeToTick && (delta/timeToTick > CastsAnalyzer.EARLY_CLIP_THRESHOLD));
+      }
     }
   }
 

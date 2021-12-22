@@ -36,13 +36,24 @@ export class StatHighlights {
     },
 
     nextCastLatency: {
-      [Status.WARNING]: 0.5,
-      [Status.NOTICE]: 0.25
+      [Status.NOTICE]: 0.3
     },
 
     missedTickPercent: {
       [Status.WARNING]: 0.02,
       [Status.NOTICE]: 0
+    },
+
+    // MF clipped early
+    clippedEarlyPercent: {
+      [Status.WARNING]: 0.05,
+      [Status.NOTICE]: 0
+    },
+
+    // Clipped MF DPS
+    clippedEarlyDps: {
+      [Status.WARNING]: 10,
+      [Status.NOTICE]: 5
     }
   };
 
@@ -72,6 +83,14 @@ export class StatHighlights {
   cooldown(data: CastDetails|SpellStats) {
     const downtime = data instanceof CastDetails ? data.timeOffCooldown : data.cooldownStats.avgOffCooldown;
     return this.textHighlight(this.evaluateDowntime('timeOffCooldown', downtime));
+  }
+
+  clippedEarly(data: CastDetails|SpellStats) {
+    return this.textHighlight(this.evaluateEarlyClips(data));
+  }
+
+  clippedEarlyDps(lostDps: string|number) {
+    return this.textHighlight(this.thresholdStatus('clippedEarlyDps', parseInt(lostDps as string)));
   }
 
   /**
@@ -123,7 +142,7 @@ export class StatHighlights {
       return Status.WARNING;
     }
 
-    if (this.clippedMindFlay(cast)) {
+    if (cast.clippedEarly) {
       return Status.WARNING;
     }
 
@@ -145,7 +164,7 @@ export class StatHighlights {
   private evaluateHits(cast: CastDetails): Status {
     const spellData = SpellData[cast.spellId];
 
-    if (this.clippedMindFlay(cast)) {
+    if (cast.clippedEarly) {
       return Status.WARNING;
     }
 
@@ -168,10 +187,12 @@ export class StatHighlights {
     return this.thresholdStatus(statName, dotDowntime);
   }
 
-  private clippedMindFlay(cast: CastDetails) {
-    return cast.spellId === SpellId.MIND_FLAY &&
-      !cast.failed &&
-      (cast.hits === 0 || (cast.hits === 1 && !cast.truncated));
+  private evaluateEarlyClips(data: CastDetails|SpellStats): Status {
+    if (data instanceof SpellStats) {
+      return this.thresholdStatus('clippedEarlyPercent', data.channelStats.clipPercent);
+    }
+
+    return ((data as CastDetails).clippedEarly) ? Status.WARNING : Status.NORMAL;
   }
 
   private missingTicks(cast: CastDetails, spellData: ISpellData) {

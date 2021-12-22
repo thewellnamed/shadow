@@ -27,6 +27,9 @@ export class CastDetails {
   // for channeled spells, delta from the last damage tick (effective end of channel) until next cast (of any spell)
   nextCastLatency?: number;
 
+  // for channeled spells, was the channel clipped very close to the next tick?
+  clippedEarly = false;
+
   // for DoTs, downtime between last tick and first tick of this cast
   dotDowntime?: number;
 

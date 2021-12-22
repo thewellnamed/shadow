@@ -265,6 +265,18 @@ export class CastsComponent implements OnInit, OnChanges  {
     };
   }
 
+  lostChannelDps(stats: SpellStats, format = true): string|number {
+    if (stats.channelStats.totalClipDamage > 0) {
+      // If there were no opportunity cost to letting the cast finish, the lost DPS is just the lost damage
+      // using 0.85 to estimate *some* small cost in time
+      // todo: should probably at least make this a constant... somewhere?
+      const lostDpsEstimate = (stats.channelStats.totalClipDamage * 0.85) / this.encounter.durationSeconds
+      return format ? ('~' + this.format(lostDpsEstimate, 1)) : lostDpsEstimate;
+    }
+
+    return 0;
+  }
+
   filterCasts() {
     const filterValues = this.spellFilter.value;
 

@@ -26,6 +26,9 @@ export class SpellStats {
 
   private _channelStats: IChannelStats = {
     castCount: 0,
+    clipCount: 0,
+    clipPercent: 0,
+    totalClipDamage: 0,
     totalNextCastLatency: 0,
     avgNextCastLatency: 0
   };
@@ -224,6 +227,13 @@ export class SpellStats {
     if (this.addChannelStats(cast)) {
       this._channelStats.castCount++;
       this._channelStats.totalNextCastLatency += cast.nextCastLatency as number;
+
+      if (cast.clippedEarly) {
+        this._channelStats.clipCount++;
+
+        // assume one lost tick for the same damage as the last actual tick
+        this._channelStats.totalClipDamage += cast.instances[cast.instances.length - 1].totalDamage;
+      }
     }
 
     if (this.addCooldownStats(cast)) {
@@ -289,7 +299,9 @@ export class SpellStats {
 
       if (next.hasChannelStats) {
         this._channelStats.castCount += next.channelStats.castCount;
+        this._channelStats.clipCount += next.channelStats.clipCount;
         this._channelStats.totalNextCastLatency += next.channelStats.totalNextCastLatency;
+        this._channelStats.totalClipDamage += next.channelStats.totalClipDamage;
       }
 
       if (next.hasCooldownStats) {
@@ -336,6 +348,7 @@ export class SpellStats {
 
     if (this.hasChannelStats) {
       this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._channelStats.castCount;
+      this._channelStats.clipPercent = this._channelStats.clipCount / this._channelStats.castCount;
     }
 
     if (this.hasCooldownStats) {
@@ -415,7 +428,7 @@ export class SpellStats {
       // find any damage instances on target and add those up
       return cast.instances.reduce((sum, instance) => {
         if (instance.targetId === targetId) {
-          sum += instance.amount + instance.absorbed;
+          sum += instance.totalDamage;
         }
 
         return sum;
@@ -448,6 +461,9 @@ export interface IStatsMap {
 
 export interface IChannelStats {
   castCount: number;
+  clipCount: number;
+  clipPercent: number;
+  totalClipDamage: number;
   totalNextCastLatency: number;
   avgNextCastLatency: number;
 }

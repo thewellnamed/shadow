@@ -20,6 +20,10 @@ export class DamageInstance {
     this.resisted = data.resisted || 0;
   }
 
+  get totalDamage() {
+    return this.amount + this.absorbed;
+  }
+
   get partial() {
     return this.absorbed > 0 || this.resisted > 0;
   }

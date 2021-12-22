@@ -54,14 +54,24 @@
       </div>
     </ng-container>
 
-    <div class="avg-latency" *ngIf="stats.hasChannelStats">
-      Avg MF latency:
-      <span [ngClass]="highlight.latency(stats)">
-        {{ format(stats.channelStats.avgNextCastLatency, 2, 's') }}
-      </span>
-    </div>
+    <ng-container *ngIf="stats.hasChannelStats">
+      <div class="avg-latency">
+        Avg MF latency:
+        <span [ngClass]="highlight.latency(stats)">
+          {{ format(stats.channelStats.avgNextCastLatency, 2, 's') }}
+        </span>
+      </div>
+      <div class="channel-clip-count">
+        Early MF Clips:
+        <span [ngClass]="highlight.clippedEarly(stats)">{{ stats.channelStats.clipCount }}</span>
+      </div>
+      <div class="channel-clip-dps">
+        Lost MF DPS:
+        <span [ngClass]="highlight.clippedEarlyDps(lostChannelDps(stats, false))">{{ lostChannelDps(stats) }}</span>
+      </div>
+    </ng-container>
 
-    <div class="break spellpower" [ngClass]="{ 'hidden': stats.hasChannelStats }"></div>
+    <div class="break spellpower"></div>
     <div class="avg-spellpower">Avg Spellpower: <span class="table-accent">{{ format(stats.avgSpellpower) }}</span></div>
     <div class="power-metric">DPS/Power: <span class="table-accent">{{ powerMetric(stats) }}</span></div>
   </section>
@@ -152,11 +162,18 @@
           </div>
           <div *ngIf="isDot(cast)">
             Clipped Previous:
-            <span [ngClass]="highlight.clippedCast(cast)">{{ cast.clippedPreviousCast }}</span></div>
-          <div *ngIf="isChannel(cast)">
-            Post-Channel latency:
-            <span [ngClass]="highlight.latency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
+            <span [ngClass]="highlight.clippedCast(cast)">{{ cast.clippedPreviousCast }}</span>
           </div>
+          <ng-container *ngIf="isChannel(cast)">
+            <div>
+              Post-Channel latency:
+              <span [ngClass]="highlight.latency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
+            </div>
+            <div>
+              Clipped early:
+              <span [ngClass]="highlight.clippedEarly(cast)">{{ cast.clippedEarly }}</span>
+            </div>
+          </ng-container>
           <div *ngIf="hasCooldown(cast)">
             Time off cooldown:
             <span [ngClass]="highlight.cooldown(cast)">{{ format(cast.timeOffCooldown, 1, 's') }}</span>
