@@ -92,7 +92,8 @@ In cases where a Mind Flay channel is clearly interrupted for a new spell very c
 taking haste into account. The number displayed is the number of casts that were clipped early by this measure.
 
 Haste can only be accounted for by using the time between ticks (or between the cast and first tick), therefore at least one MF ticks must
-occur for the cast to be flagged. 
+occur for the cast to be flagged. Also note that only channels interrupted *for a new spell cast* are flagged, since the new start of the new cast
+is needed for recognizing the clip. Channel interruptions from movement are not flagged.
 
 ### Lost MF DPS
 
