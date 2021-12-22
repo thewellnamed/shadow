@@ -1,8 +1,12 @@
 # Todo List
 
+### DoT metrics
+> - Remove "clipped ticks" stat
+> - Replace it with some measure of "Lost GCDs", e.g. to measure the impact of recasting early, when those GCDs
+  could have been used for other damage abilities, like an extra tick of Mind Flay.
+
 ### Haste
 > - Investigate:
->   - confirm that current stats are not impacted by changes in player haste
 >   - Can we determine haste rating or effective haste % per cast from log data?
 
 ### Testing

@@ -24,36 +24,24 @@ Definitions of stats/terms available via the [Glossary](GLOSSARY.md)
 [Todo List](TODO.md)
 
 ### Changelog
+
+- 2021/12/22
+  - Added [Early MF Clips](GLOSSARY.md#early-mf-clips) and [Lost MF DPS](GLOSSARY.md#lost-mf-dps) stats
+  - Fixed some bugs with associating AoE damage instances to targets and handling "Unknown Actor" in log cast data
+  - Added better support for deep linking into the app.
+
+
 - 2021/12/01
-  - Improved mobile styles (I hope).
+  - Improved mobile styling and handling of various screen sizes
+  
 
-
-- 2021/11/30
+- November 2021 
+  - Various bug fixes and accuracy improvements
   - Added Starshards and Devouring Plague, visible in the timeline
-  - Added support for AoE spells
-  - Added some engineering bombs and Lady Vashj paraphernalia (nets, thornlings, land mines)
-
-- 2021/11/29
-  - Fixed various bugs related to associating damage events to casts, causing inaccurate stats
+  - Added support for AoE spells, engineering bombs, and Lady Vashj paraphernalia (nets, thornlings, land mines)
   - Modified DoT Downtime and Time Off Cooldown to only consider casts while actually active. 
     The goal is to measure rotational efficiency, and it's not really possible to handle mechanics related movement well.
     So, we just assume you're moving for good reason if you have a long delay. This improves the meaningfulness of these stats. I think.
     - Next casts more than 3s after a mind-flay are ignored for avg latency calculation
     - Re-dotting more than 10s later is ignored for avg DoT Downtime.
     - MB/SW:D more than 10s late is ignored for avg Time Off Cooldown.
-
-
-- 2021/11/25
-  - Fixed bug in post-channel latency calculation
-
-
-- 2021/11/23
-  - Improved rendering performance by switching to ChangeDetectionStrategy.OnPush
-  - Added overall summary stats
-  - Added Spellpower/Active DPS
-
-
-- 2021/11/22
-  - Fixed display of friendly target names in cast list
-  - Added display of damage absorbed/resisted
-  - Sort target list alphabetically

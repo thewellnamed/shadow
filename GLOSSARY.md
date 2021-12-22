@@ -85,6 +85,26 @@ Power = [Avg Spellpower](#avg-spellpower)
 stats.powerMetric = DPS / Power
 ```
 
+### Early MF Clips
+
+In cases where a Mind Flay channel is clearly interrupted for a new spell very close to the next expected tick, the cast is flagged as 
+"clipped early". Currently the threshold for flagging is if the clip occurs more than 75% of the way to the next expected tick of the channel, 
+taking haste into account. The number displayed is the number of casts that were clipped early by this measure.
+
+Haste can only be accounted for by using the time between ticks (or between the cast and first tick), therefore at least one MF ticks must
+occur for the cast to be flagged. 
+
+### Lost MF DPS
+
+Estimates DPS lost from [Early MF Clips](#early-mf-clips). This value is estimated by assuming that the clipped tick would have hit for the same
+amount as the previous tick. DPS is calculated by adding this "missing" damage to the overall damage for the encounter (with a slight discount). 
+The discount factor tries to estimate for the fact that clipping early means starting the next cast sooner, so there is *some* small opportunity
+cost to waiting for the next tick. The current discount factor is 10%.
+
+```
+stats.lostMfDps = (channelStats.totalClippedDamage * discountFactor) / encounter.durationSeconds
+```
+
 ### Truncated
 
 If a DoT or Mind Flay is cut off early because the mob died, then the cast is marked as truncated. DoTs truncated with less than
