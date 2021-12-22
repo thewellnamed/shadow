@@ -136,7 +136,22 @@
   }
 
   .instance {
-    padding-top: 0.25em;
+    > span {
+      display: inline-block;
+      vertical-align: top;
+
+      &.target {
+        max-width: 30%;
+        margin-left: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      &.damage {
+        margin-left: 10px;
+      }
+    }
   }
 
   .text-warning {
@@ -246,6 +261,16 @@
 
       span.hits-label-abbrev, span.cd-label {
         display: inline;
+      }
+    }
+
+    .instance {
+      > span.target {
+        max-width: calc(100% - 160px);
+      }
+
+      > span.damage > span.damage-label {
+        display: none;
       }
     }
   }

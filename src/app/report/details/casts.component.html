@@ -167,10 +167,11 @@
         <div class="instances" *ngIf="cast.dealtDamage">
           Hits:
           <div class="instance" *ngFor="let instance of cast.instances">
-            <span class="timestamp">{{ offsetTime(instance.timestamp) }}</span>
+            <span class="timestamp table-accent">{{ offsetTime(instance.timestamp) }}</span>
+            <span class="target">{{ targetName(instance.targetId, instance.targetInstance) }}</span>
             <span class="damage">
-              Damage: {{ instance.amount }}
-              <span *ngIf="instance.partial">({{ instance.partialSummary }})</span>
+              <span class="damage-label">Damage:&nbsp;</span> <span class="spell-accent">{{ instance.amount }}</span>
+              <span *ngIf="instance.partial">&nbsp;({{ instance.partialSummary }})</span>
             </span>
           </div>
         </div>

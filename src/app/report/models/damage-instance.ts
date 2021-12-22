@@ -3,6 +3,8 @@ import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class DamageInstance {
   timestamp: number;
+  targetId: number;
+  targetInstance: number;
   hitType: HitType;
   amount: number;
   absorbed: number;
@@ -10,6 +12,8 @@ export class DamageInstance {
 
   constructor(data: IDamageData) {
     this.timestamp = data.timestamp;
+    this.targetId = data.targetID;
+    this.targetInstance = data.targetInstance;
     this.hitType = data.hitType;
     this.amount = data.amount;
     this.absorbed = data.absorbed || 0;

@@ -11,6 +11,7 @@ export class CastDetails {
   sourceId: number;
   targetId: number;
   targetInstance: number;
+  allTargets: number[] = [];
   hitType: HitType;
   instances: DamageInstance[] = [];
   totalDamage = 0;
@@ -59,11 +60,12 @@ export class CastDetails {
   setInstances(instances: DamageInstance[]) {
     this.instances = instances;
 
-    let hits = 0, damage = 0, absorbed = 0, resisted = 0;
+    let hits = 0, damage = 0, absorbed = 0, resisted = 0, targets = [];
     for (const next of instances) {
       damage += next.amount;
       absorbed += next.absorbed;
       resisted += next.resisted;
+      targets.push(next.targetId);
 
       if (![HitType.RESIST, HitType.IMMUNE].includes(next.hitType)) {
         hits++;
@@ -75,6 +77,7 @@ export class CastDetails {
     this.totalAbsorbed = absorbed;
     this.totalResisted = resisted;
     this.hits = hits;
+    this.allTargets = [... new Set(targets)];
   }
 
   get dealtDamage() {

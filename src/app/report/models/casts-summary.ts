@@ -1,6 +1,6 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { SpellSummary } from 'src/app/report/models/spell-summary';
-import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { SpellData } from 'src/app/logs/models/spell-data';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 
 export class CastsSummary {
@@ -23,7 +23,10 @@ export class CastsSummary {
       return spells;
     }, this.spells);
 
-    this.targetIds = [... new Set(this.casts.map((c) => c.targetId))];
+    const allTargets = this.casts.reduce(
+      (targets, c) => targets.concat(c.allTargets), [] as number[]
+    );
+    this.targetIds = [... new Set(allTargets)];
     this.aggregateSpellStats();
   }
 

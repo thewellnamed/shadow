@@ -172,19 +172,23 @@ export class SpellStats {
     return stats;
   }
 
-  addCast(cast: CastDetails) {
+  addCast(cast: CastDetails, targetId?: number) {
     this._casts.push(cast);
     this._sortedCasts = undefined;
     this.castCount++;
     this.recalculate = true;
 
-    this._targetIds.add(cast.targetId);
+    if (targetId) {
+      this._targetIds.add(targetId);
+    } else {
+      const targetIds = cast.targetId > 0 ? [cast.targetId] : cast.allTargets;
+      targetIds.forEach((t) => {
+        this._targetIds.add(t);
 
-    if (this._includeTargetStats) {
-      if (!this._targetStats.hasOwnProperty(cast.targetId)) {
-        this._targetStats[cast.targetId] = new SpellStats();
-      }
-      this._targetStats[cast.targetId].addCast(cast);
+        if (this._includeTargetStats) {
+          this.addTargetCast(t, cast);
+        }
+      });
     }
 
     const spellData = SpellData[cast.spellId];
@@ -193,11 +197,14 @@ export class SpellStats {
     }
 
     this._hitCounts.add(cast.hits);
-    if (cast.totalDamage > 0) {
+
+    const totalDamage = this.evaluateDamage(cast, targetId);
+
+    if (totalDamage > 0) {
       this.successCount++;
-      this.totalDamage += cast.totalDamage;
-      this.totalHits += this.evaluateHits(cast);
-      this.totalWeightedSpellpower += (cast.spellPower * cast.totalDamage);
+      this.totalDamage += totalDamage;
+      this.totalHits += this.evaluateHits(cast, totalDamage, targetId);
+      this.totalWeightedSpellpower += (cast.spellPower * totalDamage);
     } else {
       this.totalWeightedSpellpower += cast.spellPower;
     }
@@ -245,9 +252,16 @@ export class SpellStats {
     this.recalculate = true;
   }
 
-  addCasts(casts: CastDetails[]) {
+  addTargetCast(targetId: number, cast: CastDetails) {
+    if (!this._targetStats.hasOwnProperty(targetId)) {
+      this._targetStats[targetId] = new SpellStats();
+    }
+    this._targetStats[targetId].addCast(cast, targetId);
+  }
+
+  addCasts(casts: CastDetails[], targetId?: number) {
     for (const next of casts) {
-      this.addCast(next);
+      this.addCast(next, targetId);
     }
   }
 
@@ -303,7 +317,8 @@ export class SpellStats {
           if (this._targetStats.hasOwnProperty(targetId)) {
             this._targetStats[targetId].merge(targetStats);
           } else {
-            this._targetStats[targetId] = new SpellStats(targetStats.casts);
+            this._targetStats[targetId] = new SpellStats();
+            this._targetStats[targetId].addCasts(targetStats.casts, targetId);
           }
         }
       }
@@ -395,21 +410,35 @@ export class SpellStats {
     return SpellData[cast.spellId].damageType === DamageType.DOT && cast.dotDowntime !== undefined;
   }
 
-  private evaluateHits(cast: CastDetails) {
+  private evaluateDamage(cast: CastDetails, targetId?: number) {
+    if (targetId && cast.targetId !== targetId) {
+      // find any damage instances on target and add those up
+      return cast.instances.reduce((sum, instance) => {
+        if (instance.targetId === targetId) {
+          sum += instance.amount + instance.absorbed;
+        }
+
+        return sum;
+      }, 0);
+    } else {
+      return cast.totalDamage;
+    }
+  }
+
+  private evaluateHits(cast: CastDetails, totalDamage: number, targetId?: number) {
     if (cast.instances.length > 1) {
-      return cast.instances.length;
+      const instances = targetId ?
+        cast.instances.filter((i) => i.targetId === targetId) :
+        cast.instances;
+
+      return instances.length;
     }
 
-    if (cast.totalDamage > 0) {
+    if (totalDamage > 0) {
       return 1;
     }
 
     return 0;
-  }
-
-  private getActiveDuration(cast: CastDetails) {
-    const end = cast.instances.length > 0 ? cast.instances[cast.instances.length - 1].timestamp : cast.castEnd;
-    return (end - cast.castStart)/1000;
   }
 }
 
