@@ -97,9 +97,10 @@ export class EventAnalyzer {
           this.setTruncationByDeath(details, spellData);
         } else {
           // find the next instance of damage for this spell for this target.
-          const damage = damageEvents.find((d) => this.matchDamage(details, d, details.castEnd));
+          const damage = damageEvents.find((d) => this.matchDamage(details, d, details.castEnd, true));
 
           if (damage) {
+            details.targetId = damage.targetID;
             details.setInstances([new DamageInstance((damage))]);
             damage.read = true;
           }
@@ -163,6 +164,19 @@ export class EventAnalyzer {
     let instances: DamageInstance[] = [];
     let nextCast: ICastData|null;
     let nextDamage: IDamageData|null;
+
+    if (cast.targetId && this.log.getActorName(cast.targetId) === undefined) {
+      // cast on "Unknown Actor" in WCL. Try to infer the target first
+      // look for a damage event around the time we should expect a hit for the spell
+      // and infer the actual target from that instance, if found.
+      const delta = spellData.maxDuration > 0 ? (spellData.maxDuration / spellData.maxDamageInstances) * 1000 : 0;
+      const firstDamageTimestamp = cast.castEnd + delta + EventAnalyzer.EVENT_LEEWAY;
+      const firstInstance = events.find((e) => this.matchDamage(cast, e, firstDamageTimestamp, true));
+
+      if (firstInstance) {
+        cast.targetId = firstInstance.targetID;
+      }
+    }
 
     do {
       nextCast = this.castData.length > i ? this.castData[i] : null;
@@ -246,8 +260,8 @@ export class EventAnalyzer {
     return hitType === HitType.RESIST || hitType === HitType.IMMUNE;
   }
 
-  private matchDamage(cast: CastDetails, next: IDamageData, maxTimestamp: number) {
-    if (next.read || !this.matchTarget(cast, next)) {
+  private matchDamage(cast: CastDetails, next: IDamageData, maxTimestamp: number, allowUnknown = false) {
+    if (next.read || !this.matchTarget(cast, next, allowUnknown)) {
       return false;
     }
 
@@ -265,7 +279,7 @@ export class EventAnalyzer {
     return true;
   }
 
-  private matchTarget(source: CastDetails|ICastData, dest: IDamageData) {
+  private matchTarget(source: CastDetails|ICastData, dest: IDamageData, allowUnknown = false) {
     const sourceId = source instanceof CastDetails ? source.targetId : source.targetID;
 
     // must match instance if one exists
@@ -276,9 +290,9 @@ export class EventAnalyzer {
     // Must match targetId if one exists... usually
     // There's a weird bug in WCL sometimes where the cast on a target has a different target ID
     // than the damage ticks, shows up as "Unknown Actor," and isn't returned as an enemy in the summary
-    // since we're already matching against spell ID and timestamp, I think it's OK to relax the check
-    // on targetID if and only if the instance matches and the target name doesn't exist
-    if (sourceId && sourceId !== dest.targetID && this.log.getActorName(sourceId) !== undefined) {
+    // If allowUnknown === true, relax the target ID match to handle this case specifically
+    // We can tell the ID is "unknown actor" if no actor name exists for it.
+    if (sourceId && sourceId !== dest.targetID && (!allowUnknown || this.log.getActorName(sourceId) !== undefined)) {
       return false;
     }
 
@@ -303,7 +317,7 @@ export class EventAnalyzer {
       let castIndex = 0, match = false, nextCast = this.castData[castIndex];
 
       do {
-        if (nextCast.ability.guid === instance.ability.guid && this.matchTarget(nextCast, instance)) {
+        if (nextCast.ability.guid === instance.ability.guid && this.matchTarget(nextCast, instance, true)) {
           match = true;
           break;
         }
