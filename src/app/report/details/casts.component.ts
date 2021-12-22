@@ -33,6 +33,16 @@ export class CastsComponent implements OnInit, OnChanges  {
   @Input() targetId: number;
   @Input() spellId: SpellId;
 
+  // Used to estimate lost DPS from clipping MF early.
+  // Note that only clips very close to the next tick are counted (cf. casts analyzer)
+  //
+  // If there were no opportunity cost to letting the cast finish, the lost DPS is just the lost damage/time,
+  // the missing ticks would be "free" extra damage
+  //
+  // But clipping means starting the next cast *slightly* earlier, so there is some cost in lost time
+  // to letting it finish. So this factor discounts the missing damage slightly, as an estimate
+  private static LOST_MF_TICK_DPS_DISCOUNT_FACTOR = 0.9;
+
   casts: CastDetails[];
   spellData: ISpellData;
   spellSummary: SpellSummary;
@@ -267,10 +277,8 @@ export class CastsComponent implements OnInit, OnChanges  {
 
   lostChannelDps(stats: SpellStats, format = true): string|number {
     if (stats.channelStats.totalClipDamage > 0) {
-      // If there were no opportunity cost to letting the cast finish, the lost DPS is just the lost damage
-      // using 0.85 to estimate *some* small cost in time
-      // todo: should probably at least make this a constant... somewhere?
-      const lostDpsEstimate = (stats.channelStats.totalClipDamage * 0.85) / this.encounter.durationSeconds
+      const discountFactor = CastsComponent.LOST_MF_TICK_DPS_DISCOUNT_FACTOR
+      const lostDpsEstimate = (stats.channelStats.totalClipDamage * discountFactor) / this.encounter.durationSeconds
       return format ? ('~' + this.format(lostDpsEstimate, 1)) : lostDpsEstimate;
     }
 

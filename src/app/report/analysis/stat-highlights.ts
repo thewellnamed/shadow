@@ -1,6 +1,5 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 
 export enum Status {
