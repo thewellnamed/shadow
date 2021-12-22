@@ -52,7 +52,7 @@ export class StatHighlights {
     // Clipped MF DPS
     clippedEarlyDps: {
       [Status.WARNING]: 10,
-      [Status.NOTICE]: 5
+      [Status.NOTICE]: 0
     }
   };
 
