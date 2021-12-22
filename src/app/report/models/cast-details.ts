@@ -35,6 +35,14 @@ export class CastDetails {
   // damage truncated by death of mob?
   truncated = false;
 
+  // delta from cast start to the beginning of the next cast, including an inferred GCD
+  // (castEnd - castStart) does not include the GCD...
+  //
+  // This is basically a hack to estimate haste for calculating active time
+  // It won't work very well for some haste-related calculations, but is good enough here.
+  // Min: 1.0s. Max: 1.5s
+  effectiveCastTime = 0;
+
   constructor(params: ICastDetailsParams) {
     this.spellId = params.spellId;
     this.name = params.ability.name;

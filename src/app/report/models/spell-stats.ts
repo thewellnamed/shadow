@@ -366,14 +366,14 @@ export class SpellStats {
       end = cast.instances[cast.instances.length - 1].timestamp;
     }
 
-    // If there's a cast time, use that
-    else if (cast.castEnd - cast.castStart >= 950) {
+    // If cast time is longer than the implied GCD, then use that
+    else if (((cast.castEnd - cast.castStart)/1000) > cast.effectiveCastTime) {
       end = cast.castEnd;
     }
 
-    // If all else fails, assume 1.5s GCD
+    // Else use the effective GCD
     else {
-      end = cast.castStart + 1500;
+      end = cast.castStart + (cast.effectiveCastTime * 1000);
     }
 
     return { start, end };
