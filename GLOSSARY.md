@@ -101,9 +101,13 @@ is needed for recognizing the clip. Channel interruptions from movement are not 
 ### Lost MF DPS
 
 Estimates DPS lost from [Early MF Clips](#early-mf-clips). This value is estimated by assuming that the clipped tick would have hit for the same
-amount as the previous tick. DPS is calculated by adding this "missing" damage to the overall damage for the encounter (with a slight discount). 
-The discount factor tries to estimate for the fact that clipping early means starting the next cast sooner, so there is *some* small opportunity
-cost to waiting for the next tick. The current discount factor is 10%.
+amount as the previous tick. DPS is calculated by adding this "missing" damage to the overall damage for the encounter, with a slight discount,
+depending on how closely you clipped before the next tick. The closer the clip, the "freer" that damage would have been. In other words, 
+the discount factor tries to estimate for the fact that clipping early means starting the next cast sooner, so there is *some* small opportunity 
+cost to waiting for the next tick.
+
+The discount factor is the ratio between the time that has passed since the last tick (or cast start), and the time the next tick would have landed.
+So if you clip 0.95s after the last tick, which would have landed at 1.0s, the discount is `0.95/1.0` = `0.95`.
 
 ```
 stats.lostMfDps = (channelStats.totalClippedDamage * discountFactor) / encounter.durationSeconds
