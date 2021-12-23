@@ -48,7 +48,10 @@ endOfCurrent = current.lastDamageTimestamp OR current.castEnd
 current.nextCastLatency = next.castStart - endOfCurrent
 ```
 
-The Avg latency is the mean of the latency for each included cast. Casts with latency greater than 3s are ignored.
+The Avg latency is the mean of the latency for each included cast. Casts with latency greater than 3s are ignored, since they likely
+represent movement rather than casting latency. Casts which were [clipped early](#early-mf-clips) are also excluded, since they are reported
+separately. Thus the "avg latency" represents something like how efficiently you cast after a mind flay under "normal" circumstances without
+mistakes. For stats on how frequently you mis-clip mind flay, see [Early MF Clips](#early-mf-clips) instead.
 
 ### Avg Spellpower
 
