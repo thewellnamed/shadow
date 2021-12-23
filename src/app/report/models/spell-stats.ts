@@ -26,9 +26,10 @@ export class SpellStats {
 
   private _channelStats: IChannelStats = {
     castCount: 0,
-    clipCount: 0,
-    clipPercent: 0,
-    totalClipDamage: 0,
+    latencyCount: 0,
+    clippedEarlyCount: 0,
+    clippedEarlyPercent: 0,
+    totalClippedDamage: 0,
     totalNextCastLatency: 0,
     avgNextCastLatency: 0
   };
@@ -226,13 +227,20 @@ export class SpellStats {
 
     if (this.addChannelStats(cast)) {
       this._channelStats.castCount++;
-      this._channelStats.totalNextCastLatency += cast.nextCastLatency as number;
 
       if (cast.clippedEarly) {
-        this._channelStats.clipCount++;
+        this._channelStats.clippedEarlyCount++;
 
         // assume one lost tick for the same damage as the last actual tick
-        this._channelStats.totalClipDamage += cast.instances[cast.instances.length - 1].totalDamage;
+        // discounted by a factor representing how far away the next tick really was
+        const lostDamage = cast.instances[cast.instances.length - 1].totalDamage
+        this._channelStats.totalClippedDamage += lostDamage * cast.earlyClipLostDamageFactor;
+      }
+
+      // exclude early clips from avg latency
+      else if (cast.nextCastLatency !== undefined) {
+        this._channelStats.latencyCount++;
+        this._channelStats.totalNextCastLatency += cast.nextCastLatency as number;
       }
     }
 
@@ -299,9 +307,10 @@ export class SpellStats {
 
       if (next.hasChannelStats) {
         this._channelStats.castCount += next.channelStats.castCount;
-        this._channelStats.clipCount += next.channelStats.clipCount;
+        this._channelStats.latencyCount += next.channelStats.latencyCount;
+        this._channelStats.clippedEarlyCount += next.channelStats.clippedEarlyCount;
         this._channelStats.totalNextCastLatency += next.channelStats.totalNextCastLatency;
-        this._channelStats.totalClipDamage += next.channelStats.totalClipDamage;
+        this._channelStats.totalClippedDamage += next.channelStats.totalClippedDamage;
       }
 
       if (next.hasCooldownStats) {
@@ -347,8 +356,8 @@ export class SpellStats {
     this._avgSpellpower = this.totalWeightedSpellpower / (this.totalDamage || this.castCount);
 
     if (this.hasChannelStats) {
-      this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._channelStats.castCount;
-      this._channelStats.clipPercent = this._channelStats.clipCount / this._channelStats.castCount;
+      this._channelStats.avgNextCastLatency = this._channelStats.totalNextCastLatency / this._channelStats.latencyCount;
+      this._channelStats.clippedEarlyPercent = this._channelStats.clippedEarlyCount / this._channelStats.castCount;
     }
 
     if (this.hasCooldownStats) {
@@ -408,7 +417,7 @@ export class SpellStats {
   }
 
   private addChannelStats(cast: CastDetails) {
-    return SpellData[cast.spellId].damageType === DamageType.CHANNEL && cast.nextCastLatency !== undefined;
+    return SpellData[cast.spellId].damageType === DamageType.CHANNEL;
   }
 
   private addCooldownStats(cast: CastDetails) {
@@ -461,9 +470,10 @@ export interface IStatsMap {
 
 export interface IChannelStats {
   castCount: number;
-  clipCount: number;
-  clipPercent: number;
-  totalClipDamage: number;
+  latencyCount: number; // number with measured nextCastLatency
+  clippedEarlyCount: number;
+  clippedEarlyPercent: number;
+  totalClippedDamage: number;
   totalNextCastLatency: number;
   avgNextCastLatency: number;
 }

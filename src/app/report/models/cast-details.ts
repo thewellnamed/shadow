@@ -30,6 +30,10 @@ export class CastDetails {
   // for channeled spells, was the channel clipped very close to the next tick?
   clippedEarly = false;
 
+  // for early clips, the ratio between the delta from last tick to the time for next tick
+  // e.g. a number from 0-1 where 1 represents the clip was immediately prior to the expected next tick
+  earlyClipLostDamageFactor = 0;
+
   // for DoTs, downtime between last tick and first tick of this cast
   dotDowntime?: number;
 

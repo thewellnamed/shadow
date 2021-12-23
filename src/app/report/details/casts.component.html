@@ -63,7 +63,12 @@
       </div>
       <div class="channel-clip-count">
         Early MF Clips:
-        <span [ngClass]="highlight.clippedEarly(stats)">{{ stats.channelStats.clipCount }}</span>
+        <span [ngClass]="highlight.clippedEarly(stats)">
+          {{ stats.channelStats.clippedEarlyCount }}
+          <span *ngIf="stats.channelStats.clippedEarlyCount > 0">
+            ({{ format(stats.channelStats.clippedEarlyPercent * 100, 1, '%') }})
+          </span>
+        </span>
       </div>
       <div class="channel-clip-dps">
         Lost MF DPS:

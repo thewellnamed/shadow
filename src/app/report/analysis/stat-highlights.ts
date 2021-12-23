@@ -38,6 +38,11 @@ export class StatHighlights {
       [Status.NOTICE]: 0.3
     },
 
+    avgNextCastLatency: {
+      [Status.WARNING]: 0.4,
+      [Status.NOTICE]: 0.25
+    },
+
     missedTickPercent: {
       [Status.WARNING]: 0.02,
       [Status.NOTICE]: 0
@@ -46,13 +51,13 @@ export class StatHighlights {
     // MF clipped early
     clippedEarlyPercent: {
       [Status.WARNING]: 0.05,
-      [Status.NOTICE]: 0
+      [Status.NOTICE]: 0.02
     },
 
     // Clipped MF DPS
     clippedEarlyDps: {
       [Status.WARNING]: 10,
-      [Status.NOTICE]: 0
+      [Status.NOTICE]: 5.0
     }
   };
 
@@ -89,7 +94,7 @@ export class StatHighlights {
   }
 
   clippedEarlyDps(lostDps: string|number) {
-    return this.textHighlight(this.thresholdStatus('clippedEarlyDps', parseInt(lostDps as string)));
+    return this.textHighlight(this.thresholdStatus('clippedEarlyDps', parseFloat(lostDps as string)));
   }
 
   /**
@@ -98,8 +103,14 @@ export class StatHighlights {
    * @return {string} CSS style
    */
   latency(data: CastDetails|SpellStats) {
-    const value = data instanceof CastDetails ? data.nextCastLatency : data.channelStats.avgNextCastLatency;
-    return this.textHighlight(this.evaluateLatency(value));
+    let status;
+    if (data instanceof CastDetails) {
+      status = this.thresholdStatus('nextCastLatency', data.nextCastLatency);
+    } else {
+      status = this.thresholdStatus('avgNextCastLatency', data.channelStats.avgNextCastLatency);
+    }
+
+    return this.textHighlight(status);
   }
 
   /**
@@ -174,10 +185,6 @@ export class StatHighlights {
     return Status.NORMAL;
   }
 
-  private evaluateLatency(latency: number|undefined): Status {
-    return this.thresholdStatus('nextCastLatency', latency);
-  }
-
   private evaluateDotClips(stats: SpellStats): Status {
     return this.thresholdStatus('missedTickPercent', stats.clipStats.missedTickPercent);
   }
@@ -188,7 +195,7 @@ export class StatHighlights {
 
   private evaluateEarlyClips(data: CastDetails|SpellStats): Status {
     if (data instanceof SpellStats) {
-      return this.thresholdStatus('clippedEarlyPercent', data.channelStats.clipPercent);
+      return this.thresholdStatus('clippedEarlyPercent', data.channelStats.clippedEarlyPercent);
     }
 
     return ((data as CastDetails).clippedEarly) ? Status.WARNING : Status.NORMAL;
