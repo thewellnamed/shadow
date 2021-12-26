@@ -167,10 +167,15 @@ export class CastsComponent implements OnInit, OnChanges  {
   duration(lengthMs: number, format = 'mm:ss.dd') {
     const offset = lengthMs/1000;
 
-    const minutes = Math.floor(offset / 60),
+    let minutes = Math.floor(offset / 60),
       secondsFloat = offset - (minutes * 60),
       seconds = Math.floor(secondsFloat),
       decimal = Math.round((secondsFloat - seconds) * 100);
+
+    if (decimal === 100) {
+      decimal = 0;
+      seconds++;
+    }
 
     const values: any = {
       M: minutes,

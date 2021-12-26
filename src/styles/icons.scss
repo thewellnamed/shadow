@@ -47,6 +47,11 @@
     background-image: url('/shadow/assets/fade.jpg');
   }
 
+  // Fear Ward
+  &.spell-6346, &.spell-fear-ward {
+    background-image: url('/shadow/assets/ward.jpg');
+  }
+
   // Shadow friend
   &.spell-34433, &.spell-fiend {
     background-image: url('/shadow/assets/fiend.jpg');
