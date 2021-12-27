@@ -44,7 +44,7 @@ export class SpellStats {
     castCount: 0,
     clipCount: 0,
     clippedTicks: 0,
-    missedTickPercent: 0,
+    clippedPercent: 0,
     expectedTicks: 0,
   };
 
@@ -369,7 +369,7 @@ export class SpellStats {
     }
 
     if (this.hasClipStats && this._clipStats.expectedTicks > 0) {
-      this._clipStats.missedTickPercent = this._clipStats.clippedTicks / this._clipStats.expectedTicks;
+      this._clipStats.clippedPercent = this._clipStats.clipCount / this._clipStats.castCount;
     }
 
     // Calculate active duration
@@ -489,7 +489,7 @@ export interface IDotClipStats {
   clipCount: number;
   clippedTicks: number;
   expectedTicks: number;
-  missedTickPercent: number;
+  clippedPercent: number;
 }
 
 export interface IDotDownTimeStats {

@@ -63,20 +63,13 @@ to have greater spellpower (e.g. from trinkets) for casts that do more damage, l
 stats.avgSpellpower = sum(cast.spellPower * cast.totalDamage) / sum(cast.totalDamage)
 ```
 
-### Clipped Dots / Ticks
+### Clipped Dots
 
 If a DoT is active on a given target, and it is re-cast on that target again before the final tick of the previous DoT, then the current
 cast has clipped the previous:
 
 ```
 current.clippedPreviousCast = current.castStart < previous.expectedLastDamageTimestamp AND previous.ticks < expected
-```
-
-For clipped DoT casts, the number of "missing" ticks is the difference between the number of ticks of the previous cast and the expected, 
-i.e. if VT has ticked 4 times, and is re-cast before the fifth tick, then the new cast clipped 1 tick.
-
-```
-current.clippedTicks = spell.expectedInstances - prev.ticks;
 ```
 
 ### DPS/Power
@@ -98,7 +91,7 @@ Haste can only be accounted for by using the time between ticks (or between the 
 occur for the cast to be flagged. Also note that only channels interrupted *for a new spell cast* are flagged, since the new start of the new cast
 is needed for recognizing the clip. Channel interruptions from movement are not flagged.
 
-### Lost MF DPS
+### Clipped MF DPS
 
 Estimates DPS lost from [Early MF Clips](#early-mf-clips). This value is estimated by assuming that the clipped tick would have hit for the same
 amount as the previous tick. DPS is calculated by adding this "missing" damage to the overall damage for the encounter, with a slight discount,

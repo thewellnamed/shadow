@@ -43,9 +43,9 @@ export class StatHighlights {
       [Status.NOTICE]: 0.25
     },
 
-    missedTickPercent: {
-      [Status.WARNING]: 0.02,
-      [Status.NOTICE]: 0
+    clippedDotPercent: {
+      [Status.WARNING]: 0.1,
+      [Status.NOTICE]: 0.05
     },
 
     // MF clipped early
@@ -186,7 +186,7 @@ export class StatHighlights {
   }
 
   private evaluateDotClips(stats: SpellStats): Status {
-    return this.thresholdStatus('missedTickPercent', stats.clipStats.missedTickPercent);
+    return this.thresholdStatus('clippedDotPercent', stats.clipStats.clippedPercent);
   }
 
   private evaluateDowntime(statName: string, dotDowntime: number|undefined): Status {
