@@ -404,13 +404,13 @@ export class SpellStats {
     }
 
     // If cast time is longer than the implied GCD, then use that
-    else if (((cast.castEnd - cast.castStart)/1000) > cast.effectiveCastTime) {
+    else if (((cast.castEnd - cast.castStart)/1000) > cast.impliedGcd) {
       end = cast.castEnd;
     }
 
     // Else use the effective GCD
     else {
-      end = cast.castStart + (cast.effectiveCastTime * 1000);
+      end = cast.castStart + (cast.impliedGcd * 1000);
     }
 
     return { start, end };

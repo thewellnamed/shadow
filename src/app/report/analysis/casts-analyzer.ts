@@ -63,12 +63,12 @@ export class CastsAnalyzer {
       const next = this.casts[index + 1],
         delta = (next.castStart - current.castStart)/1000;
 
-      current.effectiveCastTime = Math.max(Math.min(CastsAnalyzer.MAX_GCD, delta), CastsAnalyzer.MIN_GCD);
+      current.impliedGcd = Math.max(Math.min(CastsAnalyzer.MAX_GCD, delta), CastsAnalyzer.MIN_GCD);
     } else if (index > 0) {
       // For the last cast use the implied GCD of the previous cast
-      current.effectiveCastTime = this.casts[index - 1].effectiveCastTime;
+      current.impliedGcd = this.casts[index - 1].impliedGcd;
     } else {
-      current.effectiveCastTime = CastsAnalyzer.MAX_GCD;
+      current.impliedGcd = CastsAnalyzer.MAX_GCD;
     }
   }
 
