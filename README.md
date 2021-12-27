@@ -26,7 +26,7 @@ Definitions of stats/terms available via the [Glossary](GLOSSARY.md)
 ### Changelog
 
 - 2021/12/22
-  - Added [Early MF Clips](GLOSSARY.md#early-mf-clips) and [Lost MF DPS](GLOSSARY.md#lost-mf-dps) stats
+  - Added [Early MF Clips](GLOSSARY.md#early-mf-clips) and [Clipped MF DPS](GLOSSARY.md#clipped-mf-dps) stats
   - Fixed some bugs with associating AoE damage instances to targets and handling "Unknown Actor" in log cast data
   - Added better support for deep linking into the app.
 
