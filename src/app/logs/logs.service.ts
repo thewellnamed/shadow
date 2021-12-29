@@ -7,6 +7,9 @@ import { LogSummary } from 'src/app/logs/models/log-summary';
 import { PSEUDO_SPELL_BASE } from 'src/app/logs/models/spell-id.enum';
 import { SpellData } from 'src/app/logs/models/spell-data';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
+import { Actor } from 'src/app/logs/models/actor';
+
+import * as wcl from 'src/app/logs/interfaces';
 
 @Injectable()
 export class LogsService {
@@ -20,6 +23,7 @@ export class LogsService {
 
   private summaryCache: { [id: string]: LogSummary} = {};
   private eventCache: { [id: string]: IEncounterEvents} = {};
+  private playerCache: { [id: string]: any} = {};
 
   constructor(private http: HttpClient) {}
 
@@ -53,8 +57,8 @@ export class LogsService {
       return of(this.summaryCache[id]);
     }
 
-    const url = `${LogsService.API_URL}/report/fights/${id}`;
-    return this.http.get<IEncountersResponse>(url, { params: this.makeParams() }).pipe(
+    const url = this.apiUrl(`report/fights/${id}`);
+    return this.http.get<wcl.IEncountersResponse>(url, { params: this.makeParams() }).pipe(
       map((response) => {
         const summary = new LogSummary(id, response);
         this.summaryCache[id] = summary;
@@ -66,6 +70,40 @@ export class LogsService {
     );
   }
 
+  /**
+   * Fetch summary table information for a player in an encounter
+   * Mostly for getting haste info
+   * @param log
+   * @param player
+   * @param encounterId
+   */
+  getPlayerInfo(log: LogSummary, player: Actor, encounterId: number): Observable<wcl.ICombatantInfo> {
+    const cacheId = `${log.id}:${encounterId}:${player.id}`;
+    if (this.playerCache.hasOwnProperty(cacheId)) {
+      return of(this.playerCache[cacheId]);
+    }
+
+    const encounter = log.getEncounter(encounterId) as EncounterSummary;
+    const params = this.makeParams(encounter, { sourceid: player.id });
+
+    const url = this.apiUrl(`report/tables/summary/${log.id}`);
+    return this.http.get<wcl.IActorSummaryResponse>(url, { params }).pipe(
+      map((response) => {
+        this.playerCache[cacheId] = response.combatantInfo;
+        return response.combatantInfo;
+      }),
+      catchError((response: HttpErrorResponse) => {
+        return throwError(`Error fetching player info: ${response.error.error}`);
+      })
+    );
+  }
+
+  /**
+   * Get combat events for a given player in a given encounter
+   * @param log
+   * @param playerName
+   * @param encounterId
+   */
   getEvents(log: LogSummary, playerName: string, encounterId: number): Observable<IEncounterEvents> {
     const encounter = log.getEncounter(encounterId) as EncounterSummary;
     const cacheId = `${log.id}:${encounterId}:${playerName}`;
@@ -74,31 +112,29 @@ export class LogsService {
       return of(this.playerEvents(this.eventCache[cacheId]));
     }
 
-    const params = {
-      start: encounter.start,
-      end: encounter.end,
-      filter: `(source.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})) OR source.name="Shadowfiend"`
-    };
+    const filter = `(source.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})) OR source.name="Shadowfiend"`
+    const castParams = this.makeParams(encounter, { filter });
 
     return combineLatest(
       [
-        this.requestEvents<ICastData>(log.id,'casts', this.makeParams(params)),
-        this.requestEvents<IDamageData>(log.id,'damage-done', this.makeParams(params)),
-        this.requestEvents<IDeathData>(log.id, 'deaths', this.makeParams({
-          start: encounter.start,
-          end: encounter.end,
+        this.requestEvents<wcl.ICastData>(log.id,'casts', castParams),
+        this.requestEvents<wcl.IDamageData>(log.id,'damage-done', castParams),
+        this.requestEvents<wcl.IDeathData>(log.id, 'deaths', this.makeParams(encounter, {
           hostility: 1
-        }))
+        })),
+        this.requestEvents<wcl.IBuffData>(log.id, 'buffs', this.makeParams(encounter, {
+          filter: `target.name="${playerName}"`
+        })),
       ])
       .pipe(
-        map(([casts, damage, deaths]) => {
+        map(([casts, damage, deaths, buffs]) => {
           const deathLookup = deaths.reduce((lookup, death) => {
             const key = `${death.targetID}:${death.targetInstance}`;
             lookup[key] = death.timestamp;
             return lookup;
           }, {} as IDeathLookup);
 
-          const data: IEncounterEvents = { casts, damage, deaths: deathLookup };
+          const data: IEncounterEvents = { buffs, casts, damage, deaths: deathLookup };
           this.eventCache[cacheId] = data;
           return this.playerEvents(data)
         }),
@@ -116,12 +152,24 @@ export class LogsService {
       damage: data.damage.map((d) => Object.assign({}, d, {
         read: false
       })),
-      deaths: data.deaths
+      deaths: data.deaths,
+      buffs: data.buffs,
     };
   }
 
-  private makeParams(params: any = {}) {
-    return Object.assign(params, { api_key: LogsService.API_KEY });
+  private apiUrl(path: string) {
+    return `${LogsService.API_URL}/${path}`;
+  }
+
+  private makeParams(encounter?: EncounterSummary, extra: any = {}) {
+    const params: {[key: string]: string|number|boolean} = { api_key: LogsService.API_KEY };
+
+    if (encounter) {
+      params['start'] = encounter.start;
+      params['end'] = encounter.end;
+    }
+
+    return Object.assign(params, extra);
   }
 
   /**
@@ -133,7 +181,7 @@ export class LogsService {
    * @param {number} depth Max recursion depth
    * @private
    */
-  private requestEvents<T extends IEventData>(
+  private requestEvents<T extends wcl.IEventData>(
     id: string,
     type: string,
     params: any,
@@ -142,7 +190,7 @@ export class LogsService {
   {
     const url = `${LogsService.API_URL}/report/events/${type}/${id}`;
 
-    return this.http.get<IEventsResponse>(url, { params }).pipe(
+    return this.http.get<wcl.IEventsResponse>(url, { params }).pipe(
       delay(50),
       switchMap((response) => {
         const newEvents = events.concat(response.events as T[]);
@@ -160,83 +208,14 @@ export class LogsService {
   }
 }
 
-export interface IEncountersResponse {
-  title: string;
-  owner: string;
-  friendlies: IActorData[];
-  friendlyPets: IActorData[];
-  fights: IEncounterData[];
-  enemies: IActorData[];
-  enemyPets: IActorData[];
-}
-
-export interface IEncounterData {
-  id: number;
-  name: string;
-  start_time: number;
-  end_time: number;
-  durationSeconds: number;
-  boss: number;
-  originalBoss: number;
-  kill?: boolean;
-}
-
-export interface IActorData {
-  id: number;
-  name: string;
-  icon: string;
-  type: string;
-  petOwner?: number;
-  fights: { id: number }[];
-}
-
-export interface IEventsResponse {
-  events: IEventData[];
-  count: number;
-  nextPageTimestamp?: number;
-}
-
-export interface IAbilityData {
-  name: string;
-  guid: number;
-}
-
-export interface IEventData {
-  type: 'cast' | 'begincast' | 'damage' | 'death';
-  ability: IAbilityData;
-  timestamp: number;
-  targetID: number;
-  targetInstance: number;
-  read: boolean;
-}
-
-export interface ICastData extends IEventData {
-  type: 'cast' | 'begincast';
-  sourceID: number;
-  spellPower: number;
-}
-
-export interface IDamageData extends IEventData {
-  type: 'damage';
-  sourceID: number;
-  amount: number;
-  hitType: number;
-  absorbed?: number;
-  resisted?: number;
-  tick: boolean;
-}
-
-export interface IDeathData extends IEventData {
-  type: 'death';
-}
-
 // key = <targetID>.<targetInstance>
 export interface IDeathLookup {
   [key: string]: number;
 }
 
 export interface IEncounterEvents {
-  casts: ICastData[];
-  damage: IDamageData[];
+  buffs: wcl.IBuffData[];
+  casts: wcl.ICastData[];
+  damage: wcl.IDamageData[];
   deaths: IDeathLookup;
 }

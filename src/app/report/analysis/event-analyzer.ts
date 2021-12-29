@@ -1,6 +1,7 @@
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { ICastData, IDamageData, IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
+import { ICastData, IDamageData } from 'src/app/logs/interfaces';
+import { IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';

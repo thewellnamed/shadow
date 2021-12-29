@@ -1,4 +1,4 @@
-import { IAbilityData } from 'src/app/logs/logs.service';
+import { IAbilityData } from 'src/app/logs/interfaces';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
 import { HitType } from 'src/app/logs/models/hit-type.enum';

@@ -1,4 +1,4 @@
-import { IEncounterData } from 'src/app/logs/logs.service';
+import { IEncounterData } from 'src/app/logs/interfaces';
 
 export class EncounterSummary {
   id: number;

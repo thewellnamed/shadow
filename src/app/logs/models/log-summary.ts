@@ -1,4 +1,4 @@
-import { IEncountersResponse } from 'src/app/logs/logs.service';
+import { IEncountersResponse } from 'src/app/logs/interfaces';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { Actor } from 'src/app/logs/models/actor';
 

@@ -1,4 +1,4 @@
-import { IActorData } from 'src/app/logs/logs.service';
+import { IActorData } from 'src/app/logs/interfaces';
 
 export class Actor {
   id: number;

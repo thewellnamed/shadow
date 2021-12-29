@@ -13,6 +13,8 @@ import { IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { ParamsService, ParamType } from 'src/app/params.service';
 import { TabDefinitions } from 'src/app/report/details/tabs';
+import { Actor } from 'src/app/logs/models/actor';
+import { IActorStats, ICombatantInfo } from 'src/app/logs/interfaces';
 
 @Component({
   selector: 'report-details',
@@ -24,6 +26,7 @@ export class ReportDetailsComponent implements OnInit {
   logId: string;
   encounterId: number;
   playerName: string;
+  actor: Actor;
   activeTab = 0;
   form: FormGroup;
   log: LogSummary;
@@ -31,6 +34,8 @@ export class ReportDetailsComponent implements OnInit {
   targets: { id: number; name: string }[];
   loading = true;
   tabs = TabDefinitions;
+
+  private playerStats: IActorStats;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private location: Location,
@@ -59,6 +64,19 @@ export class ReportDetailsComponent implements OnInit {
       }),
       switchMap((log: LogSummary) => {
         this.log = log;
+        this.actor = this.log.getActorByName(this.playerName) as Actor;
+
+        if (this.encounterId) {
+          return this.logs.getPlayerInfo(log, this.actor, this.encounterId);
+        } else {
+          return of(null)
+        }
+      }),
+      switchMap((playerInfo: ICombatantInfo|null) => {
+        if (playerInfo) {
+          this.playerStats = playerInfo.stats;
+        }
+
         return this.fetchData();
       })
     ).subscribe((data) => {
