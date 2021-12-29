@@ -4,7 +4,7 @@ import { combineLatest, Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, switchMap } from 'rxjs/operators';
 
 import { LogSummary } from 'src/app/logs/models/log-summary';
-import { PSEUDO_SPELL_BASE, SpellId } from 'src/app/logs/models/spell-id.enum';
+import { PSEUDO_SPELL_BASE } from 'src/app/logs/models/spell-id.enum';
 import { SpellData } from 'src/app/logs/models/spell-data';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 

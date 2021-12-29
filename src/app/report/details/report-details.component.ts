@@ -21,9 +21,6 @@ import { TabDefinitions } from 'src/app/report/details/tabs';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReportDetailsComponent implements OnInit {
-  @ViewChild('selectEncounter') public encounterSelect: MatSelect;
-  @ViewChild('selectPlayer') public playerSelect: MatSelect;
-
   logId: string;
   encounterId: number;
   playerName: string;
