@@ -1,6 +1,6 @@
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { ICastData, IDamageData } from 'src/app/logs/interfaces';
+import { IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
 import { IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
@@ -10,22 +10,40 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class EventAnalyzer {
-  private static EVENT_LEEWAY = 100 // ms. allow damage to occur just slightly later than "should" be possible given
-                                    // strict debuff times. Blah blah server doesn't keep time exactly.
+  private static EVENT_LEEWAY = 100; // ms. allow damage to occur just slightly later than "should" be possible given
+                                     // strict debuff times. Blah blah server doesn't keep time exactly.
+  private static BUFF_LEEWAY = 50;   // ms. try to ensure we understand that a buff was applied with the cast
 
   log: LogSummary;
   encounter: EncounterSummary;
+
+  buffData: IBuffData[];
   castData: ICastData[];
   damageData: IDamageData[];
   deaths: IDeathLookup;
   damageBySpell: {[spellId: number]: IDamageData[]};
+  events: IEventData[];
 
   constructor(log: LogSummary, encounterId: number, data: IEncounterEvents) {
     this.log = log;
     this.encounter = log.getEncounter(encounterId) as EncounterSummary;
+    this.buffData = data.buffs;
     this.castData = data.casts;
-    this.damageData = data.damage;
+    this.damageData = data.damage.map((d) => Object.assign({}, d, { read: false }));
     this.deaths = data.deaths;
+
+    // sometimes casts that start before combat begins for the logger are omitted,
+    // but the damage is recorded. In that case, infer the cast...
+    this.inferMissingCasts();
+
+    // partition damage events by spell ID for association with casts
+    this.initializeDamageBuckets();
+
+    // Merge buff and cast data into a single array to process
+    this.events = this.mergeEvents();
+
+    // eslint-disable-next-line no-console
+    console.log(([] as IEventData[]).concat(this.events));
   }
 
   /**
@@ -36,26 +54,29 @@ export class EventAnalyzer {
    * @returns {CastsSummary}
    */
   public createCasts(): CastDetails[] {
-    let currentCast: ICastData,
+    let event: IEventData,
+      currentCast: ICastData,
       startingCast: ICastData|null = null,
       nextDamage: IDamageData|null;
 
     const casts: CastDetails[] = [];
 
-    // sometimes casts that start before combat begins for the logger are omitted,
-    // but the damage is recorded. In that case, infer the cast...
-    this.inferMissingCasts();
+    while (this.events.length > 0) {
+      event = this.events.shift() as IEventData;
 
-    // partition damage events by spell ID for association with casts
-    this.initializeDamageBuckets();
+      switch (event.type) {
+        case 'applybuff':
+        case 'removebuff':
+        case 'refreshbuff':
+          continue;
 
-    while (this.castData.length > 0) {
-      currentCast = this.castData.shift() as ICastData;
-
-      if (currentCast.type === 'begincast') {
-        startingCast = currentCast;
-        continue;
+        case 'begincast':
+          startingCast = event as ICastData;
+          continue;
       }
+
+      // after fall-through we are processing only a cast and no other event type
+      currentCast = event as ICastData;
 
       // if the completed cast isn't the one we started, remove starting info
       // note that starting cast events don't have the target info but we shouldn't need to match it
@@ -122,6 +143,29 @@ export class EventAnalyzer {
     return casts;
   }
 
+  // merge buff events into cast data in order, so we can just loop over the combined set to process
+  private mergeEvents(): IEventData[] {
+    if (!this.buffData || this.buffData.length === 0) {
+      return [... this.castData];
+    }
+
+    const events: IEventData[] = [];
+    let buffIndex = 0, nextBuff = this.buffData[buffIndex],
+      castIndex = 0, nextCast = this.castData[castIndex];
+
+    do {
+      if (nextBuff && (!nextCast || nextBuff.timestamp <= (nextCast.timestamp + EventAnalyzer.BUFF_LEEWAY))) {
+        events.push(nextBuff);
+        nextBuff = this.buffData[++buffIndex];
+      } else if (nextCast) {
+        events.push(nextCast);
+        nextCast = this.castData[++castIndex];
+      }
+    } while (nextBuff || nextCast);
+
+    return events;
+  }
+
   private initializeDamageBuckets() {
     this.damageBySpell = LogsService.TRACKED_ABILITIES
       .concat(SpellId.MELEE)
@@ -159,7 +203,7 @@ export class EventAnalyzer {
     cast.setInstances(instances);
   }
 
-  private setMultiInstanceDamage(cast: CastDetails, spellData: ISpellData, events: IDamageData[]) {
+  private setMultiInstanceDamage(cast: CastDetails, spellData: ISpellData, damageEvents: IDamageData[]) {
     let i = 0;
     let maxDamageTimestamp = cast.castEnd + (spellData.maxDuration * 1000);
     let instances: DamageInstance[] = [];
@@ -172,7 +216,7 @@ export class EventAnalyzer {
       // and infer the actual target from that instance, if found.
       const delta = spellData.maxDuration > 0 ? (spellData.maxDuration / spellData.maxDamageInstances) * 1000 : 0;
       const firstDamageTimestamp = cast.castEnd + delta + EventAnalyzer.EVENT_LEEWAY;
-      const firstInstance = events.find((e) => this.matchDamage(cast, e, firstDamageTimestamp, true));
+      const firstInstance = damageEvents.find((e) => this.matchDamage(cast, e, firstDamageTimestamp, true));
 
       if (firstInstance) {
         cast.targetId = firstInstance.targetID;
@@ -180,8 +224,8 @@ export class EventAnalyzer {
     }
 
     do {
-      nextCast = this.castData.length > i ? this.castData[i] : null;
-      if (nextCast === null || this.castIsReplacement(cast, nextCast, events)) {
+      nextCast = this.events.length > i ? (this.events[i] as ICastData) : null;
+      if (nextCast === null || this.castIsReplacement(cast, nextCast, damageEvents)) {
         if (nextCast) {
           maxDamageTimestamp = nextCast.timestamp;
         }
@@ -191,7 +235,7 @@ export class EventAnalyzer {
     } while (nextCast.timestamp <= maxDamageTimestamp + EventAnalyzer.EVENT_LEEWAY);
 
     // Process damage instances for this spell within the window
-    nextDamage = events[0];
+    nextDamage = damageEvents[0];
     let count = 0;
     i = 0;
 
@@ -210,7 +254,7 @@ export class EventAnalyzer {
           break;
         }
       }
-      nextDamage = events[++i];
+      nextDamage = damageEvents[++i];
     }
 
     cast.setInstances(instances);

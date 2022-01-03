@@ -112,7 +112,7 @@ export class LogsService {
     const cacheId = `${log.id}:${encounterId}:${playerName}`;
 
     if (this.eventCache.hasOwnProperty(cacheId)) {
-      return of(this.playerEvents(this.eventCache[cacheId]));
+      return of(this.eventCache[cacheId]);
     }
 
     const filter = `(source.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})) OR source.name="Shadowfiend"`
@@ -139,25 +139,9 @@ export class LogsService {
 
           const data: IEncounterEvents = { buffs, casts, damage, deaths: deathLookup };
           this.eventCache[cacheId] = data;
-          return this.playerEvents(data)
+          return data;
         }),
       );
-  }
-
-  /**
-   * Event consumers are mutating these objects, so return a clean copy every time
-   * @param data
-   * @private
-   */
-  private playerEvents(data: IEncounterEvents): IEncounterEvents {
-    return {
-      casts: [...data.casts],
-      damage: data.damage.map((d) => Object.assign({}, d, {
-        read: false
-      })),
-      deaths: data.deaths,
-      buffs: data.buffs,
-    };
   }
 
   private apiUrl(path: string) {

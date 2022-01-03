@@ -19,7 +19,7 @@ export const BuffData: IBuffData = {
   [BuffId.QUAGS_EYE]: buff({ hasteRating: 320 })
 };
 
-export interface IBuffData {
+interface IBuffData {
   [id: number]: IBuffDetails
 }
 
