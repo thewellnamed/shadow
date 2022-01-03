@@ -3,23 +3,26 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { combineLatest, Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, switchMap } from 'rxjs/operators';
 
+import { Actor } from 'src/app/logs/models/actor';
+import { BuffData } from 'src/app/logs/models/buff-data';
+import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { PSEUDO_SPELL_BASE } from 'src/app/logs/models/spell-id.enum';
 import { SpellData } from 'src/app/logs/models/spell-data';
-import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
-import { Actor } from 'src/app/logs/models/actor';
 
 import * as wcl from 'src/app/logs/interfaces';
 
 @Injectable()
 export class LogsService {
+  private static API_KEY = '259b121232ec91e17f4d2b48300801be';
+  private static API_URL = 'https://classic.warcraftlogs.com/v1';
+  private static MAX_EVENT_REQUESTS = 10;
+
   public static TRACKED_ABILITIES = Object.keys(SpellData)
     .map((k) => parseInt(k))
     .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
 
-  private static API_KEY = '259b121232ec91e17f4d2b48300801be';
-  private static API_URL = 'https://classic.warcraftlogs.com/v1';
-  private static MAX_EVENT_REQUESTS = 10;
+  public static TRACKED_BUFFS = Object.keys(BuffData).map((k) => parseInt(k));
 
   private summaryCache: { [id: string]: LogSummary} = {};
   private eventCache: { [id: string]: IEncounterEvents} = {};
@@ -123,7 +126,7 @@ export class LogsService {
           hostility: 1
         })),
         this.requestEvents<wcl.IBuffData>(log.id, 'buffs', this.makeParams(encounter, {
-          filter: `target.name="${playerName}"`
+          filter: `target.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_BUFFS.join(',')})`
         })),
       ])
       .pipe(
