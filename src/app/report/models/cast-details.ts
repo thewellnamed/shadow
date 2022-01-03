@@ -24,7 +24,9 @@ export class CastDetails {
   clippedPreviousCast = false;
   clippedTicks = 0;
 
+  // latency between casts.
   // for channeled spells, delta from the last damage tick (effective end of channel) until next cast (of any spell)
+  // for all else, based on cast start/end
   nextCastLatency?: number;
 
   // for channeled spells, was the channel clipped very close to the next tick?
@@ -49,6 +51,9 @@ export class CastDetails {
   // Min: 1.0s. Max: 1.5s
   impliedGcd = 0;
 
+  gcd = 0;
+  haste = 0;
+
   constructor(params: ICastDetailsParams) {
     this.spellId = params.spellId;
     this.name = params.ability.name;
@@ -60,6 +65,8 @@ export class CastDetails {
     this.castEnd = params.castEnd;
 
     this.spellPower = params.spellPower;
+    this.haste = params.haste;
+    this.gcd = params.gcd;
   }
 
   setInstances(instances: DamageInstance[]) {
@@ -141,4 +148,6 @@ interface ICastDetailsParams {
   castStart: number;
   castEnd: number;
   spellPower: number;
+  haste: number;
+  gcd: number;
 }

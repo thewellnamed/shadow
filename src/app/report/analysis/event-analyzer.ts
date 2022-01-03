@@ -1,36 +1,45 @@
+import { BuffData } from 'src/app/logs/models/buff-data';
+import { BuffId } from 'src/app/logs/models/buff-id.enum';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
-import { IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
-import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
-import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
+import { IActorStats, IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
+import { IBuffDetails } from 'src/app/logs/models/buff-data';
+import { IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
+import { LogSummary } from 'src/app/logs/models/log-summary';
+import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 
 export class EventAnalyzer {
   private static EVENT_LEEWAY = 100; // ms. allow damage to occur just slightly later than "should" be possible given
                                      // strict debuff times. Blah blah server doesn't keep time exactly.
-  private static BUFF_LEEWAY = 50;   // ms. try to ensure we understand that a buff was applied with the cast
 
-  log: LogSummary;
-  encounter: EncounterSummary;
+  private log: LogSummary;
+  private encounter: EncounterSummary;
+  private baseStats: IActorStats;
 
-  buffData: IBuffData[];
-  castData: ICastData[];
-  damageData: IDamageData[];
-  deaths: IDeathLookup;
-  damageBySpell: {[spellId: number]: IDamageData[]};
-  events: IEventData[];
+  private buffData: IBuffData[];
+  private castData: ICastData[];
+  private damageData: IDamageData[];
+  private deaths: IDeathLookup;
+  private damageBySpell: {[spellId: number]: IDamageData[]};
+  private events: IEventData[];
 
-  constructor(log: LogSummary, encounterId: number, data: IEncounterEvents) {
+  // tracks currently active buffs
+  private buffs: { id: BuffId, data: IBuffDetails, event: IBuffData }[] = [];
+
+  constructor(log: LogSummary, actorStats: IActorStats, encounterId: number, events: IEncounterEvents) {
     this.log = log;
     this.encounter = log.getEncounter(encounterId) as EncounterSummary;
-    this.buffData = data.buffs;
-    this.castData = data.casts;
-    this.damageData = data.damage.map((d) => Object.assign({}, d, { read: false }));
-    this.deaths = data.deaths;
+    this.baseStats = actorStats;
+
+    // initialize event data
+    this.buffData = events.buffs;
+    this.castData = events.casts;
+    this.damageData = events.damage.map((d) => Object.assign({}, d, { read: false }));
+    this.deaths = events.deaths;
 
     // sometimes casts that start before combat begins for the logger are omitted,
     // but the damage is recorded. In that case, infer the cast...
@@ -41,9 +50,6 @@ export class EventAnalyzer {
 
     // Merge buff and cast data into a single array to process
     this.events = this.mergeEvents();
-
-    // eslint-disable-next-line no-console
-    console.log(([] as IEventData[]).concat(this.events));
   }
 
   /**
@@ -56,6 +62,7 @@ export class EventAnalyzer {
   public createCasts(): CastDetails[] {
     let event: IEventData,
       currentCast: ICastData,
+      activeStats: IActiveStats|null = null,
       startingCast: ICastData|null = null,
       nextDamage: IDamageData|null;
 
@@ -66,12 +73,17 @@ export class EventAnalyzer {
 
       switch (event.type) {
         case 'applybuff':
-        case 'removebuff':
         case 'refreshbuff':
+          this.applyBuff(event as IBuffData);
+          continue;
+
+        case 'removebuff':
+          this.removeBuff(event as IBuffData);
           continue;
 
         case 'begincast':
           startingCast = event as ICastData;
+          activeStats = this.getActiveStats();
           continue;
       }
 
@@ -83,6 +95,12 @@ export class EventAnalyzer {
       // because if we switch targets we'll have a new begincast event anyway
       if (startingCast && currentCast.ability.guid !== startingCast.ability.guid) {
         startingCast = null;
+        activeStats = null;
+      }
+
+      // if we didn't get stats at begincast, get them now
+      if (!activeStats) {
+        activeStats = this.getActiveStats();
       }
 
       const spellId = mapSpellId(currentCast.ability.guid);
@@ -96,7 +114,9 @@ export class EventAnalyzer {
         targetInstance: currentCast.targetInstance,
         castStart: startingCast?.timestamp || currentCast.timestamp,
         castEnd: currentCast.timestamp,
-        spellPower: currentCast.spellPower
+        spellPower: currentCast.spellPower,
+        haste: activeStats!.totalHaste - 1,
+        gcd: activeStats!.gcd
       });
       casts.push(details);
 
@@ -138,6 +158,8 @@ export class EventAnalyzer {
           nextDamage = damageEvents[0];
         }
       }
+
+      startingCast = activeStats = null;
     }
 
     return casts;
@@ -154,7 +176,7 @@ export class EventAnalyzer {
       castIndex = 0, nextCast = this.castData[castIndex];
 
     do {
-      if (nextBuff && (!nextCast || nextBuff.timestamp <= (nextCast.timestamp + EventAnalyzer.BUFF_LEEWAY))) {
+      if (nextBuff && (!nextCast || nextBuff.timestamp <= nextCast.timestamp)) {
         events.push(nextBuff);
         nextBuff = this.buffData[++buffIndex];
       } else if (nextCast) {
@@ -180,6 +202,42 @@ export class EventAnalyzer {
         this.damageBySpell[spellId].push(event);
       }
     }
+  }
+
+  private applyBuff(event: IBuffData) {
+    const existing = this.buffs.find((b) => b.id === event.ability.guid);
+    if (existing) {
+      existing.event = event;
+    } else {
+      this.buffs.push({ id: event.ability.guid, data: BuffData[event.ability.guid], event });
+    }
+  }
+
+  private removeBuff(event: IBuffData) {
+    this.buffs = this.buffs.filter((b) => b.id !== event.ability.guid);
+  }
+
+  private getActiveStats() {
+    const stats: IActiveStats = {
+      // combine haste rating from buffs with haste rating from gear, additively
+      hasteRating: this.buffs.reduce((hasteRating, buff) => {
+        hasteRating += buff.data.hasteRating;
+        return hasteRating;
+      }, this.baseStats.Haste.min),
+
+      // combine haste percent buff effects multiplicatively
+      haste: this.buffs.reduce((haste, buff) => {
+        haste *= (1 + buff.data.haste);
+        return haste;
+      }, 1),
+
+      totalHaste: 0,
+      gcd: 0
+    };
+
+    stats.totalHaste = (stats.haste * (1 + (stats.hasteRating / 15.77 / 100)));
+    stats.gcd = Math.max(1.5 / stats.totalHaste, 1.0);
+    return stats;
   }
 
   private setShadowfiendDamage(cast: CastDetails) {
@@ -406,4 +464,11 @@ export class EventAnalyzer {
 
     return damage.timestamp;
   }
+}
+
+interface IActiveStats {
+  hasteRating: number,
+  haste: number,
+  totalHaste: number,
+  gcd: number
 }
