@@ -1,14 +1,12 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
-import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class CastsAnalyzer {
-  private static MAX_ACTIVE_LATENCY = 1500; // ignore "next cast latency" for gaps over 1.5s (not trying to chain-cast?)
-  private static MAX_ACTIVE_DOWNTIME = 8000; // ignore cooldown/dot downtime for gaps over 8s (mechanics?)
+  private static MAX_ACTIVE_LATENCY = 2000; // ignore "next cast latency" for gaps over 2s
+  private static MAX_ACTIVE_DOWNTIME = 8000; // ignore cooldown/dot downtime for gaps over 8s
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
-  private static MAX_GCD = 1.5;
-  private static MIN_GCD = 1.0;
 
   private casts: CastDetails[];
 
@@ -20,6 +18,8 @@ export class CastsAnalyzer {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
         spellData = SpellData[current.spellId];
+
+      this.setCastLatency(current, spellData, i);
 
       if (spellData.damageType === DamageType.NONE || current.totalDamage === 0) {
         continue;
@@ -56,6 +56,32 @@ export class CastsAnalyzer {
     return new CastsSummary(this.casts);
   }
 
+  private setCastLatency(current: CastDetails, spellData: ISpellData, index: number) {
+    // ignore for off-GCD spells, last cast
+    if (index > this.casts.length - 2 || !spellData.gcd) {
+      return;
+    }
+
+    const next = this.casts[index + 1], gcd =current.gcd * 1000;
+    let castTime: number;
+
+    if (spellData.damageType === DamageType.CHANNEL) {
+      castTime = (current.lastDamageTimestamp || current.castEnd) - current.castStart;
+    } else {
+      castTime = current.castEnd - current.castStart;
+    }
+
+    // if the cast time is shorter than a GCD, evaluate latency after the GCD finishes
+    if (castTime < gcd) {
+      castTime = gcd;
+    }
+
+    const latency = Math.max(next.castStart - (current.castStart + castTime), 0);
+    if (latency <= CastsAnalyzer.MAX_ACTIVE_LATENCY) {
+      current.nextCastLatency = latency/1000;
+    }
+  }
+
   private setDotDetails(current: CastDetails, prevData: IPreviousCast) {
     if (!prevData?.onTarget) {
       return;
@@ -76,24 +102,30 @@ export class CastsAnalyzer {
   }
 
   private setChannelDetails(current: CastDetails, index: number) {
-    if (index >= this.casts.length - 1 || current.hitType !== HitType.HIT) {
+    // if we got 0 ticks, we clipped early
+    if (current.hits === 0 && !current.truncated) {
+      current.clippedEarly = true;
+
+      // min GCD is 1, so clipping without a tick always costs a full tick
+      current.earlyClipLostDamageFactor = 1;
       return;
     }
 
-    const endOfCast = current.lastDamageTimestamp || current.castEnd,
-      nextCast = this.casts[index + 1],
-      delta = nextCast.castStart - endOfCast
+    // other clipping casts require the next cast to evaluate
+    if (index > this.casts.length - 1 || current.truncated) {
+      return;
+    }
 
-    if (delta <= CastsAnalyzer.MAX_ACTIVE_LATENCY) {
-      current.nextCastLatency = delta/1000;
+    // Check for other early clipping cases
+    if (current.hits < SpellData[current.spellId].maxDamageInstances) {
+      // find the tick period using the cast and first damage tick, which will incorporate haste
+      const timeToTick = current.instances[0].timestamp - current.castEnd;
+      const delta = this.casts[index + 1].castStart - current.lastDamageTimestamp!;
 
-      if (current.hits > 0 && current.hits < SpellData[current.spellId].maxDamageInstances && !current.truncated) {
-        // find the tick period using the cast and first damage tick, which will incorporate haste
-        let timeToTick = current.instances[0].timestamp - current.castEnd;
-
-        // if we clipped very close to the next expected tick, flag the cast.
+      // if we clipped very close to the next expected tick, flag the cast.
+      if (delta < timeToTick) {
         const progressToTick = delta/timeToTick;
-        current.clippedEarly = (delta < timeToTick && (progressToTick >= CastsAnalyzer.EARLY_CLIP_THRESHOLD));
+        current.clippedEarly = (progressToTick >= CastsAnalyzer.EARLY_CLIP_THRESHOLD);
 
         if (current.clippedEarly) {
           current.earlyClipLostDamageFactor = progressToTick;
