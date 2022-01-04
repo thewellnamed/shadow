@@ -15,9 +15,20 @@ or [Yarn](https://yarnpkg.com/). If you're familiar with ng-cli commands, you ca
 
 https://thewellnamed.github.io/shadow
 
+### Gameplay Basics
+
+A brief explanation of the shadow gameplay principles which inform this analyzer is available in [Basics](BASICS.md). For more information,
+or for questions about shadow priest gameplay, check out #vod-and-log-review in [shadow priest discord](https://discord.gg/classicshadow).
+
 ### Glossary
 
 Definitions of stats/terms available via the [Glossary](GLOSSARY.md)
+
+### Credits
+
+Almost the entirety of the underlying information about how to maximize performance as a shadow priest comes from
+[priest discord](https://discord.gg/priestclassic) (and now, [shadow priest discord](https://discord.gg/classicshadow)).
+Special thanks to Passion for his organizing efforts.
 
 ### Todo
 
