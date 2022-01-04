@@ -1,4 +1,4 @@
-import { BuffData } from 'src/app/logs/models/buff-data';
+import { BuffData, IBuffDetails } from 'src/app/logs/models/buff-data';
 import { BuffId } from 'src/app/logs/models/buff-id.enum';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
@@ -7,7 +7,6 @@ import { DamageInstance } from 'src/app/report/models/damage-instance';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { IActorStats, IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
-import { IBuffDetails } from 'src/app/logs/models/buff-data';
 import { IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
@@ -137,7 +136,7 @@ export class EventAnalyzer {
 
           // check for lost ticks to enemy death
           this.setTruncationByDeath(details, spellData);
-        } else {
+        } else if (spellData.damageType !== DamageType.NONE) {
           // find the next instance of damage for this spell for this target.
           const damage = damageEvents.find((d) => this.matchDamage(details, d, details.castEnd, true));
 

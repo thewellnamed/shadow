@@ -67,8 +67,14 @@
     background-image: url('/shadow/assets/starshards.jpg');
   }
 
+  // Desperate prayer
   &.spell-25437, &.spell-desperate-prayer {
     background-image: url('/shadow/assets/prayer.jpg');
+  }
+
+  // Berserking
+  &.spell-20554, &.spell-berserking {
+    background-image: url('/shadow/assets/berserking.jpg');
   }
 
   /**

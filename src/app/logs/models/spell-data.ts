@@ -12,6 +12,7 @@ const SPELL_DEFAULTS: Partial<ISpellData> = {
   maxDamageInstances: 0,
   maxDuration: 0,
   cooldown: 0,
+  gcd: true,
   statsByTick: false
 };
 
@@ -23,6 +24,12 @@ export const SpellData: {[spellId: number]: ISpellData} = {
   [SpellId.ADAMANTITE_GRENDADE]: spellData({
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
+    gcd: false
+  }),
+
+  [SpellId.BERSERKING]: spellData({
+    damageType: DamageType.NONE,
+    gcd: false
   }),
 
   [SpellId.DEATH]: spellData({
@@ -34,6 +41,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
   [SpellId.DENSE_DYNAMITE]: spellData({
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
+    gcd: false
   }),
 
   [SpellId.DESPERATE_PRAYER]: spellData({
@@ -62,6 +70,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
   [SpellId.FEL_IRON_BOMB]: spellData({
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
+    gcd: false
   }),
 
   [SpellId.GOBLIN_LAND_MINE]: spellData({
@@ -71,6 +80,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
   [SpellId.GOBLIN_SAPPER]: spellData({
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
+    gcd: false
   }),
 
   [SpellId.MELEE]: spellData({
@@ -124,6 +134,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
   [SpellId.SUPER_SAPPER]: spellData({
     damageType: DamageType.AOE,
     maxDamageInstances: 20,
+    gcd: false
   }),
 
   [SpellId.THORNLING]: spellData({
@@ -148,5 +159,6 @@ export interface ISpellData {
   maxDamageInstances: number;
   maxDuration: number;
   cooldown: number;
+  gcd: boolean;
   statsByTick: boolean;
 }
