@@ -1,4 +1,4 @@
-import { BuffData, IBuffDetails } from 'src/app/logs/models/buff-data';
+import { berserkingFromCast, BuffData, IBuffDetails } from 'src/app/logs/models/buff-data';
 import { BuffId } from 'src/app/logs/models/buff-id.enum';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
@@ -73,7 +73,7 @@ export class EventAnalyzer {
       switch (event.type) {
         case 'applybuff':
         case 'refreshbuff':
-          this.applyBuff(event as IBuffData);
+          this.applyBuff(event as IBuffData, BuffData[event.ability.guid]);
           continue;
 
         case 'removebuff':
@@ -115,7 +115,7 @@ export class EventAnalyzer {
         castEnd: currentCast.timestamp,
         spellPower: currentCast.spellPower,
         haste: activeStats!.totalHaste - 1,
-        gcd: activeStats!.gcd
+        gcd: spellData.gcd ? activeStats!.gcd : 0
       });
       casts.push(details);
 
@@ -124,6 +124,13 @@ export class EventAnalyzer {
       // unless I were to want to re-use this code for non-shadow-priest analysis
       if (details.spellId === SpellId.SHADOW_FIEND) {
         this.setShadowfiendDamage(details);
+      }
+
+      // special case -- Berserking!
+      // we need to track the buff from the cast in order to know how much haste the player got, based on health
+      else if (details.spellId === SpellId.BERSERKING) {
+        const { event, buff } = berserkingFromCast(currentCast);
+        this.applyBuff(event, buff);
       }
 
       else if (this.damageBySpell.hasOwnProperty(spellId)) {
@@ -203,12 +210,12 @@ export class EventAnalyzer {
     }
   }
 
-  private applyBuff(event: IBuffData) {
+  private applyBuff(event: IBuffData, data: IBuffDetails) {
     const existing = this.buffs.find((b) => b.id === event.ability.guid);
     if (existing) {
       existing.event = event;
     } else {
-      this.buffs.push({ id: event.ability.guid, data: BuffData[event.ability.guid], event });
+      this.buffs.push({ id: event.ability.guid, data, event });
     }
   }
 
@@ -434,6 +441,8 @@ export class EventAnalyzer {
           sourceID: instance.sourceID,
           targetID: instance.targetID,
           targetInstance: instance.targetInstance,
+          hitPoints: 100,
+          maxHitPoints: 100,
           read: false,
           spellPower: firstDamageCast?.spellPower || 0 // we really have no idea, but it should be close to this
         });
