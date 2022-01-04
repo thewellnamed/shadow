@@ -7,9 +7,8 @@ Total Damage / Active Time (see below)
 ### Active Time
 
 "Active" time is the cumulative time in which tracked casts are doing damage, including cast time. For DoTs and MF, the active time is the delta
-between start of cast and the last damage tick. For Mind Blast and SW:D, active time is the cumulative cast time. Haste is taken into account for
-Mind Blast via cast time. Unfortunately this isn't available for instant-cast spells (GCD is not tracked directly), so instead either the GCD from
-the previous cast is used (if available), or else the default 1.5s GCD is used.
+between start of cast and the last damage tick. For direct damage spells with a cast time (e.g. Mind Blast), the cast time is used. For instant casts,
+GCD is used.
 
 ### Avg DoT Downtime
 
@@ -20,8 +19,8 @@ of the current cast and the last tick of the previous cast:
 current.dotDowntime = current.castEnd - previous.lastDamageTimestamp
 ```
 
-The Avg per-cast downtime is the mean of the downtime for all included casts.
-Casts with downtime greater than 10s are ignored for the average as outliers likely to represent time moving for mechanics, phase transitions, etc. 
+The Avg per-cast downtime is the mean of the downtime for all included casts. Casts with downtime greater than 10s are ignored for the average 
+as outliers likely to represent time moving for mechanics, phase transitions, etc.
 
 ### Avg Off Cooldown
 
@@ -37,9 +36,6 @@ average as outliers likely to represent time moving for mechanics, phase transit
 
 ### Avg MF Latency
 
-Because Mind Flay is a channeled spell, it's possible to interrupt the cast between damage ticks, and begin a cast of a new spell. This is 
-particularly useful for Shadow Priest rotation because it is often desirable to clip the channel after the second tick.
-
 The "post-channel latency" on a Mind Flay cast is the delta between the last damage tick of the channel (or the start of the channel, if
 no damage) and the start of the next cast:
 
@@ -52,6 +48,8 @@ The Avg latency is the mean of the latency for each included cast. Casts with la
 represent movement rather than casting latency. Casts which were [clipped early](#early-mf-clips) are also excluded, since they are reported
 separately. Thus the "avg latency" represents something like how efficiently you cast after a mind flay under "normal" circumstances without
 mistakes. For stats on how frequently you mis-clip mind flay, see [Early MF Clips](#early-mf-clips) instead.
+
+See [Basics](BASICS.md) for more on the mechanics of mind flay clipping.
 
 ### Avg Spellpower
 
@@ -72,6 +70,8 @@ cast has clipped the previous:
 current.clippedPreviousCast = current.castStart < previous.expectedLastDamageTimestamp AND previous.ticks < expected
 ```
 
+See [Basics](BASICS.md) for more about why clipping DoTs is undesirable.
+
 ### DPS/Power
 
 DPS = [Active DPS](#active-dps)
@@ -87,7 +87,7 @@ In cases where a Mind Flay channel is clearly interrupted for a new spell very c
 "clipped early". Currently the threshold for flagging is if the clip occurs more than 75% of the way to the next expected tick of the channel, 
 taking haste into account. The number displayed is the number of casts that were clipped early by this measure.
 
-Haste can only be accounted for by using the time between ticks (or between the cast and first tick), therefore at least one MF ticks must
+Haste is accounted for by using the time between ticks (or between the cast and first tick), therefore at least one MF ticks must
 occur for the cast to be flagged. Also note that only channels interrupted *for a new spell cast* are flagged, since the new start of the new cast
 is needed for recognizing the clip. Channel interruptions from movement are not flagged.
 
@@ -109,4 +109,4 @@ stats.lostMfDps = (channelStats.totalClippedDamage * discountFactor) / encounter
 ### Truncated
 
 If a DoT or Mind Flay is cut off early because the mob died, then the cast is marked as truncated. DoTs truncated with less than
-half of the expected ticks are flagged, as are Mind Flay casts with no ticks.
+half of the expected ticks are flagged, as are Mind Flay casts with no ticks because the target died.
