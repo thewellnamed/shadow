@@ -45,12 +45,6 @@ export class CastDetails {
   // damage truncated by death of mob?
   truncated = false;
 
-  // GCD implied from casting
-  // This is basically a hack to estimate haste for calculating active time
-  // It won't work very well for some haste-related calculations, but is good enough for activity
-  // Min: 1.0s. Max: 1.5s
-  impliedGcd = 0;
-
   gcd = 0;
   haste = 0;
 

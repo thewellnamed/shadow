@@ -403,14 +403,15 @@ export class SpellStats {
       end = cast.instances[cast.instances.length - 1].timestamp;
     }
 
-    // If cast time is longer than the implied GCD, then use that
-    else if (((cast.castEnd - cast.castStart)/1000) > cast.impliedGcd) {
+    // If cast time is longer than the GCD
+    else if (((cast.castEnd - cast.castStart)/1000) > cast.gcd) {
       end = cast.castEnd;
     }
 
-    // Else use the effective GCD
+    // Else use the GCD. Off-GCD spells (bombs) have gcd set to 0
+    // That's correct for some use cases, like latency, but it's not useful here, so we'll use 1 instead.
     else {
-      end = cast.castStart + (cast.impliedGcd * 1000);
+      end = cast.castStart + (Math.max(cast.gcd, 1) * 1000);
     }
 
     return { start, end };

@@ -4,8 +4,8 @@ import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class CastsAnalyzer {
-  private static MAX_ACTIVE_LATENCY = 3000; // ignore "next cast latency" for gaps over 5s (not trying to chain-cast)
-  private static MAX_ACTIVE_DOWNTIME = 10000; // ignore cooldown/dot downtime for gaps over 10s (movement?)
+  private static MAX_ACTIVE_LATENCY = 1500; // ignore "next cast latency" for gaps over 1.5s (not trying to chain-cast?)
+  private static MAX_ACTIVE_DOWNTIME = 8000; // ignore cooldown/dot downtime for gaps over 8s (mechanics?)
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
   private static MAX_GCD = 1.5;
   private static MIN_GCD = 1.0;
@@ -20,8 +20,6 @@ export class CastsAnalyzer {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
         spellData = SpellData[current.spellId];
-
-      this.setImpliedGcd(current, i);
 
       if (spellData.damageType === DamageType.NONE || current.totalDamage === 0) {
         continue;
@@ -56,20 +54,6 @@ export class CastsAnalyzer {
     }
 
     return new CastsSummary(this.casts);
-  }
-
-  private setImpliedGcd(current: CastDetails, index: number) {
-    if (index < this.casts.length - 1) {
-      const next = this.casts[index + 1],
-        delta = (next.castStart - current.castStart)/1000;
-
-      current.impliedGcd = Math.max(Math.min(CastsAnalyzer.MAX_GCD, delta), CastsAnalyzer.MIN_GCD);
-    } else if (index > 0) {
-      // For the last cast use the implied GCD of the previous cast
-      current.impliedGcd = this.casts[index - 1].impliedGcd;
-    } else {
-      current.impliedGcd = CastsAnalyzer.MAX_GCD;
-    }
   }
 
   private setDotDetails(current: CastDetails, prevData: IPreviousCast) {
