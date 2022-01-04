@@ -57,10 +57,11 @@ start channeling another MF and interrupt after 1 tick, you'll have to wait 0.5s
 > MB -> Death -> MF2 -> MF2 -> MB
 
 If you clip each flay cast immediately after the 2nd tick, the two casts will last exactly 4s, and MB becomes available immediately after. This
-maximizes DPS for the sequence, and illustrates the general idea of clipping MF in order to "fit" the rotation. This is also where _latency_
-becomes important. In the idealized example, the cooldowns line up because each cast happens immediately after the previous. For MB and Death, the
-spell queueing system helps us achieve that. You can be spamming death while casting MB and the death cast will be queued on the server and cast with
-no latency. 
+maximizes DPS for the sequence, and illustrates the general idea of clipping MF in order to "fit" the rotation. 
+
+This is also where _latency_ becomes important. In the idealized example, the cooldowns line up because each cast happens immediately after the 
+previous. For MB and Death, the  spell queueing system helps us achieve that. You can be spamming death while casting MB and the death cast will 
+be queued on the server and cast with no latency. 
 
 That is not possible with MF, given that we want to interrupt it. If we wait to see the second tick before pressing the MF button again, there will
 be latency between the tick and the start of the next cast: _input latency_ including our reaction time, and _network latency_ to the server. The higher
