@@ -20,7 +20,6 @@ export class CastsAnalyzer {
         spellData = SpellData[current.spellId];
 
       this.setCastLatency(current, spellData, i);
-
       if (spellData.damageType === DamageType.NONE || current.totalDamage === 0) {
         continue;
       }
