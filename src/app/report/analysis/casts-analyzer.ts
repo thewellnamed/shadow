@@ -101,15 +101,6 @@ export class CastsAnalyzer {
   }
 
   private setChannelDetails(current: CastDetails, index: number) {
-    // if we got 0 ticks, we clipped early
-    if (current.hits === 0 && !current.truncated) {
-      current.clippedEarly = true;
-
-      // min GCD is 1, so clipping without a tick always costs a full tick
-      current.earlyClipLostDamageFactor = 1;
-      return;
-    }
-
     // other clipping casts require the next cast to evaluate
     if (index > this.casts.length - 1 || current.truncated) {
       return;
@@ -117,9 +108,19 @@ export class CastsAnalyzer {
 
     // Check for other early clipping cases
     if (current.hits < SpellData[current.spellId].maxDamageInstances) {
-      // find the tick period using the cast and first damage tick, which will incorporate haste
-      const timeToTick = current.instances[0].timestamp - current.castEnd;
-      const delta = this.casts[index + 1].castStart - current.lastDamageTimestamp!;
+      let timeToTick: number, castEnd: number;
+
+      // prefer to use actual timestamps to evaluate tick time, over haste
+      // just because it avoids some annoying rounding issues and timestamps being off a few ms
+      if (current.instances.length > 0) {
+        timeToTick = current.instances[0].timestamp - current.castEnd;
+        castEnd = current.lastDamageTimestamp!;
+      } else {
+        timeToTick = (1 / (1 + current.haste)) * 1000;
+        castEnd = current.castEnd;
+      }
+
+      const delta = this.casts[index + 1].castStart - castEnd;
 
       // if we clipped very close to the next expected tick, flag the cast.
       if (delta < timeToTick) {
