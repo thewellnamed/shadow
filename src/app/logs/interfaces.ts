@@ -88,15 +88,15 @@ export interface ICombatantInfo {
 }
 
 export interface IActorStats {
-  Agility: IStatValue;
-  Crit: IStatValue;
-  Expertise: IStatValue;
-  Haste: IStatValue;
-  Hit: IStatValue;
-  Intellect: IStatValue;
-  Spirit: IStatValue;
-  Stamina: IStatValue;
-  Strength: IStatValue;
+  Agility?: IStatValue;
+  Crit?: IStatValue;
+  Expertise?: IStatValue;
+  Haste?: IStatValue;
+  Hit?: IStatValue;
+  Intellect?: IStatValue;
+  Spirit?: IStatValue;
+  Stamina?: IStatValue;
+  Strength?: IStatValue;
 }
 
 export interface IStatValue {

@@ -229,7 +229,7 @@ export class EventAnalyzer {
       hasteRating: this.buffs.reduce((hasteRating, buff) => {
         hasteRating += buff.data.hasteRating;
         return hasteRating;
-      }, this.baseStats.Haste.min),
+      }, this.baseStats.Haste?.min || 0),
 
       // combine haste percent buff effects multiplicatively
       haste: this.buffs.reduce((haste, buff) => {
