@@ -98,9 +98,9 @@ export class CastsAnalyzer {
 
     const endOfCast = current.lastDamageTimestamp || current.castEnd,
       nextCast = this.casts[index + 1],
-      delta = nextCast.castStart - endOfCast
+      delta = nextCast.castStart - endOfCast;
 
-    if (delta <= CastsAnalyzer.MAX_ACTIVE_LATENCY) {
+    if (delta >= 0 && delta <= CastsAnalyzer.MAX_ACTIVE_LATENCY) {
       current.nextCastLatency = delta/1000;
 
       if (current.hits > 0 && current.hits < SpellData[current.spellId].maxDamageInstances && !current.truncated) {

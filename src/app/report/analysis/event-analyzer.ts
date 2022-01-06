@@ -196,16 +196,21 @@ export class EventAnalyzer {
 
     while (nextDamage && count < spellData.maxDamageInstances) {
       if (this.matchDamage(cast, nextDamage, maxDamageTimestamp)) {
-        // If we encounter a full resist/immune it must be that a cast failed
-        // It's *this* cast only if it's the first instance. Otherwise we just ignore it
-        if (count === 0 || !this.failed(nextDamage.hitType)) {
+        // This is a little complicated because of differences between channeled, dot, and AoE damage
+        // Each individual damage instance for AoE can resist individually, so we just count them all without condition
+        //
+        // But for a channel or dot, a full resist can only happen on the first instance, and means the cast resisted
+        // We want to keep the damage instance for the full resist in that case, but only if it's the first instance.
+        // Otherwise we can encounter a full resist in a string of dot damage instances and it just means some
+        // *future* cast resisted, and we should ignore it for the cast currently processing.
+        if (spellData.damageType === DamageType.AOE || count === 0 || !this.failed(nextDamage.hitType)) {
           instances.push(new DamageInstance(nextDamage));
           nextDamage.read = true;
           count++;
         }
 
-        // if it is this cast that failed, don't add more damage
-        if (count === 0 && this.failed(nextDamage.hitType)) {
+        // if the whole cast is failing, don't add more damage
+        if (spellData.damageType !== DamageType.AOE && count === 1 && this.failed(nextDamage.hitType)) {
           break;
         }
       }

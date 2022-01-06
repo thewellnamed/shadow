@@ -103,7 +103,6 @@ export const SpellData: {[spellId: number]: ISpellData} = {
 
   [SpellId.SHADOW_FIEND]: spellData({
     damageType: DamageType.DIRECT,
-    maxDamageInstances: 30,
     maxDuration: 15,
     cooldown: 300
   }),
