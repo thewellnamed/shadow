@@ -404,7 +404,7 @@ export class SpellStats {
     }
 
     // If cast time is longer than the GCD
-    else if (((cast.castEnd - cast.castStart)/1000) > cast.gcd) {
+    else if ((cast.castTime/1000) > cast.gcd) {
       end = cast.castEnd;
     }
 

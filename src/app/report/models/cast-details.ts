@@ -8,6 +8,7 @@ export class CastDetails {
   name: string;
   castStart: number;
   castEnd: number;
+  castTime: number;
   sourceId: number;
   targetId: number;
   targetInstance: number;
@@ -57,6 +58,7 @@ export class CastDetails {
     this.targetInstance = params.targetInstance;
     this.castStart = params.castStart;
     this.castEnd = params.castEnd;
+    this.castTime = params.castEnd - params.castStart;
 
     this.spellPower = params.spellPower;
     this.haste = params.haste;

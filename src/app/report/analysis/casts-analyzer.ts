@@ -67,7 +67,7 @@ export class CastsAnalyzer {
     if (spellData.damageType === DamageType.CHANNEL) {
       castTime = (current.lastDamageTimestamp || current.castEnd) - current.castStart;
     } else {
-      castTime = current.castEnd - current.castStart;
+      castTime = current.castTime;
     }
 
     // if the cast time is shorter than a GCD, evaluate latency after the GCD finishes

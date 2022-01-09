@@ -215,7 +215,7 @@ export class CastsComponent implements OnInit, OnChanges  {
       return this.duration(cast.lastDamageTimestamp - cast.castStart, 'S.dd');
     }
 
-    return this.duration(cast.castEnd - cast.castStart, 'S.dd');
+    return this.duration(cast.castTime, 'S.dd');
   }
 
   isDamage(cast: CastDetails) {
