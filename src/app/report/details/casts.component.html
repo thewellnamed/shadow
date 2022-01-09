@@ -56,7 +56,7 @@
       <div class="avg-latency">
         Avg MF latency:
         <span [ngClass]="highlight.latency(stats)">
-          {{ format(stats.channelStats.avgNextCastLatency, 2, 's') }}
+          {{ format(stats.avgNextCastLatency, 2, 's') }}
         </span>
       </div>
       <div class="channel-clip-count">

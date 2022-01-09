@@ -61,19 +61,8 @@ export class CastsAnalyzer {
       return;
     }
 
-    const next = this.casts[index + 1], gcd =current.gcd * 1000;
-    let castTime: number;
-
-    if (spellData.damageType === DamageType.CHANNEL) {
-      castTime = (current.lastDamageTimestamp || current.castEnd) - current.castStart;
-    } else {
-      castTime = current.castTime;
-    }
-
-    // if the cast time is shorter than a GCD, evaluate latency after the GCD finishes
-    if (castTime < gcd) {
-      castTime = gcd;
-    }
+    const next = this.casts[index + 1], gcd = current.gcd * 1000;
+    const castTime = current.castTime > gcd ? current.castTime : gcd;
 
     const latency = Math.max(next.castStart - (current.castStart + castTime), 0);
     if (latency >= 0 && latency <= CastsAnalyzer.MAX_ACTIVE_LATENCY) {
@@ -102,7 +91,7 @@ export class CastsAnalyzer {
 
   private setChannelDetails(current: CastDetails, index: number) {
     // other clipping casts require the next cast to evaluate
-    if (index > this.casts.length - 1 || current.truncated) {
+    if (index > this.casts.length - 2 || current.truncated) {
       return;
     }
 

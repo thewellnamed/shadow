@@ -2,6 +2,7 @@ import { IAbilityData } from 'src/app/logs/interfaces';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
+import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 
 export class CastDetails {
   spellId: SpellId;
@@ -86,6 +87,11 @@ export class CastDetails {
     this.totalResisted = resisted;
     this.hits = hits;
     this.allTargets = [... new Set(targets)];
+
+    // For channeled spells, set cast time to last tick
+    if (SpellData[this.spellId].damageType === DamageType.CHANNEL && instances.length > 0) {
+      this.castTime = this.lastDamageTimestamp! - this.castStart;
+    }
   }
 
   get dealtDamage() {

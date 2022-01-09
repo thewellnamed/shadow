@@ -211,10 +211,6 @@ export class CastsComponent implements OnInit, OnChanges  {
   }
 
   castTime(cast: CastDetails) {
-    if (this.isChannel(cast) && cast.lastDamageTimestamp) {
-      return this.duration(cast.lastDamageTimestamp - cast.castStart, 'S.dd');
-    }
-
     return this.duration(cast.castTime, 'S.dd');
   }
 

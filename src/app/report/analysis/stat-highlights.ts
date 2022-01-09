@@ -107,7 +107,7 @@ export class StatHighlights {
     if (data instanceof CastDetails) {
       status = this.thresholdStatus('nextCastLatency', data.nextCastLatency);
     } else {
-      status = this.thresholdStatus('avgNextCastLatency', data.channelStats.avgNextCastLatency);
+      status = this.thresholdStatus('avgNextCastLatency', data.avgNextCastLatency);
     }
 
     return this.textHighlight(status);
