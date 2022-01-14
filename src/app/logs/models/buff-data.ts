@@ -53,3 +53,9 @@ export interface IBuffDetails {
   haste: number;
   hasteRating: number;
 }
+
+export interface IBuffEvent {
+  id: BuffId,
+  data: IBuffDetails,
+  event: IBuffData
+}

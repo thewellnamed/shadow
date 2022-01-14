@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChil
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
-import { MatSelect } from '@angular/material/select';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -14,7 +13,9 @@ import { LogSummary } from 'src/app/logs/models/log-summary';
 import { ParamsService, ParamType } from 'src/app/params.service';
 import { TabDefinitions } from 'src/app/report/details/tabs';
 import { Actor } from 'src/app/logs/models/actor';
-import { IActorStats, ICombatantInfo } from 'src/app/logs/interfaces';
+import { ICombatantInfo } from 'src/app/logs/interfaces';
+import { GcdAnalyzer } from 'src/app/report/analysis/gcd-analyzer';
+import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 
 @Component({
   selector: 'report-details',
@@ -35,7 +36,7 @@ export class ReportDetailsComponent implements OnInit {
   loading = true;
   tabs = TabDefinitions;
 
-  private playerStats: IActorStats;
+  private playerInfo: ICombatantInfo;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private location: Location,
@@ -74,7 +75,7 @@ export class ReportDetailsComponent implements OnInit {
       }),
       switchMap((playerInfo: ICombatantInfo|null) => {
         if (playerInfo) {
-          this.playerStats = playerInfo.stats;
+          this.playerInfo = playerInfo;
         }
 
         return this.fetchData();
@@ -127,8 +128,16 @@ export class ReportDetailsComponent implements OnInit {
 
   private analyze(events: IEncounterEvents) {
     if (events) {
-      const casts = new EventAnalyzer(this.log, this.playerStats, this.encounterId, events).createCasts();
+      const casts = new EventAnalyzer(this.log, this.playerInfo.stats, this.encounterId, events).createCasts();
       this.castSummary = new CastsAnalyzer(casts).run();
+
+      const gcdAnalyzer = new GcdAnalyzer(this.log.getEncounter(this.encounterId) as EncounterSummary, this.playerInfo.stats, events.buffs);
+      const totalGcds = gcdAnalyzer.totalGcds;
+      // eslint-disable-next-line no-console
+      console.log(`total GCDs: ${totalGcds}, usage=${this.castSummary.stats.gcds}`);
+
+      // eslint-disable-next-line no-console
+      console.log(`avg haste: ${this.castSummary.stats.avgHaste}`);
 
       this.targets = this.castSummary.targetIds
         .map((id) => ({ id , name: this.log.getActorName(id) }))

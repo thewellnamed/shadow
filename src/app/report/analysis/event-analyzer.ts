@@ -1,10 +1,10 @@
-import { berserkingFromCast, BuffData, IBuffDetails } from 'src/app/logs/models/buff-data';
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
+import { berserkingFromCast, BuffData, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
+import { HasteUtils, IHasteStats } from 'src/app/report/models/haste';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { IActorStats, IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
 import { IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
@@ -27,7 +27,7 @@ export class EventAnalyzer {
   private events: IEventData[];
 
   // tracks currently active buffs
-  private buffs: { id: BuffId, data: IBuffDetails, event: IBuffData }[] = [];
+  private buffs: IBuffEvent[] = [];
 
   constructor(log: LogSummary, actorStats: IActorStats, encounterId: number, events: IEncounterEvents) {
     this.log = log;
@@ -61,7 +61,7 @@ export class EventAnalyzer {
   public createCasts(): CastDetails[] {
     let event: IEventData,
       currentCast: ICastData,
-      activeStats: IActiveStats|null = null,
+      activeStats: IHasteStats|null = null,
       startingCast: ICastData|null = null,
       nextDamage: IDamageData|null;
 
@@ -82,7 +82,7 @@ export class EventAnalyzer {
 
         case 'begincast':
           startingCast = event as ICastData;
-          activeStats = this.getActiveStats();
+          activeStats = HasteUtils.calc(this.baseStats, this.buffs);
           continue;
       }
 
@@ -99,7 +99,7 @@ export class EventAnalyzer {
 
       // if we didn't get stats at begincast, get them now
       if (!activeStats) {
-        activeStats = this.getActiveStats();
+        activeStats = HasteUtils.calc(this.baseStats, this.buffs);
       }
 
       const spellId = mapSpellId(currentCast.ability.guid);
@@ -221,29 +221,6 @@ export class EventAnalyzer {
 
   private removeBuff(event: IBuffData) {
     this.buffs = this.buffs.filter((b) => b.id !== event.ability.guid);
-  }
-
-  private getActiveStats() {
-    const stats: IActiveStats = {
-      // combine haste rating from buffs with haste rating from gear, additively
-      hasteRating: this.buffs.reduce((hasteRating, buff) => {
-        hasteRating += buff.data.hasteRating;
-        return hasteRating;
-      }, this.baseStats.Haste?.min || 0),
-
-      // combine haste percent buff effects multiplicatively
-      haste: this.buffs.reduce((haste, buff) => {
-        haste *= (1 + buff.data.haste);
-        return haste;
-      }, 1),
-
-      totalHaste: 0,
-      gcd: 0
-    };
-
-    stats.totalHaste = (stats.haste * (1 + (stats.hasteRating / 15.77 / 100)));
-    stats.gcd = Math.max(1.5 / stats.totalHaste, 1.0);
-    return stats;
   }
 
   private setShadowfiendDamage(cast: CastDetails) {
@@ -477,11 +454,4 @@ export class EventAnalyzer {
 
     return damage.timestamp;
   }
-}
-
-interface IActiveStats {
-  hasteRating: number,
-  haste: number,
-  totalHaste: number,
-  gcd: number
 }
