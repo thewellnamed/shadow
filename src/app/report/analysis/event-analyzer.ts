@@ -49,6 +49,14 @@ export class EventAnalyzer {
 
     // Merge buff and cast data into a single array to process
     this.events = this.mergeEvents();
+
+    // if haste info is missing from combatant info, try to infer it...
+    if (typeof this.baseStats.Haste === 'undefined') {
+      this.inferBaseHaste();
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(this.baseStats);
   }
 
   /**
@@ -169,6 +177,63 @@ export class EventAnalyzer {
     }
 
     return casts;
+  }
+
+  // strategy -- infer a gear haste rating by evaluating all MB/VT casts with buffs accounted for
+  // Need to average across casts to smooth out the effects of variance in server processing time
+  // This isn't perfectly accurate, but it should be very close
+  // (and this strategy is a fallback for when logs are missing data)
+  private inferBaseHaste() {
+    let startingCast: ICastData|undefined,
+      cast: ICastData,
+      spellData: ISpellData,
+      event: IEventData,
+      stats = HasteUtils.calc(this.baseStats, this.buffs);
+
+    let count = 0, total = 0;
+
+    this.buffs = [];
+    for (let i = 0; i < this.events.length; i++) {
+      event = this.events[i];
+
+      switch (event.type) {
+        case 'applybuff':
+        case 'refreshbuff':
+          this.applyBuff(event as IBuffData, BuffData[event.ability.guid]);
+          continue;
+
+        case 'removebuff':
+          this.removeBuff(event as IBuffData);
+          continue;
+
+        case 'begincast':
+          startingCast = event as ICastData;
+          stats = HasteUtils.calc(this.baseStats, this.buffs);
+          continue;
+
+        case 'cast':
+          cast = event as ICastData;
+          spellData = SpellData[mapSpellId(event.ability.guid)];
+          if ((cast.ability.guid === SpellId.VAMPIRIC_TOUCH || cast.ability.guid === SpellId.MIND_BLAST) &&
+            cast.ability.guid === startingCast?.ability?.guid) {
+
+            const castTime = (cast.timestamp - startingCast.timestamp)/1000,
+              baseCastTime = spellData.baseCastTime / stats.hastePercent;
+
+            if (castTime <= baseCastTime) {
+              const inferredRating = HasteUtils.inferRating(stats.hastePercent, spellData.baseCastTime, castTime);
+              total += inferredRating;
+              count++;
+            }
+          }
+      }
+    }
+
+    if (count > 0) {
+      const hasteRating = total/count;
+      this.baseStats.Haste = { min: hasteRating,  max: hasteRating };
+    }
+    this.buffs = [];
   }
 
   // merge buff events into cast data in order, so we can just loop over the combined set to process

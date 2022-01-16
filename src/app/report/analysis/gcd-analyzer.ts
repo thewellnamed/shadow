@@ -67,10 +67,6 @@ export class GcdAnalyzer {
     return gcds;
   }
 
-  private ts(timestamp: number) {
-    return (timestamp - this.encounter.start)/1000;
-  }
-
   private applyBuff(event: IBuffData, data: IBuffDetails) {
     const existing = this.buffs.find((b) => b.id === event.ability.guid);
     if (existing) {

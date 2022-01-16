@@ -2,10 +2,11 @@ import { IActorStats } from 'src/app/logs/interfaces';
 import { IBuffEvent } from 'src/app/logs/models/buff-data';
 
 export class HasteUtils {
+  public static RATING_FACTOR = 15.77;
 
   // Get haste values, combining base rating from gear (summary data)
   // and values from a set of current buffs
-  public static calc(playerStats: IActorStats, buffs: IBuffEvent[] = []) {
+  public static calc(playerStats: Partial<IActorStats>, buffs: IBuffEvent[] = []) {
     const stats: IHasteStats = {
       // combine haste rating from buffs with haste rating from gear, additively
       hasteRating: buffs.reduce((hasteRating, buff) => {
@@ -23,9 +24,22 @@ export class HasteUtils {
       gcd: 0
     };
 
-    stats.totalHaste = (stats.hastePercent * (1 + (stats.hasteRating / 15.77 / 100)));
+    stats.totalHaste = (stats.hastePercent * (1 + (stats.hasteRating / HasteUtils.RATING_FACTOR / 100)));
     stats.gcd = Math.max(1.5 / stats.totalHaste, 1.0);
     return stats;
+  }
+
+  public static inferRating(hastePercent: number, baseCastTime: number, actualCastTime: number) {
+    // solve for the percent of haste coming from rating
+    const hasteFromRating = baseCastTime / (hastePercent * actualCastTime);
+
+    // if the answer don't make no sense it's probably because of variance in server processing times
+    if (hasteFromRating < 0) {
+      return 0;
+    }
+
+    // convert from percent to rating
+    return (hasteFromRating - 1) * 100 * HasteUtils.RATING_FACTOR;
   }
 }
 

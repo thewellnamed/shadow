@@ -9,6 +9,7 @@ export enum DamageType {
 }
 
 const SPELL_DEFAULTS: Partial<ISpellData> = {
+  baseCastTime: 0,
   maxDamageInstances: 0,
   maxDuration: 0,
   cooldown: 0,
@@ -23,6 +24,7 @@ function spellData(params: Partial<ISpellData> = {}): ISpellData {
 export const SpellData: {[spellId: number]: ISpellData} = {
   [SpellId.ADAMANTITE_GRENDADE]: spellData({
     damageType: DamageType.AOE,
+    baseCastTime: 1,
     maxDamageInstances: 20,
     gcd: false
   }),
@@ -40,6 +42,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
 
   [SpellId.DENSE_DYNAMITE]: spellData({
     damageType: DamageType.AOE,
+    baseCastTime: 1,
     maxDamageInstances: 20,
     gcd: false
   }),
@@ -69,6 +72,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
 
   [SpellId.FEL_IRON_BOMB]: spellData({
     damageType: DamageType.AOE,
+    baseCastTime: 1,
     maxDamageInstances: 20,
     gcd: false
   }),
@@ -89,6 +93,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
 
   [SpellId.MIND_BLAST]: spellData({
     damageType: DamageType.DIRECT,
+    baseCastTime: 1.5,
     maxDamageInstances: 1,
     cooldown: 5.5
   }),
@@ -148,6 +153,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
 
   [SpellId.VAMPIRIC_TOUCH]: spellData({
     damageType: DamageType.DOT,
+    baseCastTime: 1.5,
     maxDamageInstances: 5,
     maxDuration: 15
   })
@@ -155,6 +161,7 @@ export const SpellData: {[spellId: number]: ISpellData} = {
 
 export interface ISpellData {
   damageType: DamageType;
+  baseCastTime: number;
   maxDamageInstances: number;
   maxDuration: number;
   cooldown: number;

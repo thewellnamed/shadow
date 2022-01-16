@@ -128,14 +128,18 @@ export class ReportDetailsComponent implements OnInit {
 
   private analyze(events: IEncounterEvents) {
     if (events) {
-      const casts = new EventAnalyzer(this.log, this.playerInfo.stats, this.encounterId, events).createCasts();
+      const casts = new EventAnalyzer(
+        this.log, this.playerInfo.stats, this.encounterId, events
+      ).createCasts();
+
+      const totalGcds = new GcdAnalyzer(
+        this.log.getEncounter(this.encounterId) as EncounterSummary, this.playerInfo.stats, events.buffs
+      ).totalGcds;
+
       this.castSummary = new CastsAnalyzer(casts).run();
 
-      const gcdAnalyzer = new GcdAnalyzer(this.log.getEncounter(this.encounterId) as EncounterSummary, this.playerInfo.stats, events.buffs);
-      const totalGcds = gcdAnalyzer.totalGcds;
       // eslint-disable-next-line no-console
       console.log(`total GCDs: ${totalGcds}, usage=${this.castSummary.stats.gcds}`);
-
       // eslint-disable-next-line no-console
       console.log(`avg haste: ${this.castSummary.stats.avgHaste}`);
 
