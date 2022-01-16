@@ -9,9 +9,11 @@ export class CastsAnalyzer {
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
 
   private casts: CastDetails[];
+  private totalGcds: number;
 
-  constructor(casts: CastDetails[]) {
+  constructor(casts: CastDetails[], totalGcds: number) {
     this.casts = casts;
+    this.totalGcds = totalGcds;
   }
 
   public run(): CastsSummary {
@@ -52,7 +54,7 @@ export class CastsAnalyzer {
       }
     }
 
-    return new CastsSummary(this.casts);
+    return new CastsSummary(this.casts, this.totalGcds);
   }
 
   private setCastLatency(current: CastDetails, spellData: ISpellData, index: number) {
