@@ -15,6 +15,8 @@ export class EventAnalyzer {
   private static EVENT_LEEWAY = 100; // ms. allow damage to occur just slightly later than "should" be possible given
                                      // strict debuff times. Blah blah server doesn't keep time exactly.
 
+  private static MIN_INFER_HASTE_EVENTS = 8; // require a minimum of MB/VT casts to infer missing haste value
+
   private log: LogSummary;
   private encounter: EncounterSummary;
   private baseStats: IActorStats;
@@ -54,9 +56,6 @@ export class EventAnalyzer {
     if (typeof this.baseStats.Haste === 'undefined') {
       this.inferBaseHaste();
     }
-
-    // eslint-disable-next-line no-console
-    console.log(this.baseStats);
   }
 
   /**
@@ -218,10 +217,11 @@ export class EventAnalyzer {
             cast.ability.guid === startingCast?.ability?.guid) {
 
             const castTime = (cast.timestamp - startingCast.timestamp)/1000,
-              baseCastTime = spellData.baseCastTime / stats.hastePercent;
+              baseCastTime = spellData.baseCastTime / stats.totalHaste;
 
             if (castTime <= baseCastTime) {
-              const inferredRating = HasteUtils.inferRating(stats.hastePercent, spellData.baseCastTime, castTime);
+              const inferredRating = HasteUtils.inferRating(stats.totalHaste, spellData.baseCastTime, castTime);
+
               total += inferredRating;
               count++;
             }
@@ -229,7 +229,8 @@ export class EventAnalyzer {
       }
     }
 
-    if (count > 0) {
+    // require a minimum of events to infer haste from
+    if (count > EventAnalyzer.MIN_INFER_HASTE_EVENTS) {
       const hasteRating = total/count;
       this.baseStats.Haste = { min: hasteRating,  max: hasteRating };
     }
