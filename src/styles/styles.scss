@@ -12,16 +12,17 @@ $theme: mat.define-dark-theme((
   )
 ));
 
-@include mat.core-theme($theme);
+@include mat.button-theme($theme);
+@include mat.button-toggle-theme($theme);
 @include mat.card-theme($theme);
+@include mat.core-theme($theme);
+@include mat.divider-theme($theme);
 @include mat.expansion-theme($theme);
 @include mat.form-field-theme($theme);
-@include mat.input-theme($theme);
-@include mat.select-theme($theme);
-@include mat.button-theme($theme);
-@include mat.divider-theme($theme);
 @include mat.icon-theme($theme);
+@include mat.input-theme($theme);
 @include mat.progress-spinner-theme($theme);
+@include mat.select-theme($theme);
 @include mat.tabs-theme($theme);
 
 html, body {
@@ -51,6 +52,20 @@ form mat-form-field {
 
 .mat-content > mat-panel-title, .mat-content > mat-panel-description {
   flex: 0 0 auto;
+}
+
+.mat-button-toggle > button {
+  background-color: mat.get-color-from-palette(mat.$dark-theme-background-palette, 'raised-button');
+}
+
+.mat-button-toggle:hover > button {
+  background-color: mat.get-color-from-palette(mat.$dark-theme-background-palette, 'focused-button');
+}
+
+.mat-button-toggle-checked > button,
+.mat-button-toggle-checked:hover > button {
+  background-color: mat.get-color-from-palette(mat.$dark-theme-background-palette, 'selected-button');
+  color: mat.get-color-from-palette(mat.$indigo-palette, 200);
 }
 
 .logo {

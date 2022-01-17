@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -27,6 +28,7 @@ import { ReportWrapperComponent } from 'src/app/report/report-wrapper.component'
     CommonModule,
     RouterModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCardModule,
     MatExpansionModule,
     MatFormFieldModule,

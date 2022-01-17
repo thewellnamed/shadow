@@ -1,15 +1,19 @@
 import {
+  AfterContentInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   Input,
   OnChanges,
   OnInit,
-  SimpleChanges
+  SimpleChanges,
+  ViewChild
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material/button-toggle';
 
 import { CastDetails } from 'src/app/report/models/cast-details';
+import { EventService } from 'src/app/event.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
@@ -26,12 +30,14 @@ import { ParamsService, ParamType } from 'src/app/params.service';
   styleUrls: ['./casts.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CastsComponent implements OnInit, OnChanges  {
+export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
   @Input() log: LogSummary;
   @Input() summary: CastsSummary;
   @Input() encounterId: number;
   @Input() targetId: number;
   @Input() spellId: SpellId;
+
+  @ViewChild(MatButtonToggleGroup) hasteToggle: MatButtonToggleGroup;
 
   casts: CastDetails[];
   spellData: ISpellData;
@@ -44,11 +50,13 @@ export class CastsComponent implements OnInit, OnChanges  {
   spellNames: { [id: string]: string };
   hitCounts: number[] = [];
   stats?: SpellStats;
+  showHaste = false;
 
   private allCasts: CastDetails[];
   private initialized = false;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+              private eventSvc: EventService,
               private params: ParamsService) {}
 
   ngOnInit() {
@@ -70,6 +78,26 @@ export class CastsComponent implements OnInit, OnChanges  {
 
     if (this.initialized) {
       this.updateStats(this.getBaseStats());
+    }
+  }
+
+  ngAfterContentInit() {
+    this.showHaste = JSON.parse(localStorage.getItem('showCastHaste') || 'false');
+    this.updateHasteToggle();
+
+    this.eventSvc.subscribe<boolean>('showCastHaste', (e) => {
+      this.showHaste = e.data;
+      this.updateHasteToggle();
+    });
+  }
+
+  onToggleHaste(toggle: MatButtonToggleChange) {
+    const value = toggle.value === 'haste';
+
+    if (this.showHaste !== value) {
+      this.showHaste = value;
+      localStorage.setItem('showCastHaste', JSON.stringify(this.showHaste));
+      this.eventSvc.broadcast<boolean>('showCastHaste', this.showHaste);
     }
   }
 
@@ -152,6 +180,13 @@ export class CastsComponent implements OnInit, OnChanges  {
     return stats;
   }
 
+  private updateHasteToggle() {
+    const value = this.showHaste ? 'haste' : 'power';
+    if (this.hasteToggle.value !== value) {
+      this.hasteToggle.writeValue(value);
+    }
+  }
+
   get filterSpells() {
     return this.spellId === SpellId.NONE;
   }
@@ -199,7 +234,8 @@ export class CastsComponent implements OnInit, OnChanges  {
     }
 
     const factor = 10 ** decimals;
-    return (Math.round(value * factor) / factor) + suffix;
+    const result = Math.round(value * factor) / factor;
+    return result + (result === 0 ? '' : suffix);
   }
 
   targetName(targetId: number, targetInstance: number) {
@@ -247,6 +283,12 @@ export class CastsComponent implements OnInit, OnChanges  {
     }
 
     return hits;
+  }
+
+  haste(cast: CastDetails) {
+    return cast.haste > 0 ?
+      this.format(cast.haste * 100, cast.haste > 0.1 ? 0 : 1, '%') :
+      '---';
   }
 
   activeDps(stats: SpellStats) {
