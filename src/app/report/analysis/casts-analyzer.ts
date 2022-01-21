@@ -64,7 +64,7 @@ export class CastsAnalyzer {
     }
 
     const next = this.casts[index + 1], gcd = current.gcd * 1000;
-    const castTime = current.castTime > gcd ? current.castTime : gcd;
+    const castTime = current.castTimeMs > gcd ? current.castTimeMs : gcd;
 
     const latency = Math.max(next.castStart - (current.castStart + castTime), 0);
     if (latency >= 0 && latency <= CastsAnalyzer.MAX_LATENCY) {

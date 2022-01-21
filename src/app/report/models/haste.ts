@@ -1,5 +1,7 @@
 import { IActorStats } from 'src/app/logs/interfaces';
 import { IBuffEvent } from 'src/app/logs/models/buff-data';
+import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { SpellData } from 'src/app/logs/models/spell-data';
 
 export class HasteUtils {
   public static RATING_FACTOR = 15.77;
@@ -27,6 +29,11 @@ export class HasteUtils {
     stats.totalHaste = (stats.hastePercent * (1 + (stats.hasteRating / HasteUtils.RATING_FACTOR / 100)));
     stats.gcd = Math.max(1.5 / stats.totalHaste, 1.0);
     return stats;
+  }
+
+  // get expected cast time for a given spell, with a given amount of total haste
+  public static castTime(spellId: SpellId, haste: number) {
+    return SpellData[spellId].baseCastTime / (1 + haste);
   }
 
   public static inferRating(hastePercent: number, baseCastTime: number, actualCastTime: number) {

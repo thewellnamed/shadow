@@ -1,15 +1,17 @@
+import { DamageInstance } from 'src/app/report/models/damage-instance';
+import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { IAbilityData } from 'src/app/logs/interfaces';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { DamageInstance } from 'src/app/report/models/damage-instance';
-import { HitType } from 'src/app/logs/models/hit-type.enum';
-import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { HasteUtils } from 'src/app/report/models/haste';
 
 export class CastDetails {
   spellId: SpellId;
   name: string;
   castStart: number;
   castEnd: number;
-  castTime: number;
+  castTimeMs: number; // in ms, from start/end events
+  baseCastTime: number; // in secs, includes haste at time of cast
   sourceId: number;
   targetId: number;
   targetInstance: number;
@@ -59,11 +61,12 @@ export class CastDetails {
     this.targetInstance = params.targetInstance;
     this.castStart = params.castStart;
     this.castEnd = params.castEnd;
-    this.castTime = params.castEnd - params.castStart;
+    this.castTimeMs = params.castEnd - params.castStart;
 
     this.spellPower = params.spellPower;
     this.haste = params.haste;
     this.gcd = params.gcd;
+    this.baseCastTime = HasteUtils.castTime(this.spellId, params.haste);
   }
 
   setInstances(instances: DamageInstance[]) {
@@ -90,7 +93,8 @@ export class CastDetails {
 
     // For channeled spells, set cast time to last tick
     if (SpellData[this.spellId].damageType === DamageType.CHANNEL && instances.length > 0) {
-      this.castTime = this.lastDamageTimestamp! - this.castStart;
+      this.castTimeMs = this.lastDamageTimestamp! - this.castStart;
+      this.baseCastTime = this.castTimeMs / 1000;
     }
   }
 

@@ -218,7 +218,8 @@ export class SpellStats {
     const spellData = SpellData[cast.spellId];
 
     if (spellData.gcd) {
-      const castTime = cast.castTime / 1000;
+      // if there was pushback, count it as latency or as time lost.
+      const castTime = Math.min(cast.castTimeMs / 1000, cast.baseCastTime);
       const gcds = castTime > cast.gcd ? (castTime / cast.gcd) : 1;
 
       this.gcds += gcds;
@@ -438,7 +439,7 @@ export class SpellStats {
     }
 
     // If cast time is longer than the GCD
-    else if ((cast.castTime/1000) > cast.gcd) {
+    else if ((cast.castTimeMs/1000) > cast.gcd) {
       end = cast.castEnd;
     }
 

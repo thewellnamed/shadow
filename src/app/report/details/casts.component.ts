@@ -191,6 +191,10 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
     return this.format(this.stats!.gcds / this.summary.totalGcds * 100, 0, '%');
   }
 
+  get damagePerGcd() {
+    return this.format(this.stats!.totalDamage / this.stats!.gcds, 0);
+  }
+
   get flayStats() {
     return this.summary?.getSpellSummary(SpellId.MIND_FLAY);
   }
@@ -255,7 +259,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
   }
 
   castTime(cast: CastDetails) {
-    return this.duration(cast.castTime, 'S.dd');
+    return this.duration(cast.castTimeMs, 'S.dd');
   }
 
   isDamage(cast: CastDetails) {
