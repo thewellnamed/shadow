@@ -34,13 +34,25 @@ export class StatHighlights {
       [Status.NOTICE]: 2
     },
 
-    nextCastLatency: {
+    // post-channel latency
+    channelLatency: {
       [Status.NOTICE]: 0.3
     },
 
-    avgNextCastLatency: {
+    avgChannelLatency: {
       [Status.WARNING]: 0.4,
       [Status.NOTICE]: 0.25
+    },
+
+    // post-cast latency for other spell types
+    castLatency: {
+      [Status.WARNING]: 0.1,
+      [Status.NOTICE]: 0.05
+    },
+
+    avgCastLatency: {
+      [Status.WARNING]: 0.15,
+      [Status.NOTICE]: 0.075
     },
 
     clippedDotPercent: {
@@ -98,16 +110,34 @@ export class StatHighlights {
   }
 
   /**
-   * Higlight next-cast latency for channels
+   * Highlight post-channel latency
    * @param {CastDetails|SpellStats} data
    * @return {string} CSS style
    */
-  latency(data: CastDetails|SpellStats) {
+  channelLatency(data: CastDetails|SpellStats) {
     let status;
+
     if (data instanceof CastDetails) {
-      status = this.thresholdStatus('nextCastLatency', data.nextCastLatency);
+      status = this.thresholdStatus('channelLatency', data.nextCastLatency);
     } else {
-      status = this.thresholdStatus('avgNextCastLatency', data.avgNextCastLatency);
+      status = this.thresholdStatus('avgChannelLatency', data.avgNextCastLatency);
+    }
+
+    return this.textHighlight(status);
+  }
+
+  /**
+   * Highlight post-cast latency (non-channeled spells)
+   * @param {CastDetails|SpellStats} data
+   * @return {string} CSS style
+   */
+  castLatency(data: CastDetails|SpellStats) {
+    let status;
+
+    if (data instanceof CastDetails) {
+      status = this.thresholdStatus('castLatency', data.nextCastLatency);
+    } else {
+      status = this.thresholdStatus('avgCastLatency', data.avgNextCastLatency);
     }
 
     return this.textHighlight(status);

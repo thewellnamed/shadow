@@ -14,16 +14,18 @@
       <div class="break hits hidden"></div>
     </ng-container>
 
+    <div class="avg-latency" *ngIf="!stats.hasChannelStats">
+      Avg latency:
+      <span [ngClass]="highlight.castLatency(stats)">
+          {{ format(stats.avgNextCastLatency, 2, 's') }}
+        </span>
+    </div>
     <ng-container *ngIf="stats.hasClipStats">
       <div class="avg-downtime">
         Avg DoT Downtime:
         <span [ngClass]="highlight.dotDowntime(stats)">
           {{ format(stats.dotDowntimeStats.avgDowntime, 1, 's') }}
         </span>
-      </div>
-      <div class="total-downtime" *ngIf="targetId > 0">
-        Total DoT Downtime:
-        <span class="table-accent">{{ format(stats.dotDowntimeStats.totalDowntime, 1, 's') }}</span>
       </div>
       <div class="clipped-dots">
         Clipped DoTs:
@@ -45,18 +47,14 @@
         Avg Off Cooldown:
         <span [ngClass]="highlight.cooldown(stats)">{{ format(stats.cooldownStats.avgOffCooldown, 1, 's') }}</span>
       </div>
-      <div class="total-cooldown" *ngIf="spellData">
-        Total Off Cooldown:
-        <span class="table-accent">{{ format(stats.cooldownStats.totalOffCooldown, 1, 's') }}</span>
-      </div>
       <div class="break cooldown-stats" [ngClass]="{ 'hidden': !!spellData }"></div>
     </ng-container>
 
     <ng-container *ngIf="stats.hasChannelStats">
       <div class="avg-latency">
         Avg MF latency:
-        <span [ngClass]="highlight.latency(stats)">
-          {{ format(stats.avgNextCastLatency, 2, 's') }}
+        <span [ngClass]="highlight.channelLatency(flayStats)">
+          {{ format(flayStats.avgNextCastLatency, 2, 's') }}
         </span>
       </div>
       <div class="channel-clip-count">
@@ -77,6 +75,7 @@
     <div class="break spellpower"></div>
     <div class="avg-spellpower">Avg Spellpower: <span class="table-accent">{{ format(stats.avgSpellpower) }}</span></div>
     <div class="avg-haste">Avg Haste: <span class="table-accent">{{ format(stats.avgHaste * 100, 1, '%') }}</span></div>
+    <div class="gcd-usage">GCD Usage: <span class="table-accent">{{ gcdUsage }}</span></div>
   </section>
 
   <section class="toolbar">
@@ -155,13 +154,17 @@
 
       <ng-template matExpansionPanelContent>
         <span class="cast-status" [ngClass]="highlight.overall(cast)"></span>
-        <div class="cast-details">
-          <div>Cast Time: {{ castTime(cast) }}s</div>
-          <div class="haste" *ngIf="!showHaste">Haste: {{ haste(cast) }}</div>
-          <div class="spellpower" *ngIf="showHaste">Spellpower: {{ cast.spellPower }}</div>
-          <div>
+        <div class="cast-details" ngClass="toggle-{{hasteToggle.value}}">
+          <div>Cast Time: <span class="table-accent">{{ castTime(cast) }}s</span></div>
+          <div class="haste">Haste: <span class="table-accent">{{ haste(cast) }}</span></div>
+          <div class="spellpower">Spellpower: <span class="table-accent">{{ cast.spellPower }}</span></div>
+          <div *ngIf="isChannel(cast)">
             Latency:
-            <span [ngClass]="highlight.latency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
+            <span [ngClass]="highlight.channelLatency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
+          </div>
+          <div *ngIf="!isChannel(cast)">
+            Latency:
+            <span [ngClass]="highlight.castLatency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
           </div>
           <div *ngIf="isDot(cast)">
             DoT downtime:

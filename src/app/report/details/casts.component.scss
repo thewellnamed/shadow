@@ -134,6 +134,14 @@
     > div {
       padding: 0.25em 0.5em;
     }
+
+    &.toggle-haste .haste {
+      display: none;
+    }
+
+    &.toggle-power .spellpower {
+      display: none;
+    }
   }
 
   .instances {
@@ -271,6 +279,14 @@
 
       span.hits-label-abbrev, span.cd-label {
         display: inline;
+      }
+    }
+
+    .cast-details {
+      &.toggle-haste, &.toggle-power {
+        .spellpower, .haste {
+          display: block;
+        }
       }
     }
 

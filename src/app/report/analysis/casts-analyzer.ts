@@ -4,7 +4,7 @@ import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-dat
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class CastsAnalyzer {
-  private static MAX_ACTIVE_LATENCY = 2000; // ignore "next cast latency" for gaps over 2s
+  private static MAX_LATENCY = 1000; // ignore latency for gaps large enough to represent intentional movement
   private static MAX_ACTIVE_DOWNTIME = 8000; // ignore cooldown/dot downtime for gaps over 8s
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
 
@@ -67,7 +67,7 @@ export class CastsAnalyzer {
     const castTime = current.castTime > gcd ? current.castTime : gcd;
 
     const latency = Math.max(next.castStart - (current.castStart + castTime), 0);
-    if (latency >= 0 && latency <= CastsAnalyzer.MAX_ACTIVE_LATENCY) {
+    if (latency >= 0 && latency <= CastsAnalyzer.MAX_LATENCY) {
       current.nextCastLatency = latency/1000;
     }
   }

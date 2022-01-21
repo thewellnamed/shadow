@@ -187,6 +187,14 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
     }
   }
 
+  get gcdUsage() {
+    return this.format(this.stats!.gcds / this.summary.totalGcds * 100, 0, '%');
+  }
+
+  get flayStats() {
+    return this.summary?.getSpellSummary(SpellId.MIND_FLAY);
+  }
+
   get filterSpells() {
     return this.spellId === SpellId.NONE;
   }
