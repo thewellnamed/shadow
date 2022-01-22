@@ -132,9 +132,6 @@ export class ReportDetailsComponent implements OnInit {
         this.log, this.playerInfo.stats, this.encounterId, events
       ).createCasts();
 
-      // eslint-disable-next-line no-console
-      console.log(casts);
-
       const totalGcds = new GcdAnalyzer(
         this.log.getEncounter(this.encounterId) as EncounterSummary, this.playerInfo.stats, events.buffs
       ).totalGcds;

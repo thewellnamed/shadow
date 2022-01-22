@@ -29,7 +29,7 @@
       </div>
       <div class="clipped-dots">
         Clipped DoTs:
-        <span [ngClass]="highlight.clippedTicks(stats)">
+        <span [ngClass]="highlight.clippedDots(stats)">
           {{ stats.clipStats.clipCount }}
           <span *ngIf="stats.clipStats.clipCount > 0">
             ({{ format(stats.clipStats.clippedPercent * 100, 1, '%') }})
@@ -173,7 +173,7 @@
           </div>
           <div *ngIf="isDot(cast)">
             Clipped Previous:
-            <span [ngClass]="highlight.clippedCast(cast)">{{ cast.clippedPreviousCast }}</span>
+            <span [ngClass]="highlight.clippedDotCast(cast)">{{ cast.clippedPreviousCast }}</span>
           </div>
           <ng-container *ngIf="isChannel(cast)">
             <div>
