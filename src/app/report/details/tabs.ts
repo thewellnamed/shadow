@@ -1,4 +1,5 @@
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { BaseStats } from 'src/app/report/stats/base.stats';
 
 export enum Tab {
   Timeline = 0,
@@ -56,4 +57,5 @@ export interface ITabDefinition {
   label: string;
   spellId: SpellId;
   icon?: string;
+  stats?: Constructor<BaseStats>
 }

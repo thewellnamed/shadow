@@ -53,9 +53,9 @@ export class LogsService {
   /**
    * Fetch summary data for a report
    * @param id Report ID
-   * @returns {any}
+   * @returns {Observable<LogSummary>}
    */
-  getSummary(id: string) {
+  getSummary(id: string): Observable<LogSummary> {
     if (this.summaryCache.hasOwnProperty(id)) {
       return of(this.summaryCache[id]);
     }

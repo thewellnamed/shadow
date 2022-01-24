@@ -47,7 +47,7 @@ export class EventService {
   /**
    * Merge requested event into a single channel
    */
-  private getObservable<T = any>(eventNames: string|string[]): Observable<IEvent<any>> {
+  private getObservable<T = any>(eventNames: string|string[]): Observable<IEvent> {
     const events = Array.isArray(eventNames) ? eventNames : [eventNames],
       channelsToMonitor: Array<Subject<IEvent>> = [];
 
@@ -63,7 +63,6 @@ export class EventService {
   }
 }
 
-type Constructor<T = any> = new (...args: any[]) => T;
 export type ChannelType<T = any> = Constructor<Subject<IEvent<T>>>;
 export type EventHandler<T = any> = (event: IEvent<T>) => void;
 

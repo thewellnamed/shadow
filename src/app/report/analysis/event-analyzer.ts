@@ -31,9 +31,9 @@ export class EventAnalyzer {
   // tracks currently active buffs
   private buffs: IBuffEvent[] = [];
 
-  constructor(log: LogSummary, actorStats: IActorStats, encounterId: number, events: IEncounterEvents) {
+  constructor(log: LogSummary, encounter: EncounterSummary, actorStats: IActorStats, events: IEncounterEvents) {
     this.log = log;
-    this.encounter = log.getEncounter(encounterId) as EncounterSummary;
+    this.encounter = encounter;
     this.baseStats = actorStats;
 
     // initialize event data

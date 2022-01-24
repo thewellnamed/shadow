@@ -188,7 +188,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
   }
 
   get gcdUsage() {
-    return this.format(this.stats!.gcds / this.summary.totalGcds * 100, 0, '%');
+    return this.format(this.stats!.gcds / 100, 0, '%');
   }
 
   get damagePerGcd() {

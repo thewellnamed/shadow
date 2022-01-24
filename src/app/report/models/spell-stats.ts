@@ -24,6 +24,7 @@ export class SpellStats {
   private _targetIds: Set<number> = new Set();
   private _hitCounts: Set<number> = new Set();
   private _avgDamage = 0;
+  private _damagePerGcd = 0;
   private _avgHitCount = 0;
   private _avgHit = 0;
   private _avgHaste = 0;
@@ -96,6 +97,14 @@ export class SpellStats {
     }
 
     return this._avgDamage;
+  }
+
+  get damagePerGcd() {
+    if (this.recalculate) {
+      this.updateStats();
+    }
+
+    return this._damagePerGcd;
   }
 
   get avgHitCount() {
@@ -385,6 +394,7 @@ export class SpellStats {
 
   updateStats() {
     this._avgDamage = this.totalDamage / this.castCount;
+    this._damagePerGcd = this.totalDamage / this.gcds;
     this._avgHit = this.totalHits > 0 ? this.totalDamage / this.totalHits : 0;
     this._avgHitCount = this.successCount > 0 ? this.totalHits / this.successCount : 0;
     this._avgSpellpower = this._totalWeightedSpellpower / (this.totalDamage || this.castCount);

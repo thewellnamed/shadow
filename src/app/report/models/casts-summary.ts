@@ -5,15 +5,12 @@ import { SpellStats } from 'src/app/report/models/spell-stats';
 
 export class CastsSummary {
   casts: CastDetails[];
-  totalGcds: number;
   spells: {[spellId: number]: SpellSummary};
   targetIds: number[];
   private _stats: SpellStats;
 
-  constructor(casts: CastDetails[], totalGcds: number) {
+  constructor(casts: CastDetails[]) {
     this.casts = casts;
-    this.totalGcds = totalGcds;
-
     this.spells = Object.keys(SpellData)
       .map((k) => parseInt(k))
       .reduce((spells, spellId) => {

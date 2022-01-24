@@ -16,6 +16,9 @@ import { Actor } from 'src/app/logs/models/actor';
 import { ICombatantInfo } from 'src/app/logs/interfaces';
 import { GcdAnalyzer } from 'src/app/report/analysis/gcd-analyzer';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
+import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
+import { VampiricTouchStats } from 'src/app/report/stats/vampiric-touch.stats';
+import { PlayerAnalysis } from 'src/app/report/analysis/player-analysis';
 
 @Component({
   selector: 'report-details',
@@ -37,6 +40,7 @@ export class ReportDetailsComponent implements OnInit {
   tabs = TabDefinitions;
 
   private playerInfo: ICombatantInfo;
+  private analysis: PlayerAnalysis;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private location: Location,
@@ -128,23 +132,16 @@ export class ReportDetailsComponent implements OnInit {
 
   private analyze(events: IEncounterEvents) {
     if (events) {
-      const casts = new EventAnalyzer(
-        this.log, this.playerInfo.stats, this.encounterId, events
-      ).createCasts();
+      this.analysis = new PlayerAnalysis(this.log, this.encounterId, this.playerInfo, events);
 
-      const totalGcds = new GcdAnalyzer(
-        this.log.getEncounter(this.encounterId) as EncounterSummary, this.playerInfo.stats, events.buffs
-      ).totalGcds;
-
-      this.castSummary = new CastsAnalyzer(casts, totalGcds).run();
-      this.targets = this.castSummary.targetIds
+      this.targets = this.analysis.targetIds
         .map((id) => ({ id , name: this.log.getActorName(id) }))
         .filter((t) => (t.name?.length || 0) > 0)
         .sort((a, b) => a.name.localeCompare(b.name));
 
       if (this.targets.length === 1) {
         this.setTarget(this.targets[0].id);
-      } else if (this.target.value && !this.castSummary.targetIds.includes(this.target.value)) {
+      } else if (this.target.value && !this.analysis.targetIds.includes(this.target.value)) {
         this.setTarget(0);
       }
     }
