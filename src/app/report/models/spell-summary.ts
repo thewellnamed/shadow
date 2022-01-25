@@ -9,23 +9,27 @@ import { SpellStats } from 'src/app/report/models/spell-stats';
 export class SpellSummary extends SpellStats {
   spellId: SpellId;
   spellData: ISpellData;
+  targetId: number|undefined;
+  hitCount: number|undefined;
 
   private _byHitCount: {[count: number]: SpellStats} = {};
 
-  constructor(spellId: SpellId) {
-    super([], true);
+  constructor(spellId: SpellId, hitCount?: number, targetId?: number) {
+    super([], targetId === undefined);
     this.spellId = spellId;
     this.spellData = SpellData[spellId];
+    this.targetId = targetId;
+    this.hitCount = hitCount;
   }
 
-  addCast(cast: CastDetails) {
-    super.addCast(cast);
+  addCast(cast: CastDetails, targetId?: number) {
+    super.addCast(cast, targetId);
 
-    if (this.spellData.statsByTick) {
+    if (this.hitCount === undefined && this.spellData.statsByTick) {
       if (!this._byHitCount.hasOwnProperty(cast.hits)) {
-        this._byHitCount[cast.hits] = new SpellStats([], true);
+        this._byHitCount[cast.hits] = new SpellSummary(this.spellId, cast.hits, targetId);
       }
-      this._byHitCount[cast.hits].addCast(cast);
+      this._byHitCount[cast.hits].addCast(cast, targetId);
     }
   }
 
@@ -40,5 +44,9 @@ export class SpellSummary extends SpellStats {
 
   statsByHitCount(count: number) {
     return this._byHitCount[count];
+  }
+
+  protected createTargetStats(targetId: number): SpellSummary {
+    return new SpellSummary(this.spellId, this.hitCount, targetId);
   }
 }

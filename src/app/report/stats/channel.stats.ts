@@ -1,12 +1,12 @@
 import { BaseStats } from 'src/app/report/stats/base.stats';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 import { format } from 'src/app/report/stats/stat-utils';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 
 export class ChannelStats extends BaseStats {
-  fields(stats: SpellStats, spellId = SpellId.NONE) {
-    if (SpellData[spellId].damageType !== DamageType.CHANNEL) {
+  fields(stats: SpellStats) {
+    const spellData = this.spellData(stats);
+    if (spellData?.damageType !== DamageType.CHANNEL) {
       return [];
     }
 

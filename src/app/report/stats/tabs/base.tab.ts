@@ -3,7 +3,7 @@ import { PlayerAnalysis } from 'src/app/report/analysis/player-analysis';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 
-export abstract class TabStats {
+export abstract class BaseTabStats {
   public analysis: PlayerAnalysis;
   public highlight: StatHighlights;
 

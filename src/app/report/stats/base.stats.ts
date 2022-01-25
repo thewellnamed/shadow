@@ -1,16 +1,12 @@
-
 import { format } from 'src/app/report/stats/stat-utils';
-import { ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { PlayerAnalysis } from 'src/app/report/analysis/player-analysis';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { Status } from 'src/app/report/analysis/stat-evaluator';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { SpellSummary } from 'src/app/report/models/spell-summary';
 
 export abstract class BaseStats {
   public analysis: PlayerAnalysis;
-  public spellId: SpellId;
-  public spellData: ISpellData;
   public highlight: StatHighlights;
 
   constructor(analysis: PlayerAnalysis, highlight: StatHighlights) {
@@ -31,8 +27,16 @@ export abstract class BaseStats {
     return { break: true };
   }
 
+  protected spellData(stats: SpellStats) {
+    if (stats instanceof SpellSummary) {
+      return stats.spellData;
+    }
+
+    return undefined;
+  }
+
   // Implementation
-  public abstract fields(stats: SpellStats, spellId: SpellId): StatFields;
+  public abstract fields(stats: SpellStats): StatFields;
 
   // common fields
   protected activeDps(stats: SpellStats) {

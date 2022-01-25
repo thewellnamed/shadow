@@ -5,20 +5,18 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { CastsAnalyzer } from 'src/app/report/analysis/casts-analyzer';
 import { CastsSummary } from 'src/app/report/models/casts-summary';
-import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
 import { IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { ParamsService, ParamType } from 'src/app/params.service';
 import { TabDefinitions } from 'src/app/report/details/tabs';
 import { Actor } from 'src/app/logs/models/actor';
 import { ICombatantInfo } from 'src/app/logs/interfaces';
-import { GcdAnalyzer } from 'src/app/report/analysis/gcd-analyzer';
-import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
-import { VampiricTouchStats } from 'src/app/report/stats/vampiric-touch.stats';
+import { VampiricTouchTabStats } from 'src/app/report/stats/tabs/vampiric-touch.tab';
 import { PlayerAnalysis } from 'src/app/report/analysis/player-analysis';
+import { TimelineTabStats } from 'src/app/report/stats/tabs/timeline.tab';
+import { SpellId } from 'src/app/logs/models/spell-id.enum';
 
 @Component({
   selector: 'report-details',
@@ -144,6 +142,15 @@ export class ReportDetailsComponent implements OnInit {
       } else if (this.target.value && !this.analysis.targetIds.includes(this.target.value)) {
         this.setTarget(0);
       }
+
+      const vt = new VampiricTouchTabStats(this.analysis, new StatHighlights());
+      // eslint-disable-next-line no-console
+      console.log(vt.report({ targetId: this.targets[0].id }));
+
+      // eslint-disable-next-line no-console
+      console.log(this.analysis.summary.getSpellSummary(SpellId.VAMPIRIC_TOUCH));
+
+      this.castSummary = this.analysis.summary;
     }
   }
 

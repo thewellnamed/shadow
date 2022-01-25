@@ -312,7 +312,7 @@ export class SpellStats {
 
   addTargetCast(targetId: number, cast: CastDetails) {
     if (!this._targetStats.hasOwnProperty(targetId)) {
-      this._targetStats[targetId] = new SpellStats();
+      this._targetStats[targetId] = this.createTargetStats(targetId);
     }
     this._targetStats[targetId].addCast(cast, targetId);
   }
@@ -376,12 +376,11 @@ export class SpellStats {
       if (this._includeTargetStats) {
         for (const targetId of next.targetIds) {
           const targetStats = next.targetStats(targetId);
-
           this._targetIds.add(targetId);
           if (this._targetStats.hasOwnProperty(targetId)) {
             this._targetStats[targetId].merge(targetStats);
           } else {
-            this._targetStats[targetId] = new SpellStats();
+            this._targetStats[targetId] = this.createTargetStats(targetId);
             this._targetStats[targetId].addCasts(targetStats.casts, targetId);
           }
         }
@@ -507,6 +506,12 @@ export class SpellStats {
     }
 
     return 0;
+  }
+
+  // annotation really should be SpellStats (or child class)
+  // but that seems to annoy typescript...
+  protected createTargetStats(_targetId: number): any {
+    return new SpellStats();
   }
 }
 

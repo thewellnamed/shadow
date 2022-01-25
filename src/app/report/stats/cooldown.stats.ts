@@ -4,7 +4,7 @@ import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 
 export class CooldownStats extends BaseStats {
-  fields(stats: SpellStats, _spellId = SpellId.NONE) {
+  fields(stats: SpellStats) {
     if (!stats.hasCooldownStats) {
       return [];
     }
