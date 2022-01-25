@@ -1,10 +1,10 @@
-import { BaseStats } from 'src/app/report/stats/base.stats';
-import { format } from 'src/app/report/stats/stat-utils';
+import { BaseFields } from 'src/app/report/summary/fields/base.fields';
+import { format } from 'src/app/report/models/stat-utils';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { SpellStats } from 'src/app/report/models/spell-stats';
+import { CastStats } from 'src/app/report/models/cast-stats';
 
-export class CooldownStats extends BaseStats {
-  fields(stats: SpellStats) {
+export class CooldownFields extends BaseFields {
+  fields(stats: CastStats) {
     if (!stats.hasCooldownStats) {
       return [];
     }

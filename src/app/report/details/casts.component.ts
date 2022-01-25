@@ -18,9 +18,9 @@ import { LogSummary } from 'src/app/logs/models/log-summary';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { CastsSummary } from 'src/app/report/models/casts-summary';
-import { SpellSummary } from 'src/app/report/models/spell-summary';
+import { Report } from 'src/app/report/models/report';
 import { SpellStats } from 'src/app/report/models/spell-stats';
+import { CastStats } from 'src/app/report/models/cast-stats';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { ParamsService, ParamType } from 'src/app/params.service';
 
@@ -32,7 +32,7 @@ import { ParamsService, ParamType } from 'src/app/params.service';
 })
 export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
   @Input() log: LogSummary;
-  @Input() summary: CastsSummary;
+  @Input() summary: Report;
   @Input() encounterId: number;
   @Input() targetId: number;
   @Input() spellId: SpellId;
@@ -41,7 +41,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
 
   casts: CastDetails[];
   spellData: ISpellData;
-  spellSummary: SpellSummary;
+  spellSummary: SpellStats;
   encounter: EncounterSummary;
   highlight = new StatHighlights();
   spellFilter = new FormControl();
@@ -49,7 +49,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
   spells: { id: string; name: string }[] = [];
   spellNames: { [id: string]: string };
   hitCounts: number[] = [];
-  stats?: SpellStats;
+  stats?: CastStats;
   showHaste = false;
 
   private allCasts: CastDetails[];
@@ -120,7 +120,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
         return;
       }
 
-      let stats: SpellStats;
+      let stats: CastStats;
       if (this.hitCount.value < 0) {
         stats = this.spellSummary;
         this.params.clear(ParamType.TICKS);
@@ -133,7 +133,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
     });
   }
 
-  private updateStats(stats: SpellStats) {
+  private updateStats(stats: CastStats) {
     this.stats = this.targetId ? stats.targetStats(this.targetId) : stats;
     this.allCasts = this.stats?.casts || [];
 
@@ -155,10 +155,10 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
   }
 
   private getBaseStats() {
-    let stats: SpellStats;
+    let stats: CastStats;
     if (this.spellId > SpellId.NONE) {
       this.spellData = SpellData[this.spellId];
-      this.spellSummary = this.summary.getSpellSummary(this.spellId);
+      this.spellSummary = this.summary.getSpellStats(this.spellId);
 
       const hitStats = this.targetId ? this.spellSummary.targetStats(this.targetId) : this.spellSummary;
       this.hitCounts = hitStats?.hitCounts || [];
@@ -196,7 +196,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
   }
 
   get flayStats() {
-    return this.summary?.getSpellSummary(SpellId.MIND_FLAY);
+    return this.summary?.getSpellStats(SpellId.MIND_FLAY);
   }
 
   get filterSpells() {
@@ -303,11 +303,11 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
       '---';
   }
 
-  activeDps(stats: SpellStats) {
+  activeDps(stats: CastStats) {
     return this.format((stats.totalDamage * 1000) / stats.activeDuration);
   }
 
-  powerMetric(stats: SpellStats) {
+  powerMetric(stats: CastStats) {
     const duration = stats.activeDuration,
       dps = (stats.totalDamage * 1000) / duration;
 
@@ -320,7 +320,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterContentInit {
     };
   }
 
-  lostChannelDps(stats: SpellStats, format = true): string|number {
+  lostChannelDps(stats: CastStats, format = true): string|number {
     if (stats.channelStats.totalClippedDamage > 0) {
       const lostDpsEstimate = stats.channelStats.totalClippedDamage / this.encounter.durationSeconds
       return format ? ('~' + this.format(lostDpsEstimate, 1)) : lostDpsEstimate;

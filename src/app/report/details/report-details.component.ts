@@ -5,7 +5,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { CastsSummary } from 'src/app/report/models/casts-summary';
+import { Report } from 'src/app/report/models/report';
 import { IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { ParamsService, ParamType } from 'src/app/params.service';
@@ -13,9 +13,9 @@ import { TabDefinitions } from 'src/app/report/details/tabs';
 import { Actor } from 'src/app/logs/models/actor';
 import { ICombatantInfo } from 'src/app/logs/interfaces';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
-import { VampiricTouchTabStats } from 'src/app/report/stats/tabs/vampiric-touch.tab';
-import { PlayerAnalysis } from 'src/app/report/analysis/player-analysis';
-import { TimelineTabStats } from 'src/app/report/stats/tabs/timeline.tab';
+import { VampiricTouchSummary } from 'src/app/report/summary/vampiric-touch.summary';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { TimelineSummary } from 'src/app/report/summary/timeline.summary';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 
 @Component({
@@ -32,7 +32,7 @@ export class ReportDetailsComponent implements OnInit {
   activeTab = 0;
   form: FormGroup;
   log: LogSummary;
-  castSummary: CastsSummary | null;
+  castSummary: Report | null;
   targets: { id: number; name: string }[];
   loading = true;
   tabs = TabDefinitions;
@@ -143,14 +143,14 @@ export class ReportDetailsComponent implements OnInit {
         this.setTarget(0);
       }
 
-      const vt = new VampiricTouchTabStats(this.analysis, new StatHighlights());
+      const vt = new VampiricTouchSummary(this.analysis, new StatHighlights());
       // eslint-disable-next-line no-console
       console.log(vt.report({ targetId: this.targets[0].id }));
 
       // eslint-disable-next-line no-console
-      console.log(this.analysis.summary.getSpellSummary(SpellId.VAMPIRIC_TOUCH));
+      console.log(this.analysis.report.getSpellStats(SpellId.VAMPIRIC_TOUCH));
 
-      this.castSummary = this.analysis.summary;
+      this.castSummary = this.analysis.report;
     }
   }
 

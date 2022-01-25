@@ -1,5 +1,5 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { CastsSummary } from 'src/app/report/models/casts-summary';
+import { Report } from 'src/app/report/models/report';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 
@@ -14,7 +14,7 @@ export class CastsAnalyzer {
     this.casts = casts;
   }
 
-  public run(): CastsSummary {
+  public run(): Report {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
         spellData = SpellData[current.spellId];
@@ -52,7 +52,7 @@ export class CastsAnalyzer {
       }
     }
 
-    return new CastsSummary(this.casts);
+    return new Report(this.casts);
   }
 
   private setCastLatency(current: CastDetails, spellData: ISpellData, index: number) {

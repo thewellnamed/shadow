@@ -1,9 +1,9 @@
-import { BaseStats } from 'src/app/report/stats/base.stats';
-import { duration } from 'src/app/report/stats/stat-utils';
-import { SpellStats } from 'src/app/report/models/spell-stats';
+import { BaseFields } from 'src/app/report/summary/fields/base.fields';
+import { duration } from 'src/app/report/models/stat-utils';
+import { CastStats } from 'src/app/report/models/cast-stats';
 
-export class SummaryStats extends BaseStats {
-  fields(stats: SpellStats) {
+export class SummaryFields extends BaseFields {
+  fields(stats: CastStats) {
     return [
       this.field({ label: 'Casts', value: stats.castCount }),
       this.field({ label: 'Damage', value: stats.totalDamage }),

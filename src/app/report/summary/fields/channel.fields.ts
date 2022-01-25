@@ -1,10 +1,10 @@
-import { BaseStats } from 'src/app/report/stats/base.stats';
+import { BaseFields } from 'src/app/report/summary/fields/base.fields';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
-import { format } from 'src/app/report/stats/stat-utils';
-import { SpellStats } from 'src/app/report/models/spell-stats';
+import { format } from 'src/app/report/models/stat-utils';
+import { CastStats } from 'src/app/report/models/cast-stats';
 
-export class ChannelStats extends BaseStats {
-  fields(stats: SpellStats) {
+export class ChannelFields extends BaseFields {
+  fields(stats: CastStats) {
     const spellData = this.spellData(stats);
     if (spellData?.damageType !== DamageType.CHANNEL) {
       return [];
@@ -31,7 +31,7 @@ export class ChannelStats extends BaseStats {
     ];
   }
 
-  private clippedDps(stats: SpellStats) {
+  private clippedDps(stats: CastStats) {
     return stats.channelStats.totalClippedDamage / this.analysis.encounter.durationSeconds;
   }
 }

@@ -1,5 +1,5 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { SpellStats } from 'src/app/report/models/spell-stats';
+import { CastStats } from 'src/app/report/models/cast-stats';
 import { Status, StatEvaluator } from 'src/app/report/analysis/stat-evaluator';
 
 export class StatHighlights {
@@ -43,7 +43,7 @@ export class StatHighlights {
    * DoT downtime
    * @param data
    */
-  dotDowntime(data: CastDetails|SpellStats) {
+  dotDowntime(data: CastDetails|CastStats) {
     const downtime = data instanceof CastDetails ? data.dotDowntime : data.dotDowntimeStats.avgDowntime;
     return this.textHighlight(this.evaluator.downtime('dotDowntime', downtime));
   }
@@ -52,7 +52,7 @@ export class StatHighlights {
    * Time off cooldown for MB/Death
    * @param data
    */
-  cooldown(data: CastDetails|SpellStats) {
+  cooldown(data: CastDetails|CastStats) {
     const downtime = data instanceof CastDetails ? data.timeOffCooldown : data.cooldownStats.avgOffCooldown;
     return this.textHighlight(this.evaluator.downtime('timeOffCooldown', downtime));
   }
@@ -61,7 +61,7 @@ export class StatHighlights {
    * Early MF clipping
    * @param data
    */
-  clippedEarly(data: CastDetails|SpellStats) {
+  clippedEarly(data: CastDetails|CastStats) {
     return this.textHighlight(this.evaluator.earlyClips(data));
   }
 
@@ -75,10 +75,10 @@ export class StatHighlights {
 
   /**
    * Post-channel latency for MF
-   * @param {CastDetails|SpellStats} data
+   * @param {CastDetails|CastStats} data
    * @return {string} CSS style
    */
-  channelLatency(data: CastDetails|SpellStats) {
+  channelLatency(data: CastDetails|CastStats) {
     let status;
 
     if (data instanceof CastDetails) {
@@ -92,10 +92,10 @@ export class StatHighlights {
 
   /**
    * Post-cast latency (non-channeled spells)
-   * @param {CastDetails|SpellStats} data
+   * @param {CastDetails|CastStats} data
    * @return {string} CSS style
    */
-  castLatency(data: CastDetails|SpellStats) {
+  castLatency(data: CastDetails|CastStats) {
     let status;
 
     if (data instanceof CastDetails) {
@@ -109,16 +109,16 @@ export class StatHighlights {
 
   /**
    * Highlight clipped DoTs average
-   * @param {SpellStats} stats
+   * @param {CastStats} stats
    * @return {string} CSS Style
    */
-  clippedDots(stats: SpellStats) {
+  clippedDots(stats: CastStats) {
     return this.textHighlight(this.evaluator.dotClipPercent(stats));
   }
 
   /**
    * Highlight clipped previous cast
-   * @param {SpellStats} stats
+   * @param {CastStats} stats
    * @return {string} CSS Style
    */
   clippedDotCast(cast: CastDetails) {

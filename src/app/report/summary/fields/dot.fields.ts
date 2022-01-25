@@ -1,11 +1,11 @@
-import { BaseStats, StatFields } from 'src/app/report/stats/base.stats';
-import { format } from 'src/app/report/stats/stat-utils';
+import { BaseFields, StatFields } from 'src/app/report/summary/fields/base.fields';
+import { format } from 'src/app/report/models/stat-utils';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { SpellStats } from 'src/app/report/models/spell-stats';
+import { CastStats } from 'src/app/report/models/cast-stats';
 import { ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 
-export class DotStats extends BaseStats {
-  fields(stats: SpellStats) {
+export class DotFields extends BaseFields {
+  fields(stats: CastStats) {
     return this.hitStats(stats)
       .concat([
         this.field({
@@ -18,7 +18,7 @@ export class DotStats extends BaseStats {
       .concat(this.clipStats(stats));
   }
 
-  private hitStats(stats: SpellStats): StatFields {
+  private hitStats(stats: CastStats): StatFields {
     const spellData = this.spellData(stats);
     if (!spellData) {
       return [];
@@ -33,7 +33,7 @@ export class DotStats extends BaseStats {
     ];
   }
 
-  private downtimeStats(stats: SpellStats): StatFields {
+  private downtimeStats(stats: CastStats): StatFields {
     if (!stats.hasDotDowntimeStats) {
       return [];
     }
@@ -46,7 +46,7 @@ export class DotStats extends BaseStats {
     ];
   }
 
-  private clipStats(stats: SpellStats): StatFields {
+  private clipStats(stats: CastStats): StatFields {
     if (!stats.hasClipStats) {
       return [];
     }

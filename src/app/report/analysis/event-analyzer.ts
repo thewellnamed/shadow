@@ -1,5 +1,5 @@
 import { berserkingFromCast, BuffData, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
-import { CastsSummary } from 'src/app/report/models/casts-summary';
+import { Report } from 'src/app/report/models/report';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
@@ -63,7 +63,7 @@ export class EventAnalyzer {
    * @param {LogSummary} log
    * @param {ICastData[]} castData
    * @param {IDamageData[]} damageData
-   * @returns {CastsSummary}
+   * @returns {Report}
    */
   public createCasts(): CastDetails[] {
     let event: IEventData,

@@ -1,6 +1,6 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
-import { SpellStats } from 'src/app/report/models/spell-stats';
+import { CastStats } from 'src/app/report/models/cast-stats';
 
 export enum Status {
   NORMAL,
@@ -118,7 +118,7 @@ export class StatEvaluator {
     return cast.clippedPreviousCast ? Status.WARNING : Status.NORMAL;
   }
 
-  dotClipPercent(stats: SpellStats): Status {
+  dotClipPercent(stats: CastStats): Status {
     return this.threshold('clippedDotPercent', stats.clipStats.clippedPercent);
   }
 
@@ -126,8 +126,8 @@ export class StatEvaluator {
     return this.threshold(statName, dotDowntime);
   }
 
-  earlyClips(data: CastDetails|SpellStats): Status {
-    if (data instanceof SpellStats) {
+  earlyClips(data: CastDetails|CastStats): Status {
+    if (data instanceof CastStats) {
       return this.threshold('clippedEarlyPercent', data.channelStats.clippedEarlyPercent);
     }
 

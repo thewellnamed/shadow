@@ -1,11 +1,11 @@
-import { format } from 'src/app/report/stats/stat-utils';
-import { PlayerAnalysis } from 'src/app/report/analysis/player-analysis';
-import { SpellStats } from 'src/app/report/models/spell-stats';
+import { format } from 'src/app/report/models/stat-utils';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { CastStats } from 'src/app/report/models/cast-stats';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { Status } from 'src/app/report/analysis/stat-evaluator';
-import { SpellSummary } from 'src/app/report/models/spell-summary';
+import { SpellStats } from 'src/app/report/models/spell-stats';
 
-export abstract class BaseStats {
+export abstract class BaseFields {
   public analysis: PlayerAnalysis;
   public highlight: StatHighlights;
 
@@ -20,15 +20,15 @@ export abstract class BaseStats {
   };
 
   protected field(details: Partial<IStatDetails>): IStatDetails {
-    return Object.assign({}, BaseStats.DEFAULTS, details) as IStatDetails;
+    return Object.assign({}, BaseFields.DEFAULTS, details) as IStatDetails;
   }
 
   protected break() {
     return { break: true };
   }
 
-  protected spellData(stats: SpellStats) {
-    if (stats instanceof SpellSummary) {
+  protected spellData(stats: CastStats) {
+    if (stats instanceof SpellStats) {
       return stats.spellData;
     }
 
@@ -36,14 +36,14 @@ export abstract class BaseStats {
   }
 
   // Implementation
-  public abstract fields(stats: SpellStats): StatFields;
+  public abstract fields(stats: CastStats): StatFields;
 
   // common fields
-  protected activeDps(stats: SpellStats) {
+  protected activeDps(stats: CastStats) {
     return format((stats.totalDamage * 1000) / stats.activeDuration);
   }
 
-  protected gcdUsage(stats: SpellStats) {
+  protected gcdUsage(stats: CastStats) {
     return format(stats.gcds / this.analysis.totalGcds * 100, 0, '%');
   }
 }
