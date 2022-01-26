@@ -12,7 +12,7 @@ export class ChannelFields extends BaseFields {
 
     return [
       this.field({
-        label: 'Avg MF latency',
+        label: 'Avg MF Latency',
         value: format(stats.avgNextCastLatency, 2, 's'),
         highlight: this.highlight.channelLatency(stats)
       }),
@@ -27,7 +27,8 @@ export class ChannelFields extends BaseFields {
         label: 'Clipped MF DPS',
         value: `~${format(this.clippedDps(stats), 1)}`,
         highlight: this.highlight.clippedEarlyDps(this.clippedDps(stats))
-      })
+      }),
+      this.break()
     ];
   }
 

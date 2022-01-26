@@ -6,24 +6,24 @@ import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { EncounterFields } from 'src/app/report/summary/fields/encounter.fields';
 import { CooldownFields } from 'src/app/report/summary/fields/cooldown.fields';
 
-export class MindBlastTabStats extends BaseSummary {
-  private summaryStats: SummaryFields;
-  private cooldownStats: CooldownFields;
-  private encounterStats: EncounterFields;
+export class MindBlastSummary extends BaseSummary {
+  private summaryFields: SummaryFields;
+  private cooldownFields: CooldownFields;
+  private encounterFields: EncounterFields;
 
   constructor(analysis: PlayerAnalysis, highlight: StatHighlights) {
     super(analysis, highlight);
 
-    this.summaryStats = new SummaryFields(this.analysis, this.highlight);
-    this.cooldownStats = new CooldownFields(this.analysis, this.highlight);
-    this.encounterStats = new EncounterFields(this.analysis, this.highlight);
+    this.summaryFields = new SummaryFields(this.analysis, this.highlight);
+    this.cooldownFields = new CooldownFields(this.analysis, this.highlight);
+    this.encounterFields = new EncounterFields(this.analysis, this.highlight);
   }
 
   report(options: IStatOptions = {}) {
-    const stats = this.targetStats(this.analysis.report.stats, options);
+    const stats = this.targetStats(this.analysis.report.getSpellStats(SpellId.MIND_BLAST), options);
 
-    return this.summaryStats.fields(stats, SpellId.MIND_BLAST)
-      .concat(this.cooldownStats.fields(stats, SpellId.MIND_BLAST))
-      .concat(this.encounterStats.fields(stats, SpellId.MIND_BLAST));
+    return this.summaryFields.fields(stats)
+      .concat(this.cooldownFields.fields(stats))
+      .concat(this.encounterFields.fields(stats));
   }
 }

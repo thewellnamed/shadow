@@ -15,6 +15,11 @@ import { ICombatantInfo } from 'src/app/logs/interfaces';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { VampiricTouchSummary } from 'src/app/report/summary/vampiric-touch.summary';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { PainSummary } from 'src/app/report/summary/pain.summary';
+import { MindBlastSummary } from 'src/app/report/summary/mind-blast.summary';
+import { DeathSummary } from 'src/app/report/summary/death.summary';
+import { MindFlaySummary } from 'src/app/report/summary/mind-flay.summary';
+import { TimelineSummary } from 'src/app/report/summary/timeline.summary';
 
 @Component({
   selector: 'report-details',
@@ -141,7 +146,10 @@ export class ReportDetailsComponent implements OnInit {
         this.setTarget(0);
       }
 
-      const vt = new VampiricTouchSummary(this.analysis, new StatHighlights());
+      const mf = new VampiricTouchSummary(this.analysis, new StatHighlights());
+      // eslint-disable-next-line no-console
+      console.log(mf.report());
+
       this.castSummary = this.analysis.report;
     }
   }

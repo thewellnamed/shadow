@@ -12,32 +12,31 @@ import { SpellId } from 'src/app/logs/models/spell-id.enum';
  * Display overall stats for all casts
  */
 export class TimelineSummary extends BaseSummary {
-  private summaryStats: SummaryFields;
-  private dotStats: DotFields;
-  private cooldownStats: CooldownFields;
-  private channelStats: ChannelFields;
-  private encounterStats: EncounterFields;
+  private summaryFields: SummaryFields;
+  private dotFields: DotFields;
+  private cooldownFields: CooldownFields;
+  private channelFields: ChannelFields;
+  private encounterFields: EncounterFields;
 
   constructor(analysis: PlayerAnalysis, highlight: StatHighlights) {
     super(analysis, highlight);
 
-    this.summaryStats = new SummaryFields(this.analysis, this.highlight);
-    this.dotStats = new DotFields(this.analysis, this.highlight);
-    this.cooldownStats = new CooldownFields(this.analysis, this.highlight);
-    this.channelStats = new ChannelFields(this.analysis, this.highlight);
-    this.encounterStats = new EncounterFields(this.analysis, this.highlight);
+    this.summaryFields = new SummaryFields(this.analysis, this.highlight);
+    this.dotFields = new DotFields(this.analysis, this.highlight);
+    this.cooldownFields = new CooldownFields(this.analysis, this.highlight);
+    this.channelFields = new ChannelFields(this.analysis, this.highlight);
+    this.encounterFields = new EncounterFields(this.analysis, this.highlight);
   }
 
   report(options: IStatOptions = {}) {
     const stats = this.targetStats(this.analysis.report.stats, options),
       mfStats = this.targetStats(this.analysis.report.getSpellStats(SpellId.MIND_FLAY), options);
 
-    return this.summaryStats.fields(stats)
-      .concat(this.dotStats.fields(stats))
-      .concat(this.cooldownStats.fields(stats))
+    return this.summaryFields.fields(stats)
+      .concat(this.dotFields.fields(stats))
+      .concat(this.cooldownFields.fields(stats))
       .concat([this.break()])
-      .concat(this.channelStats.fields(mfStats))
-      .concat([this.break()])
-      .concat(this.encounterStats.fields(stats));
+      .concat(this.channelFields.fields(mfStats))
+      .concat(this.encounterFields.fields(stats));
   }
 }
