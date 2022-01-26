@@ -2,6 +2,7 @@ import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 
 export class CastStats {
+  targetId: number|undefined;
   castCount = 0;
   successCount = 0;
   minTimestamp = 0;
@@ -20,7 +21,6 @@ export class CastStats {
   private _casts: CastDetails[] = [];
   private _sortedCasts?: CastDetails[];
   private _activeDuration = 0;
-  private _includeTargetStats = false;
   private _targetIds: Set<number> = new Set();
   private _hitCounts: Set<number> = new Set();
   private _avgDamage = 0;
@@ -59,8 +59,8 @@ export class CastStats {
     avgDowntime: 0
   };
 
-  constructor(casts?: CastDetails[], includeTargetStats = false) {
-    this._includeTargetStats = includeTargetStats;
+  constructor(targetId?: number, casts?: CastDetails[]) {
+    this.targetId = targetId;
 
     if (casts) {
       this.addCasts(casts);
@@ -68,6 +68,10 @@ export class CastStats {
   }
 
   get targetIds() {
+    if (this.targetId !== undefined) {
+      return [this.targetId];
+    }
+
     return [... this._targetIds];
   }
 
@@ -205,22 +209,20 @@ export class CastStats {
     return stats;
   }
 
-  addCast(cast: CastDetails, targetId?: number) {
+  addCast(cast: CastDetails) {
     this._casts.push(cast);
     this._sortedCasts = undefined;
     this.castCount++;
     this.recalculate = true;
 
-    if (targetId) {
-      this._targetIds.add(targetId);
-    } else {
+    if (this.targetId === undefined) {
       const targetIds = cast.targetId > 0 ? [cast.targetId] : cast.allTargets;
       targetIds.forEach((t) => {
         this._targetIds.add(t);
-
-        if (this._includeTargetStats) {
-          this.addTargetCast(t, cast);
+        if (!this._targetStats.hasOwnProperty(t)) {
+          this._targetStats[t] = this.createTargetStats(t);
         }
+        this._targetStats[t].addCast(cast);
       });
     }
 
@@ -248,12 +250,12 @@ export class CastStats {
     }
 
     this._hitCounts.add(cast.hits);
-    const totalDamage = this.evaluateDamage(cast, targetId);
+    const totalDamage = this.evaluateDamage(cast);
 
     if (totalDamage > 0) {
       this.successCount++;
       this.totalDamage += totalDamage;
-      this.totalHits += this.evaluateHits(cast, totalDamage, targetId);
+      this.totalHits += this.evaluateHits(cast, totalDamage);
       this._totalWeightedSpellpower += (cast.spellPower * totalDamage);
     } else {
       this._totalWeightedSpellpower += cast.spellPower;
@@ -310,16 +312,9 @@ export class CastStats {
     this.recalculate = true;
   }
 
-  addTargetCast(targetId: number, cast: CastDetails) {
-    if (!this._targetStats.hasOwnProperty(targetId)) {
-      this._targetStats[targetId] = this.createTargetStats(targetId);
-    }
-    this._targetStats[targetId].addCast(cast, targetId);
-  }
-
-  addCasts(casts: CastDetails[], targetId?: number) {
+  addCasts(casts: CastDetails[]) {
     for (const next of casts) {
-      this.addCast(next, targetId);
+      this.addCast(next);
     }
   }
 
@@ -328,7 +323,20 @@ export class CastStats {
       stats = [stats];
     }
 
-    for (const next of stats) {
+    for (let next of stats) {
+      // skip on target mismatch -- we should never be calling merge this way though!
+      if (this.targetId && next.targetId && this.targetId !== next.targetId) {
+        continue;
+      }
+
+      // If merging general stats to target stats, only map matching target from next, if found
+      if (this.targetId && next.targetId === undefined) {
+        next = next.targetStats(this.targetId);
+        if (!next) {
+          continue;
+        }
+      }
+
       this._casts = this._casts.concat(next.casts);
       this.castCount += next.castCount;
 
@@ -373,15 +381,16 @@ export class CastStats {
         this._dotDowntimeStats.totalDowntime += next.dotDowntimeStats.totalDowntime;
       }
 
-      if (this._includeTargetStats) {
+      if (this.targetId === undefined) {
         for (const targetId of next.targetIds) {
           const targetStats = next.targetStats(targetId);
           this._targetIds.add(targetId);
+
           if (this._targetStats.hasOwnProperty(targetId)) {
             this._targetStats[targetId].merge(targetStats);
           } else {
             this._targetStats[targetId] = this.createTargetStats(targetId);
-            this._targetStats[targetId].addCasts(targetStats.casts, targetId);
+            this._targetStats[targetId].addCasts(targetStats.casts);
           }
         }
       }
@@ -477,11 +486,11 @@ export class CastStats {
     return SpellData[cast.spellId].damageType === DamageType.DOT && cast.dotDowntime !== undefined;
   }
 
-  private evaluateDamage(cast: CastDetails, targetId?: number) {
-    if (targetId && cast.targetId !== targetId) {
+  private evaluateDamage(cast: CastDetails) {
+    if (this.targetId !== undefined && cast.targetId !== this.targetId) {
       // find any damage instances on target and add those up
       return cast.instances.reduce((sum, instance) => {
-        if (instance.targetId === targetId) {
+        if (instance.targetId === this.targetId) {
           sum += instance.totalDamage;
         }
 
@@ -492,10 +501,10 @@ export class CastStats {
     }
   }
 
-  private evaluateHits(cast: CastDetails, totalDamage: number, targetId?: number) {
+  private evaluateHits(cast: CastDetails, totalDamage: number) {
     if (cast.instances.length > 1) {
-      const instances = targetId ?
-        cast.instances.filter((i) => i.targetId === targetId) :
+      const instances = this.targetId ?
+        cast.instances.filter((i) => i.targetId === this.targetId) :
         cast.instances;
 
       return instances.length;
@@ -510,8 +519,8 @@ export class CastStats {
 
   // annotation really should be SpellStats (or child class)
   // but that seems to annoy typescript...
-  protected createTargetStats(_targetId: number): any {
-    return new CastStats();
+  protected createTargetStats(targetId: number): any {
+    return new CastStats(targetId);
   }
 }
 

@@ -9,27 +9,27 @@ import { CastStats } from 'src/app/report/models/cast-stats';
 export class SpellStats extends CastStats {
   spellId: SpellId;
   spellData: ISpellData;
-  targetId: number|undefined;
   hitCount: number|undefined;
 
   private _byHitCount: {[count: number]: CastStats} = {};
 
-  constructor(spellId: SpellId, hitCount?: number, targetId?: number) {
-    super([], targetId === undefined);
+  constructor(spellId: SpellId, targetId?: number, hitCount?: number) {
+    super(targetId);
+
     this.spellId = spellId;
     this.spellData = SpellData[spellId];
     this.targetId = targetId;
     this.hitCount = hitCount;
   }
 
-  addCast(cast: CastDetails, targetId?: number) {
-    super.addCast(cast, targetId);
+  addCast(cast: CastDetails) {
+    super.addCast(cast);
 
     if (this.hitCount === undefined && this.spellData.statsByTick) {
       if (!this._byHitCount.hasOwnProperty(cast.hits)) {
-        this._byHitCount[cast.hits] = new SpellStats(this.spellId, cast.hits, targetId);
+        this._byHitCount[cast.hits] = new SpellStats(this.spellId, this.targetId, cast.hits);
       }
-      this._byHitCount[cast.hits].addCast(cast, targetId);
+      this._byHitCount[cast.hits].addCast(cast);
     }
   }
 
@@ -37,7 +37,6 @@ export class SpellStats extends CastStats {
    * Stats by Hit Count (currently MF only)
    * cf. SpellData
    */
-
   hasStatsByHitCount() {
     return this.spellData.statsByTick;
   }
@@ -47,6 +46,6 @@ export class SpellStats extends CastStats {
   }
 
   protected createTargetStats(targetId: number): SpellStats {
-    return new SpellStats(this.spellId, this.hitCount, targetId);
+    return new SpellStats(this.spellId, targetId, this.hitCount);
   }
 }

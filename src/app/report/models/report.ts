@@ -47,7 +47,7 @@ export class Report {
   }
 
   private aggregateSpellStats() {
-    const stats = new CastStats([], true);
+    const stats = new CastStats();
     stats.merge(Object.values(this.spells));
     this._stats = stats;
   }

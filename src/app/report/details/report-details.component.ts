@@ -15,8 +15,6 @@ import { ICombatantInfo } from 'src/app/logs/interfaces';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { VampiricTouchSummary } from 'src/app/report/summary/vampiric-touch.summary';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
-import { TimelineSummary } from 'src/app/report/summary/timeline.summary';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
 
 @Component({
   selector: 'report-details',
@@ -144,12 +142,6 @@ export class ReportDetailsComponent implements OnInit {
       }
 
       const vt = new VampiricTouchSummary(this.analysis, new StatHighlights());
-      // eslint-disable-next-line no-console
-      console.log(vt.report({ targetId: this.targets[0].id }));
-
-      // eslint-disable-next-line no-console
-      console.log(this.analysis.report.getSpellStats(SpellId.VAMPIRIC_TOUCH));
-
       this.castSummary = this.analysis.report;
     }
   }
