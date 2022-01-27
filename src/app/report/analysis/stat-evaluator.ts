@@ -23,11 +23,11 @@ export class StatEvaluator {
 
     // post-channel latency
     channelLatency: {
-      [Status.NOTICE]: 0.3
+      [Status.NOTICE]: 0.25
     },
 
     avgChannelLatency: {
-      [Status.WARNING]: 0.4,
+      [Status.WARNING]: 0.35,
       [Status.NOTICE]: 0.25
     },
 

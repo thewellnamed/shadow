@@ -29,17 +29,17 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() analysis: PlayerAnalysis;
   @Input() spellId: SpellId;
   @Input() highlight: StatHighlights;
+  @Input() hitCounts: number[];
   @Input() casts: CastDetails[];
 
   @ViewChild(MatButtonToggleGroup) hasteToggle: MatButtonToggleGroup;
 
-  spellData: ISpellData|undefined;
   visibleCasts: CastDetails[];
+  spellData: ISpellData|undefined;
   spellFilter = new FormControl();
   hitCount = new FormControl(-1);
   spells: { id: string; name: string }[] = [];
   spellNames: { [id: string]: string };
-  hitCounts: number[] = [];
   showHaste = false;
 
   format = StatUtils.format;
@@ -60,10 +60,14 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes.spellId) {
+      this.spellData = changes.spellId.currentValue === SpellId.NONE ?
+        undefined :
+        SpellData[changes.spellId.currentValue];
+    }
+
     if (changes.casts) {
       if (this.spellId === SpellId.NONE) {
-        this.spellData = undefined;
-
         this.spellNames = this.casts.reduce((lookup, cast) => {
           if (!lookup.hasOwnProperty(cast.spellId)) {
             lookup[cast.spellId] = cast.name;
@@ -74,12 +78,9 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
         this.spells = Object.keys(this.spellNames)
           .map((spellId) => ({ id: spellId, name: this.spellNames[spellId] }))
           .sort((a, b) => a.name.localeCompare(b.name))
-      } else {
-        this.spellData = SpellData[this.spellId];
       }
 
       this.filterCasts();
-      this.changeDetectorRef.detectChanges();
     }
   }
 
@@ -195,7 +196,6 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
 
       this.eventSvc.broadcast<number>('hitCount', this.hitCount.value);
       this.filterCasts();
-      this.changeDetectorRef.detectChanges();
     });
   }
 
@@ -215,5 +215,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
     } else {
       this.visibleCasts = this.casts;
     }
+
+    this.changeDetectorRef.detectChanges();
   }
 }

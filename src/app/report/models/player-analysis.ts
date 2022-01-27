@@ -53,6 +53,18 @@ export class PlayerAnalysis {
 
     return stats;
   }
+
+  hitCounts(options: IStatsSearch) {
+    let stats = options.spellId === SpellId.NONE ?
+      this.report.stats :
+      this.report.getSpellStats(options.spellId);
+
+    if (options.targetId) {
+      stats = stats.targetStats(options.targetId);
+    }
+
+    return stats?.hitCounts || [];
+  }
 }
 
 export interface IStatsSearch {

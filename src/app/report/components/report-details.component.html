@@ -21,12 +21,13 @@
         <span class="icon spell-{{ tab.icon }}" *ngIf="tab.icon"></span>
         <span [ngClass]="{ 'label': tab.icon }">{{ tab.label }}</span>
       </ng-template>
-      <summary [fields]="tab.fields"></summary>
+      <summary [fields]="tab.stats"></summary>
       <casts
         [analysis]="analysis"
         [spellId]="tab.spellId"
+        [highlight]="highlight"
         [casts]="tab.casts"
-        [highlight]="highlight">
+        [hitCounts]="tab.hitCounts">
       </casts>
     </mat-tab>
   </mat-tab-group>

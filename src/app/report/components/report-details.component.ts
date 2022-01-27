@@ -16,8 +16,8 @@ import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { BaseSummary } from 'src/app/report/summary/base.summary';
 import { IStatField } from 'src/app/report/summary/fields/base.fields';
 import { EventService, IEvent } from 'src/app/event.service';
-import { CastDetails } from 'src/app/report/models/cast-details';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { CastDetails } from 'src/app/report/models/cast-details';
 
 @Component({
   selector: 'report-details',
@@ -132,6 +132,10 @@ export class ReportDetailsComponent implements OnInit {
       }
     }
 
+    if (this.params.has(ParamType.TICKS)) {
+      this.hitCount = parseInt(this.params.get(ParamType.TICKS));
+    }
+
     const target = this.params.has(ParamType.TARGET) ? parseInt(this.params.get(ParamType.TARGET)) : 0;
     this.form = new FormGroup({
       encounter: new FormControl(null),
@@ -143,12 +147,14 @@ export class ReportDetailsComponent implements OnInit {
   private initializeTabs() {
     this.tabs = TabDefinitions.map((definition) => {
       const summary = new (definition.summaryType)(this.analysis, this.highlight);
-      const stats = this.analysis.stats(this.statOptions(definition.spellId));
+      const options = this.statOptions(definition.spellId);
+      const stats = this.analysis.stats(options);
 
       return Object.assign({}, definition, {
         summary,
         casts: stats.casts,
-        fields: summary.report(stats)
+        stats: summary.report(stats),
+        hitCounts: this.analysis.hitCounts(options)
       }) as ITab;
     });
 
@@ -157,10 +163,12 @@ export class ReportDetailsComponent implements OnInit {
 
   private updateActiveTab() {
     const tab = this.tabs[this.activeTab];
-    const stats = this.analysis.stats(this.statOptions(tab.spellId));
+    const options = this.statOptions(tab.spellId);
+    const stats = this.analysis.stats(options);
 
     tab.casts = stats.casts;
-    tab.fields = tab.summary.report(stats);
+    tab.stats = tab.summary.report(stats);
+    tab.hitCounts = this.analysis.hitCounts(options)
   }
 
   private statOptions(spellId: SpellId): IStatsSearch {
@@ -211,6 +219,7 @@ export class ReportDetailsComponent implements OnInit {
 
 interface ITab extends ITabDefinition {
   summary: BaseSummary;
-  fields: IStatField[];
+  stats: IStatField[];
   casts: CastDetails[];
+  hitCounts: number[];
 }
