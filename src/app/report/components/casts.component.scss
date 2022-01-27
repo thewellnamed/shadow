@@ -1,32 +1,8 @@
 .casts-list {
-  margin: 0.5em;
+  margin: 0 0.5em;
 
   .hidden {
     display: none
-  }
-
-  .stats {
-    max-height: 100px;
-    display: flex;
-    flex-flow: column wrap;
-    align-content: flex-start;
-    font-size: 0.9em;
-    color: #fff;
-    margin-top: 0.6em;
-    margin-bottom: 1em;
-
-    > div {
-      flex: initial;
-      width: 190px;
-      padding: 0.25em;
-
-      &.break {
-        width: 0;
-        height: 100px;
-        padding: 0;
-        margin: 0;
-      }
-    }
   }
 
   .toolbar {
@@ -188,29 +164,6 @@
 
   .casts-list {
     margin: 0.25em 0;
-
-    .stats {
-      height: 150px;
-      max-height: 150px;
-      color: #fff;
-      margin: 0.5em 0;
-
-      > div {
-        padding-bottom: 2px;
-        width: calc(50% - 6px);
-
-        &.break {
-          display: none;
-        }
-
-        &.break.spellpower,
-        &.break.cooldown-stats,
-        &.total-cooldown,
-        &.total-downtime {
-          display: none;
-        }
-      }
-    }
 
     .cast-status {
       width: 6px;

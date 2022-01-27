@@ -1,11 +1,11 @@
-import { BaseFields, StatFields } from 'src/app/report/summary/fields/base.fields';
+import { BaseFields, IStatField } from 'src/app/report/summary/fields/base.fields';
 import { format } from 'src/app/report/models/stat-utils';
 import { CastStats } from 'src/app/report/models/cast-stats';
 
 export class DotFields extends BaseFields {
   fields(stats: CastStats) {
     const spellData = this.spellData(stats);
-    let fields: StatFields = [];
+    let fields: IStatField[] = [];
 
     if (spellData) {
       fields = [this.field({
@@ -20,7 +20,7 @@ export class DotFields extends BaseFields {
       .concat(this.clipStats(stats));
   }
 
-  private downtimeStats(stats: CastStats): StatFields {
+  private downtimeStats(stats: CastStats): IStatField[] {
     if (!stats.hasDotDowntimeStats) {
       return [];
     }
@@ -33,7 +33,7 @@ export class DotFields extends BaseFields {
     ];
   }
 
-  private clipStats(stats: CastStats): StatFields {
+  private clipStats(stats: CastStats): IStatField[] {
     if (!stats.hasClipStats) {
       return [];
     }

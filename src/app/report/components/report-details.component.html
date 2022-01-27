@@ -2,7 +2,7 @@
   <mat-spinner diameter="64"></mat-spinner>
 </section>
 
-<section class="content" *ngIf="!loading && !!castSummary">
+<section class="content" *ngIf="!loading && !!analysis">
   <form class="target-form" [formGroup]="form">
     <mat-form-field class="fill" appearance="standard">
       <mat-label>Filter by Target</mat-label>
@@ -21,11 +21,12 @@
         <span class="icon spell-{{ tab.icon }}" *ngIf="tab.icon"></span>
         <span [ngClass]="{ 'label': tab.icon }">{{ tab.label }}</span>
       </ng-template>
-      <casts [log]="log"
-             [encounterId]="encounterId"
-             [targetId]="target.value"
-             [summary]="castSummary"
-             [spellId]="tab.spellId">
+      <summary [fields]="tab.fields"></summary>
+      <casts
+        [analysis]="analysis"
+        [spellId]="tab.spellId"
+        [casts]="tab.casts"
+        [highlight]="highlight">
       </casts>
     </mat-tab>
   </mat-tab-group>

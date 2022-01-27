@@ -1,6 +1,5 @@
-import { BaseFields, StatFields } from 'src/app/report/summary/fields/base.fields';
+import { BaseFields, IStatField } from 'src/app/report/summary/fields/base.fields';
 import { format } from 'src/app/report/models/stat-utils';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { CastStats } from 'src/app/report/models/cast-stats';
 
 export class CooldownFields extends BaseFields {
@@ -10,7 +9,7 @@ export class CooldownFields extends BaseFields {
     }
 
     const spellData = this.spellData(stats);
-    let fields: StatFields = [];
+    let fields: IStatField[] = [];
 
     if (spellData) {
       fields = [

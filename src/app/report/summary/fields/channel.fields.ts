@@ -25,11 +25,21 @@ export class ChannelFields extends BaseFields {
 
       this.field({
         label: 'Clipped MF DPS',
-        value: `~${format(this.clippedDps(stats), 1)}`,
+        value: this.clippedDpsString(stats),
         highlight: this.highlight.clippedEarlyDps(this.clippedDps(stats))
       }),
       this.break()
     ];
+  }
+
+  private clippedDpsString(stats: CastStats) {
+    const clippedDps = this.clippedDps(stats);
+
+    if (clippedDps === 0) {
+      return clippedDps;
+    }
+
+    return `~${format(clippedDps, 1)}`;
   }
 
   private clippedDps(stats: CastStats) {

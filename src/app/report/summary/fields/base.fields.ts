@@ -14,13 +14,13 @@ export abstract class BaseFields {
     this.highlight = highlight;
   }
 
-  public static DEFAULTS: Partial<IStatDetails> = {
+  public static DEFAULTS: Partial<IStatField> = {
     break: false,
     highlight: StatHighlights.textHighlights[Status.NORMAL]
   };
 
-  protected field(details: Partial<IStatDetails>): IStatDetails {
-    return Object.assign({}, BaseFields.DEFAULTS, details) as IStatDetails;
+  protected field(details: Partial<IStatField>): IStatField {
+    return Object.assign({}, BaseFields.DEFAULTS, details) as IStatField;
   }
 
   protected break() {
@@ -36,7 +36,7 @@ export abstract class BaseFields {
   }
 
   // Implementation
-  public abstract fields(stats: CastStats): StatFields;
+  public abstract fields(stats: CastStats): IStatField[];
 
   // common fields
   protected activeDps(stats: CastStats) {
@@ -48,15 +48,10 @@ export abstract class BaseFields {
   }
 }
 
-export type StatFields = (IStatDetails|IStatBreak)[];
-
-export interface IStatDetails {
+export interface IStatField {
   break: boolean;
-  label: string;
-  highlight: string;
-  value: string|number;
+  label?: string;
+  highlight?: string;
+  value?: string|number;
 }
 
-export interface IStatBreak {
-  break: boolean
-}

@@ -1,0 +1,40 @@
+.summary {
+  margin: 0.5em;
+  max-height: 100px;
+  display: flex;
+  flex-flow: column wrap;
+  align-content: flex-start;
+  font-size: 0.9em;
+  color: #fff;
+
+  > div {
+    flex: initial;
+    width: 190px;
+    padding: 0.25em;
+
+    &.break {
+      width: 0;
+      height: 100px;
+      padding: 0;
+      margin: 0;
+    }
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .summary {
+    height: 150px;
+    max-height: 150px;
+    color: #fff;
+    margin: 0.5em 0;
+
+    > div {
+      padding-bottom: 2px;
+      width: calc(50% - 6px);
+
+      &.break {
+        display: none;
+      }
+    }
+  }
+}
