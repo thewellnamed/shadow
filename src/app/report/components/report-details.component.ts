@@ -152,8 +152,8 @@ export class ReportDetailsComponent implements OnInit {
 
       return Object.assign({}, definition, {
         summary,
-        casts: stats.casts,
-        stats: summary.report(stats),
+        casts: stats?.casts || [],
+        stats: stats ? summary.report(stats) : [],
         hitCounts: this.analysis.hitCounts(options)
       }) as ITab;
     });
@@ -166,9 +166,9 @@ export class ReportDetailsComponent implements OnInit {
     const options = this.statOptions(tab.spellId);
     const stats = this.analysis.stats(options);
 
-    tab.casts = stats.casts;
-    tab.stats = tab.summary.report(stats);
-    tab.hitCounts = this.analysis.hitCounts(options)
+    tab.casts = stats?.casts || [];
+    tab.stats = stats ? tab.summary.report(stats) : [];
+    tab.hitCounts = this.analysis.hitCounts(options);
   }
 
   private statOptions(spellId: SpellId): IStatsSearch {

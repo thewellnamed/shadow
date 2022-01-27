@@ -1,3 +1,4 @@
+import { CastStats } from 'src/app/report/models/cast-stats';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { ICombatantInfo } from 'src/app/logs/interfaces';
 import { IEncounterEvents } from 'src/app/logs/logs.service';
@@ -38,7 +39,7 @@ export class PlayerAnalysis {
     return this.log.getActorName(targetId, targetInstance);
   }
 
-  stats(options: IStatsSearch) {
+  stats(options: IStatsSearch): CastStats|undefined {
     let stats = options.spellId === SpellId.NONE ?
       this.report.stats :
       this.report.getSpellStats(options.spellId);
