@@ -1,3 +1,5 @@
+const NO_VALUE = '---';
+
 export function duration(lengthMs: number, format = 'mm:ss.dd') {
   const offset = lengthMs/1000;
 
@@ -29,10 +31,18 @@ export function duration(lengthMs: number, format = 'mm:ss.dd') {
 
 export function format(value: number|undefined, decimals = 1, suffix = '') {
   if (value === undefined) {
-    return '---';
+    return NO_VALUE;
   }
 
   const factor = 10 ** decimals;
   const result = Math.round(value * factor) / factor;
   return result + (result === 0 ? '' : suffix);
+}
+
+export function latency(value: number|undefined) {
+  if (value === undefined) {
+    return NO_VALUE;
+  }
+
+  return format(value * 1000, 0, 'ms');
 }

@@ -1,5 +1,5 @@
 import { BaseFields, IStatField } from 'src/app/report/summary/fields/base.fields';
-import { format } from 'src/app/report/models/stat-utils';
+import { format, latency } from 'src/app/report/models/stat-utils';
 import { CastStats } from 'src/app/report/models/cast-stats';
 
 export class CooldownFields extends BaseFields {
@@ -15,7 +15,7 @@ export class CooldownFields extends BaseFields {
       fields = [
         this.field({
           label: 'Avg Latency',
-          value: format(stats.avgNextCastLatency, 2, 's'),
+          value: latency(stats.avgNextCastLatency),
           highlight: this.highlight.castLatency(stats)
         }),
         this.field({

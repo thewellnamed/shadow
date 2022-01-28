@@ -81,11 +81,11 @@
           <div class="spellpower">Spellpower: <span class="table-accent">{{ cast.spellPower }}</span></div>
           <div *ngIf="isChannel(cast)">
             Latency:
-            <span [ngClass]="highlight.channelLatency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
+            <span [ngClass]="highlight.channelLatency(cast)">{{ latency(cast.nextCastLatency) }}</span>
           </div>
           <div *ngIf="!isChannel(cast)">
             Latency:
-            <span [ngClass]="highlight.castLatency(cast)">{{ format(cast.nextCastLatency, 2, 's') }}</span>
+            <span [ngClass]="highlight.castLatency(cast)">{{ latency(cast.nextCastLatency) }}</span>
           </div>
           <div *ngIf="isDot(cast)">
             DoT downtime:

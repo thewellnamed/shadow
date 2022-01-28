@@ -1,5 +1,5 @@
 import { BaseFields, IStatField } from 'src/app/report/summary/fields/base.fields';
-import { format } from 'src/app/report/models/stat-utils';
+import { format, latency } from 'src/app/report/models/stat-utils';
 import { CastStats } from 'src/app/report/models/cast-stats';
 
 export class DotFields extends BaseFields {
@@ -10,7 +10,7 @@ export class DotFields extends BaseFields {
     if (spellData) {
       fields = [this.field({
         label: 'Avg Latency',
-        value: format(stats.avgNextCastLatency, 2, 's'),
+        value: latency(stats.avgNextCastLatency),
         highlight: this.highlight.castLatency(stats)
       })];
     }
@@ -38,10 +38,15 @@ export class DotFields extends BaseFields {
       return [];
     }
 
+    let clipStr = stats.clipStats.clipCount.toString();
+    if (stats.clipStats.clipCount > 0) {
+      clipStr += ` (${format(stats.clipStats.clippedPercent * 100, 1, '%')})`;
+    }
+
     return [
       this.field({
         label: 'Clipped DoTs',
-        value: stats.clipStats.clipCount,
+        value: clipStr,
         highlight: this.highlight.clippedDots(stats)
       })
     ];

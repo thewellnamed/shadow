@@ -44,6 +44,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
 
   format = StatUtils.format;
   duration = StatUtils.duration;
+  latency = StatUtils.latency;
 
   private initialized = false;
 

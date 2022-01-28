@@ -40,7 +40,7 @@ export class TimelineSummary extends BaseSummary {
       .concat(this.dotFields.fields(stats))
       .concat(this.cooldownFields.fields(stats))
       .concat([this.break()])
-      .concat(this.channelFields.fields(mindFlayStats))
+      .concat(this.channelFields.fields(mindFlayStats, true))
       .concat(this.encounterFields.fields(stats));
   }
 }
