@@ -41,7 +41,9 @@ Special thanks to Passion for his organizing efforts.
     Notable new features:
     - Tracking haste per cast and Avg Haste across the encounter
     - GCD usage percent (a measure of casting activity)
-    - Latency tracked for all casts.
+    - Latency tracked for all casts. Note that some post-cast latency on queued spells is in server processing, not
+      from network or input latency client-side.
+    - Tightened tuning of latency to exclude delays from movement over 1s
 
     See the [Glossary](GLOSSARY.md) for more information on new stats.
 
