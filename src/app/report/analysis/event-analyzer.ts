@@ -1,4 +1,4 @@
-import { berserkingFromCast, BuffData, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
+import { berserkingFromCast, BuffData, BuffTrigger, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
 import { Report } from 'src/app/report/models/report';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
@@ -243,19 +243,42 @@ export class EventAnalyzer {
 
     const events: IEventData[] = [];
     let buffIndex = 0, nextBuff = this.buffData[buffIndex],
-      castIndex = 0, nextCast = this.castData[castIndex];
+      castIndex = 0, lastCast: ICastData|undefined = undefined, nextCast = this.castData[castIndex];
 
     do {
-      if (nextBuff && (!nextCast || nextBuff.timestamp <= nextCast.timestamp)) {
+      if (nextBuff && (!nextCast || this.buffHasPriority(nextBuff, nextCast, lastCast))) {
         events.push(nextBuff);
         nextBuff = this.buffData[++buffIndex];
       } else if (nextCast) {
         events.push(nextCast);
+        lastCast = nextCast;
         nextCast = this.castData[++castIndex];
       }
     } while (nextBuff || nextCast);
 
     return events;
+  }
+
+  // should buff be applied before this cast?
+  private buffHasPriority(buff: IBuffData, nextCast: ICastData, lastCast?: ICastData) {
+    const data = BuffData[buff.ability.guid];
+    switch (data?.trigger) {
+      case BuffTrigger.CAST_END:
+        // if this buff was triggered by the end of the previous cast
+        // and is happening at the same time as nextCast,
+        // then the buff applies to this cast only if the last cast shares the same timestamp
+        // because of spell queueing
+        return (buff.timestamp < nextCast.timestamp) ||
+          (buff.timestamp === nextCast.timestamp && lastCast?.timestamp === buff.timestamp);
+
+      case BuffTrigger.ON_USE:
+        // On use abilities are generally off-CD and can be started at the same timestamp as the cast
+        return buff.timestamp <= nextCast.timestamp;
+
+      default:
+        // External buffs need to occur before the cast starts.
+        return buff.timestamp < nextCast.timestamp;
+    }
   }
 
   private initializeDamageBuckets() {
