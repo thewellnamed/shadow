@@ -1,4 +1,4 @@
-import { IDamageData } from 'src/app/logs/logs.service';
+import { IDamageData } from 'src/app/logs/interfaces';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class DamageInstance {

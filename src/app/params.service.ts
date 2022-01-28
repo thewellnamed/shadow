@@ -4,7 +4,7 @@ import { Params } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 
 import { NavigationType } from 'src/app/navigation-type.enum';
-import { Tab } from 'src/app/report/details/tabs';
+import { Tab } from 'src/app/report/components/tabs';
 
 @Injectable()
 export class ParamsService {

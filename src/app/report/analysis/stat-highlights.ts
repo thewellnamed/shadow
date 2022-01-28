@@ -1,14 +1,13 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
-import { SpellStats } from 'src/app/report/models/spell-stats';
-
-export enum Status {
-  NORMAL,
-  NOTICE,
-  WARNING
-}
+import { CastStats } from 'src/app/report/models/cast-stats';
+import { Status, StatEvaluator } from 'src/app/report/analysis/stat-evaluator';
 
 export class StatHighlights {
+  private evaluator: StatEvaluator;
+  constructor() {
+    this.evaluator = new StatEvaluator();
+  }
+
   // colored bar styles for highlighting a cast
   public static readonly statusHighlights = {
     [Status.NORMAL]: 'normal',
@@ -22,221 +21,108 @@ export class StatHighlights {
     [Status.WARNING]: 'text-warning'
   };
 
-  // if value > x, return this status
-  public static thresholds: IStatThresholds = {
-    dotDowntime: {
-      [Status.WARNING]: 4,
-      [Status.NOTICE]: 2
-    },
-
-    timeOffCooldown: {
-      [Status.WARNING]: 4,
-      [Status.NOTICE]: 2
-    },
-
-    nextCastLatency: {
-      [Status.NOTICE]: 0.3
-    },
-
-    avgNextCastLatency: {
-      [Status.WARNING]: 0.4,
-      [Status.NOTICE]: 0.25
-    },
-
-    clippedDotPercent: {
-      [Status.WARNING]: 0.1,
-      [Status.NOTICE]: 0.05
-    },
-
-    // MF clipped early
-    clippedEarlyPercent: {
-      [Status.WARNING]: 0.05,
-      [Status.NOTICE]: 0.02
-    },
-
-    // Clipped MF DPS
-    clippedEarlyDps: {
-      [Status.WARNING]: 10,
-      [Status.NOTICE]: 5.0
-    }
-  };
-
   /**
-   * Overall status highlight
+   * Overall status for this cast
    * @param {CastDetails} cast
    * @return {string} CSS style
    */
   overall(cast: CastDetails) {
-    return this.statusHighlight(this.evaluate(cast));
+    return this.statusHighlight(this.evaluator.overall(cast));
   }
 
   /**
-   * Highlight tick count for DoT/Channel
+   * Hit count for DoT/Channel
    * @param {CastDetails} cast
    * @return {string} CSS style
    */
   hits(cast: CastDetails) {
-    return this.textHighlight(this.evaluateHits(cast));
-  }
-
-  dotDowntime(data: CastDetails|SpellStats) {
-    const downtime = data instanceof CastDetails ? data.dotDowntime : data.dotDowntimeStats.avgDowntime;
-    return this.textHighlight(this.evaluateDowntime('dotDowntime', downtime));
-  }
-
-  cooldown(data: CastDetails|SpellStats) {
-    const downtime = data instanceof CastDetails ? data.timeOffCooldown : data.cooldownStats.avgOffCooldown;
-    return this.textHighlight(this.evaluateDowntime('timeOffCooldown', downtime));
-  }
-
-  clippedEarly(data: CastDetails|SpellStats) {
-    return this.textHighlight(this.evaluateEarlyClips(data));
-  }
-
-  clippedEarlyDps(lostDps: string|number) {
-    return this.textHighlight(this.thresholdStatus('clippedEarlyDps', parseFloat(lostDps as string)));
+    return this.textHighlight(this.evaluator.hits(cast));
   }
 
   /**
-   * Higlight next-cast latency for channels
-   * @param {CastDetails|SpellStats} data
+   * DoT downtime
+   * @param data
+   */
+  dotDowntime(data: CastDetails|CastStats) {
+    const downtime = data instanceof CastDetails ? data.dotDowntime : data.dotDowntimeStats.avgDowntime;
+    return this.textHighlight(this.evaluator.downtime('dotDowntime', downtime));
+  }
+
+  /**
+   * Time off cooldown for MB/Death
+   * @param data
+   */
+  cooldown(data: CastDetails|CastStats) {
+    const downtime = data instanceof CastDetails ? data.timeOffCooldown : data.cooldownStats.avgOffCooldown;
+    return this.textHighlight(this.evaluator.downtime('timeOffCooldown', downtime));
+  }
+
+  /**
+   * Early MF clipping
+   * @param data
+   */
+  clippedEarly(data: CastDetails|CastStats) {
+    return this.textHighlight(this.evaluator.earlyClips(data));
+  }
+
+  /**
+   * DPS lost to early MF clipping
+   * @param lostDps
+   */
+  clippedEarlyDps(lostDps: string|number) {
+    return this.textHighlight(this.evaluator.threshold('clippedEarlyDps', parseFloat(lostDps as string)));
+  }
+
+  /**
+   * Post-channel latency for MF
+   * @param {CastDetails|CastStats} data
    * @return {string} CSS style
    */
-  latency(data: CastDetails|SpellStats) {
+  channelLatency(data: CastDetails|CastStats) {
     let status;
+
     if (data instanceof CastDetails) {
-      status = this.thresholdStatus('nextCastLatency', data.nextCastLatency);
+      status = this.evaluator.threshold('channelLatency', data.nextCastLatency);
     } else {
-      status = this.thresholdStatus('avgNextCastLatency', data.channelStats.avgNextCastLatency);
+      status = this.evaluator.threshold('avgChannelLatency', data.avgNextCastLatency);
     }
 
     return this.textHighlight(status);
   }
 
   /**
-   * Highlight clipped tick percent
-   * @param {SpellStats} stats
+   * Post-cast latency (non-channeled spells)
+   * @param {CastDetails|CastStats} data
+   * @return {string} CSS style
+   */
+  castLatency(data: CastDetails|CastStats) {
+    let status;
+
+    if (data instanceof CastDetails) {
+      status = this.evaluator.threshold('castLatency', data.nextCastLatency);
+    } else {
+      status = this.evaluator.threshold('avgCastLatency', data.avgNextCastLatency);
+    }
+
+    return this.textHighlight(status);
+  }
+
+  /**
+   * Highlight clipped DoTs average
+   * @param {CastStats} stats
    * @return {string} CSS Style
    */
-  clippedTicks(stats: SpellStats) {
-    return this.textHighlight(this.evaluateDotClips(stats));
+  clippedDots(stats: CastStats) {
+    return this.textHighlight(this.evaluator.dotClipPercent(stats));
   }
 
   /**
    * Highlight clipped previous cast
-   * @param {SpellStats} stats
+   * @param {CastStats} stats
    * @return {string} CSS Style
    */
-  clippedCast(cast: CastDetails) {
-    return this.textHighlight(cast.clippedPreviousCast ? Status.WARNING : Status.NORMAL);
-  }
-
-  /**
-   * Evaluate overall status for this cast
-   * @param {CastDetails} cast
-   * @return {string} CSS style
-   */
-  private evaluate(cast: CastDetails): Status {
-    // note: conditions are in order of priority for determining severity
-    const spellData = SpellData[cast.spellId];
-
-    if (cast.resisted) {
-      return Status.NORMAL;
-    }
-
-    if (cast.immune) {
-      return Status.NOTICE;
-    }
-
-    if (cast.clippedPreviousCast) {
-      return Status.WARNING;
-    }
-
-    if (cast.clippedEarly) {
-      return Status.WARNING;
-    }
-
-    if (this.checkThresholds(cast, Status.WARNING)) {
-      return Status.WARNING;
-    }
-
-    if (this.missingTicks(cast, spellData)) {
-      return Status.NOTICE;
-    }
-
-    if (this.checkThresholds(cast, Status.NOTICE)) {
-      return Status.NOTICE;
-    }
-
-    return Status.NORMAL;
-  }
-
-  private evaluateHits(cast: CastDetails): Status {
-    const spellData = SpellData[cast.spellId];
-
-    if (cast.clippedEarly) {
-      return Status.WARNING;
-    }
-
-    if (this.missingTicks(cast, spellData)) {
-      return Status.NOTICE;
-    }
-
-    return Status.NORMAL;
-  }
-
-  private evaluateDotClips(stats: SpellStats): Status {
-    return this.thresholdStatus('clippedDotPercent', stats.clipStats.clippedPercent);
-  }
-
-  private evaluateDowntime(statName: string, dotDowntime: number|undefined): Status {
-    return this.thresholdStatus(statName, dotDowntime);
-  }
-
-  private evaluateEarlyClips(data: CastDetails|SpellStats): Status {
-    if (data instanceof SpellStats) {
-      return this.thresholdStatus('clippedEarlyPercent', data.channelStats.clippedEarlyPercent);
-    }
-
-    return ((data as CastDetails).clippedEarly) ? Status.WARNING : Status.NORMAL;
-  }
-
-  private missingTicks(cast: CastDetails, spellData: ISpellData) {
-    const hitPercent = cast.hits / spellData.maxDamageInstances;
-
-    return spellData.damageType === DamageType.DOT &&
-      !cast.failed &&
-      cast.hits < spellData.maxDamageInstances &&
-      (!cast.truncated || hitPercent < 0.5);
-  }
-
-  private checkThresholds(cast: CastDetails, level: Status): boolean {
-    for (const statName of Object.keys(StatHighlights.thresholds)) {
-      const stat = (cast as any)[statName] as number;
-      if (this.aboveThreshold(statName, stat, level)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private thresholdStatus(statName: string, value: number|undefined): Status {
-    value = value || 0;
-
-    if (this.aboveThreshold(statName, value, Status.WARNING)) {
-      return Status.WARNING;
-    }
-
-    if (this.aboveThreshold(statName, value, Status.NOTICE)) {
-      return Status.NOTICE;
-    }
-
-    return Status.NORMAL;
-  }
-
-  private aboveThreshold(statName: string, value: number|undefined, level: Status) {
-    return value !== undefined && value > StatHighlights.thresholds[statName][level];
+  clippedDotCast(cast: CastDetails) {
+    return this.textHighlight(this.evaluator.dotClip(cast));
   }
 
   private textHighlight(status: Status) {
@@ -246,12 +132,4 @@ export class StatHighlights {
   private statusHighlight(status: Status) {
     return StatHighlights.statusHighlights[status];
   }
-}
-
-interface IStatThresholds {
-  [statName: string]: IStatThresholdValues;
-}
-
-interface IStatThresholdValues {
-  [level: number]: number;
 }

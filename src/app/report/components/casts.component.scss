@@ -1,35 +1,11 @@
 .casts-list {
-  margin: 0.5em;
+  margin: 0 0.5em;
 
   .hidden {
     display: none
   }
 
-  .stats {
-    max-height: 100px;
-    display: flex;
-    flex-flow: column wrap;
-    align-content: flex-start;
-    font-size: 0.9em;
-    color: #fff;
-    margin-top: 0.6em;
-    margin-bottom: 1em;
-
-    > div {
-      flex: initial;
-      width: 190px;
-      padding: 0.25em;
-
-      &.break {
-        width: 0;
-        height: 100px;
-        padding: 0;
-        margin: 0;
-      }
-    }
-  }
-
-  .spell-filter {
+  .toolbar {
     display: flex;
     height: 60px;
     font-size: smaller;
@@ -43,10 +19,12 @@
     > div {
       flex: 1 1 100%;
 
-      &.help {
+      &.right {
         text-align: right;
-        position: relative;
-        top: 22px;
+
+        ::ng-deep.mat-button-toggle {
+          margin-top: 4px;
+        }
       }
     }
   }
@@ -107,6 +85,10 @@
       min-width: 100px;
     }
 
+    &.haste {
+      min-width: 75px;
+    }
+
     .cd-label, .hits-label-abbrev {
       display: none;
     }
@@ -127,6 +109,14 @@
 
     > div {
       padding: 0.25em 0.5em;
+    }
+
+    &.toggle-haste .haste {
+      display: none;
+    }
+
+    &.toggle-power .spellpower {
+      display: none;
     }
   }
 
@@ -168,31 +158,12 @@
 }
 
 @media screen and (max-width: 760px) {
+  .haste-toggle {
+    display: none
+  }
+
   .casts-list {
     margin: 0.25em 0;
-
-    .stats {
-      height: 150px;
-      max-height: 150px;
-      color: #fff;
-      margin: 0.5em 0;
-
-      > div {
-        padding-bottom: 2px;
-        width: calc(50% - 6px);
-
-        &.break {
-          display: none;
-        }
-
-        &.break.spellpower,
-        &.break.cooldown-stats,
-        &.total-cooldown,
-        &.total-downtime {
-          display: none;
-        }
-      }
-    }
 
     .cast-status {
       width: 6px;
@@ -255,12 +226,20 @@
         display: none;
       }
 
-      &.downtime, &.power, &.hits.failed, span.downtime-label, span.hits-label {
+      &.downtime, &.power, &.haste, &.hits.failed, span.downtime-label, span.hits-label {
         display: none;
       }
 
       span.hits-label-abbrev, span.cd-label {
         display: inline;
+      }
+    }
+
+    .cast-details {
+      &.toggle-haste, &.toggle-power {
+        .spellpower, .haste {
+          display: block;
+        }
       }
     }
 

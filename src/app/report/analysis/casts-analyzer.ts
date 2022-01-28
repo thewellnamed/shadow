@@ -1,14 +1,12 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { CastsSummary } from 'src/app/report/models/casts-summary';
-import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { Report } from 'src/app/report/models/report';
+import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 
 export class CastsAnalyzer {
-  private static MAX_ACTIVE_LATENCY = 3000; // ignore "next cast latency" for gaps over 5s (not trying to chain-cast)
-  private static MAX_ACTIVE_DOWNTIME = 10000; // ignore cooldown/dot downtime for gaps over 10s (movement?)
+  private static MAX_LATENCY = 1000; // ignore latency for gaps large enough to represent intentional movement
+  private static MAX_ACTIVE_DOWNTIME = 8000; // ignore cooldown/dot downtime for gaps over 8s
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
-  private static MAX_GCD = 1.5;
-  private static MIN_GCD = 1.0;
 
   private casts: CastDetails[];
 
@@ -16,13 +14,12 @@ export class CastsAnalyzer {
     this.casts = casts;
   }
 
-  public run(): CastsSummary {
+  public run(): Report {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
         spellData = SpellData[current.spellId];
 
-      this.setImpliedGcd(current, i);
-
+      this.setCastLatency(current, spellData, i);
       if (spellData.damageType === DamageType.NONE || current.totalDamage === 0) {
         continue;
       }
@@ -55,20 +52,21 @@ export class CastsAnalyzer {
       }
     }
 
-    return new CastsSummary(this.casts);
+    return new Report(this.casts);
   }
 
-  private setImpliedGcd(current: CastDetails, index: number) {
-    if (index < this.casts.length - 1) {
-      const next = this.casts[index + 1],
-        delta = (next.castStart - current.castStart)/1000;
+  private setCastLatency(current: CastDetails, spellData: ISpellData, index: number) {
+    // ignore for off-GCD spells, last cast
+    if (index > this.casts.length - 2 || !spellData.gcd) {
+      return;
+    }
 
-      current.impliedGcd = Math.max(Math.min(CastsAnalyzer.MAX_GCD, delta), CastsAnalyzer.MIN_GCD);
-    } else if (index > 0) {
-      // For the last cast use the implied GCD of the previous cast
-      current.impliedGcd = this.casts[index - 1].impliedGcd;
-    } else {
-      current.impliedGcd = CastsAnalyzer.MAX_GCD;
+    const next = this.casts[index + 1], gcd = current.gcd * 1000;
+    const castTime = current.castTimeMs > gcd ? current.castTimeMs : gcd;
+
+    const latency = Math.max(next.castStart - (current.castStart + castTime), 0);
+    if (latency >= 0 && latency <= CastsAnalyzer.MAX_LATENCY) {
+      current.nextCastLatency = latency/1000;
     }
   }
 
@@ -92,24 +90,31 @@ export class CastsAnalyzer {
   }
 
   private setChannelDetails(current: CastDetails, index: number) {
-    if (index >= this.casts.length - 1 || current.hitType !== HitType.HIT) {
+    // other clipping casts require the next cast to evaluate
+    if (index > this.casts.length - 2 || current.truncated) {
       return;
     }
 
-    const endOfCast = current.lastDamageTimestamp || current.castEnd,
-      nextCast = this.casts[index + 1],
-      delta = nextCast.castStart - endOfCast;
+    // Check for other early clipping cases
+    if (current.hits < SpellData[current.spellId].maxDamageInstances) {
+      let timeToTick: number, castEnd: number;
 
-    if (delta >= 0 && delta <= CastsAnalyzer.MAX_ACTIVE_LATENCY) {
-      current.nextCastLatency = delta/1000;
+      // prefer to use actual timestamps to evaluate tick time, over haste
+      // just because it avoids some annoying rounding issues and timestamps being off a few ms
+      if (current.instances.length > 0) {
+        timeToTick = current.instances[0].timestamp - current.castEnd;
+        castEnd = current.lastDamageTimestamp!;
+      } else {
+        timeToTick = (1 / (1 + current.haste)) * 1000;
+        castEnd = current.castEnd;
+      }
 
-      if (current.hits > 0 && current.hits < SpellData[current.spellId].maxDamageInstances && !current.truncated) {
-        // find the tick period using the cast and first damage tick, which will incorporate haste
-        let timeToTick = current.instances[0].timestamp - current.castEnd;
+      const delta = this.casts[index + 1].castStart - castEnd;
 
-        // if we clipped very close to the next expected tick, flag the cast.
+      // if we clipped very close to the next expected tick, flag the cast.
+      if (delta < timeToTick) {
         const progressToTick = delta/timeToTick;
-        current.clippedEarly = (delta < timeToTick && (progressToTick >= CastsAnalyzer.EARLY_CLIP_THRESHOLD));
+        current.clippedEarly = (progressToTick >= CastsAnalyzer.EARLY_CLIP_THRESHOLD);
 
         if (current.clippedEarly) {
           current.earlyClipLostDamageFactor = progressToTick;

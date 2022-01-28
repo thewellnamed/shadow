@@ -4,6 +4,7 @@ export enum SpellId {
   NONE = 0,
 
   // Shadow Priest Abilities
+  BERSERKING = 20554,
   DEATH = 32996,
   DESPERATE_PRAYER = 25437,
   DEVOURING_PLAGUE = 25467,

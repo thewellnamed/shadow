@@ -17,6 +17,7 @@ import { LogsModule } from 'src/app/logs/logs.module';
 import { ReportModule } from 'src/app/report/report.module';
 import { AppComponent } from 'src/app/app.component';
 import { HomeComponent } from 'src/app/home.component';
+import { EventService } from 'src/app/event.service';
 import { ParamsService } from 'src/app/params.service';
 
 @NgModule({
@@ -41,6 +42,7 @@ import { ParamsService } from 'src/app/params.service';
     ReportModule
   ],
   providers: [
+    EventService,
     ParamsService
   ],
   bootstrap: [AppComponent]

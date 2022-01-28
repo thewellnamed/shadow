@@ -35,14 +35,23 @@ Special thanks to Passion for his organizing efforts.
 [Todo List](TODO.md)
 
 ### Changelog
+- January 28th, 2022
+  - **Phase 3 Release!**
+  
+    Notable new features:
+    - Tracking haste per cast and Avg Haste across the encounter
+    - GCD usage percent (a measure of casting activity)
+    - Latency tracked for all casts. Note that some post-cast latency on queued spells is in server processing, not
+      from network or input latency client-side.
+    - Tightened tuning of latency to exclude delays from movement over 1s
 
-- 2021/12/22
+    See the [Glossary](GLOSSARY.md) for more information on new stats.
+
+
+- December 2021
   - Added [Early MF Clips](GLOSSARY.md#early-mf-clips) and [Clipped MF DPS](GLOSSARY.md#clipped-mf-dps) stats
   - Fixed some bugs with associating AoE damage instances to targets and handling "Unknown Actor" in log cast data
   - Added better support for deep linking into the app.
-
-
-- 2021/12/01
   - Improved mobile styling and handling of various screen sizes
   
 

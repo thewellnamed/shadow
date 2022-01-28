@@ -1,4 +1,4 @@
-import { IEncountersResponse } from 'src/app/logs/logs.service';
+import { IEncountersResponse } from 'src/app/logs/interfaces';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { Actor } from 'src/app/logs/models/actor';
 
@@ -79,11 +79,6 @@ export class LogSummary {
     }
 
     return this.encounters.filter((e) => actor.encounterIds.includes(e.id))
-  }
-
-  targetExists(actorId: number, encounterId: number) {
-    const actor = this.getActor(actorId);
-    return actor?.encounterIds?.includes(encounterId) || false;
   }
 
   getActorName(id: number, instance?: number) {

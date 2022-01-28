@@ -1,0 +1,9 @@
+<section class="summary">
+  <ng-container *ngFor="let field of fields">
+    <div class="break" *ngIf="field.break"></div>
+    <div *ngIf="!field.break">
+      {{ field.label! }}:
+      <span [ngClass]="field.highlight!">{{ field.value! }}</span>
+    </div>
+  </ng-container>
+</section>

@@ -1,13 +1,17 @@
-import { IAbilityData } from 'src/app/logs/logs.service';
-import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
+import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
+import { IAbilityData } from 'src/app/logs/interfaces';
+import { SpellId } from 'src/app/logs/models/spell-id.enum';
+import { HasteUtils } from 'src/app/report/models/haste';
 
 export class CastDetails {
   spellId: SpellId;
   name: string;
   castStart: number;
   castEnd: number;
+  castTimeMs: number; // in ms, from start/end events
+  baseCastTime: number; // in secs, includes haste at time of cast
   sourceId: number;
   targetId: number;
   targetInstance: number;
@@ -24,7 +28,9 @@ export class CastDetails {
   clippedPreviousCast = false;
   clippedTicks = 0;
 
+  // latency between casts.
   // for channeled spells, delta from the last damage tick (effective end of channel) until next cast (of any spell)
+  // for all else, based on cast start/end
   nextCastLatency?: number;
 
   // for channeled spells, was the channel clipped very close to the next tick?
@@ -43,11 +49,8 @@ export class CastDetails {
   // damage truncated by death of mob?
   truncated = false;
 
-  // GCD implied from casting
-  // This is basically a hack to estimate haste for calculating active time
-  // It won't work very well for some haste-related calculations, but is good enough for activity
-  // Min: 1.0s. Max: 1.5s
-  impliedGcd = 0;
+  gcd = 0;
+  haste = 0;
 
   constructor(params: ICastDetailsParams) {
     this.spellId = params.spellId;
@@ -58,8 +61,12 @@ export class CastDetails {
     this.targetInstance = params.targetInstance;
     this.castStart = params.castStart;
     this.castEnd = params.castEnd;
+    this.castTimeMs = params.castEnd - params.castStart;
 
     this.spellPower = params.spellPower;
+    this.haste = params.haste;
+    this.gcd = params.gcd;
+    this.baseCastTime = HasteUtils.castTime(this.spellId, params.haste);
   }
 
   setInstances(instances: DamageInstance[]) {
@@ -83,6 +90,12 @@ export class CastDetails {
     this.totalResisted = resisted;
     this.hits = hits;
     this.allTargets = [... new Set(targets)];
+
+    // For channeled spells, set cast time to last tick
+    if (SpellData[this.spellId].damageType === DamageType.CHANNEL && instances.length > 0) {
+      this.castTimeMs = this.lastDamageTimestamp! - this.castStart;
+      this.baseCastTime = this.castTimeMs / 1000;
+    }
   }
 
   get dealtDamage() {
@@ -141,4 +154,6 @@ interface ICastDetailsParams {
   castStart: number;
   castEnd: number;
   spellPower: number;
+  haste: number;
+  gcd: number;
 }
