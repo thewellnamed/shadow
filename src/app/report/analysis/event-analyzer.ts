@@ -3,13 +3,13 @@ import { Report } from 'src/app/report/models/report';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
-import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { HasteUtils, IHasteStats } from 'src/app/report/models/haste';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { IActorStats, IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
-import { IDeathLookup, IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
+import { IDeathLookup, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export class EventAnalyzer {
   private static EVENT_LEEWAY = 100; // ms. allow damage to occur just slightly later than "should" be possible given
@@ -17,10 +17,9 @@ export class EventAnalyzer {
 
   private static MIN_INFER_HASTE_EVENTS = 8; // require a minimum of MB/VT casts to infer missing haste value
 
-  private log: LogSummary;
-  private encounter: EncounterSummary;
-  private baseStats: IActorStats;
+  private analysis: PlayerAnalysis;
 
+  private baseStats: IActorStats;
   private buffData: IBuffData[];
   private castData: ICastData[];
   private damageData: IDamageData[];
@@ -31,16 +30,15 @@ export class EventAnalyzer {
   // tracks currently active buffs
   private buffs: IBuffEvent[] = [];
 
-  constructor(log: LogSummary, encounter: EncounterSummary, actorStats: IActorStats, events: IEncounterEvents) {
-    this.log = log;
-    this.encounter = encounter;
-    this.baseStats = actorStats;
+  constructor(analysis: PlayerAnalysis) {
+    this.analysis = analysis;
+    this.baseStats = analysis.actorInfo.stats;
 
     // initialize event data
-    this.buffData = events.buffs;
-    this.castData = events.casts;
-    this.damageData = events.damage.map((d) => Object.assign({}, d, { read: false }));
-    this.deaths = events.deaths;
+    this.buffData = analysis.events.buffs;
+    this.castData = analysis.events.casts;
+    this.damageData = analysis.events.damage;
+    this.deaths = analysis.events.deaths;
 
     // sometimes casts that start before combat begins for the logger are omitted,
     // but the damage is recorded. In that case, infer the cast...
@@ -298,7 +296,7 @@ export class EventAnalyzer {
     let i = 0, instances: DamageInstance[] = [];
 
     while (nextDamage && nextDamage.timestamp <= maxDamageTimestamp) {
-      const actor = this.log.getActor(cast.sourceId);
+      const actor = this.analysis.getActor(cast.sourceId);
       if (actor && !nextDamage.read && nextDamage.sourceID === actor.shadowFiendId) {
         instances.push(new DamageInstance(nextDamage));
         nextDamage.read = true;
@@ -317,7 +315,7 @@ export class EventAnalyzer {
     let nextCast: ICastData|null;
     let nextDamage: IDamageData|null;
 
-    if (cast.targetId && this.log.getActorName(cast.targetId) === undefined) {
+    if (cast.targetId && this.analysis.getActorName(cast.targetId) === undefined) {
       // cast on "Unknown Actor" in WCL. Try to infer the target first
       // look for a damage event around the time we should expect a hit for the spell
       // and infer the actual target from that instance, if found.
@@ -376,7 +374,7 @@ export class EventAnalyzer {
   // check to see if it was truncated by the target's death
   private setTruncationByDeath(cast: CastDetails, spellData: ISpellData) {
     const key = `${cast.targetId}:${cast.targetInstance}`;
-    const targetDeathTimestamp = this.deaths[key] || this.encounter.end;
+    const targetDeathTimestamp = this.deaths[key] || this.analysis.encounter.end;
     const checkTruncation = [DamageType.CHANNEL, DamageType.DOT].includes(spellData.damageType);
 
     if (checkTruncation && cast.hits < spellData.maxDamageInstances && targetDeathTimestamp) {
@@ -449,7 +447,8 @@ export class EventAnalyzer {
     // than the damage ticks, shows up as "Unknown Actor," and isn't returned as an enemy in the summary
     // If allowUnknown === true, relax the target ID match to handle this case specifically
     // We can tell the ID is "unknown actor" if no actor name exists for it.
-    if (sourceId && sourceId !== dest.targetID && (!allowUnknown || this.log.getActorName(sourceId) !== undefined)) {
+    if (sourceId && sourceId !== dest.targetID &&
+      (!allowUnknown || this.analysis.getActorName(sourceId) !== undefined)) {
       return false;
     }
 
@@ -502,7 +501,7 @@ export class EventAnalyzer {
   private inferCastTimestamp(damage: IDamageData) {
     const spellData = SpellData[mapSpellId(damage.ability.guid)];
 
-    if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData.damageType)) {
+    if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData?.damageType)) {
       // First find the earliest tick we want to associate to our inferred cast,
       // then infer the cast time based on how frequently the spell ticks
       const timeToTick = (spellData.maxDuration / spellData.maxDamageInstances) * 1000,
@@ -515,7 +514,7 @@ export class EventAnalyzer {
           d.targetInstance === damage.targetInstance
       ) as IDamageData;
 
-      return Math.max(earliestInstance.timestamp - timeToTick, this.encounter.start);
+      return Math.max(earliestInstance.timestamp - timeToTick, this.analysis.encounter.start);
     }
 
     return damage.timestamp;

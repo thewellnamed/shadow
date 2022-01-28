@@ -1,16 +1,16 @@
-import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
-import { IActorStats, IBuffData } from 'src/app/logs/interfaces';
+import { IBuffData } from 'src/app/logs/interfaces';
 import { HasteUtils, IHasteStats } from 'src/app/report/models/haste';
 import { BuffData, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export class GcdAnalyzer {
   private gcds: number;
+  private events: IBuffData[];
   private buffs: IBuffEvent[] = [];
   private stats: IHasteStats;
 
-  constructor(private encounter: EncounterSummary,
-              private actorStats: IActorStats,
-              private events: IBuffData[]) {
+  constructor(private analysis: PlayerAnalysis) {
+    this.events = analysis.events.buffs;
   }
 
   public get totalGcds(): number {
@@ -23,15 +23,15 @@ export class GcdAnalyzer {
   }
 
   private analyze(): number {
-    this.stats = HasteUtils.calc(this.actorStats);
+    this.stats = HasteUtils.calc(this.analysis.actorInfo.stats);
 
     if (this.events.length === 0) {
-      const duration = (this.encounter.end - this.encounter.start)/1000;
+      const duration = (this.analysis.encounter.end - this.analysis.encounter.start)/1000;
       return duration / this.stats.gcd;
     }
 
     let gcds = 0,
-      start = this.encounter.start,
+      start = this.analysis.encounter.start,
       buffIndex = 0,
       event: IBuffData;
 
@@ -49,7 +49,7 @@ export class GcdAnalyzer {
           break;
       }
 
-      const newStats = HasteUtils.calc(this.actorStats, this.buffs);
+      const newStats = HasteUtils.calc(this.analysis.actorInfo.stats, this.buffs);
       if (newStats.totalHaste !== this.stats.totalHaste) {
         const increment = Math.ceil((event.timestamp - start)/ 1000 / this.stats.gcd);
         gcds += increment;
@@ -60,8 +60,8 @@ export class GcdAnalyzer {
       buffIndex++;
     }
 
-    if (this.encounter.end > event!.timestamp) {
-      gcds += Math.floor((this.encounter.end - event!.timestamp) / 1000 / this.stats.gcd);
+    if (this.analysis.encounter.end > event!.timestamp) {
+      gcds += Math.floor((this.analysis.encounter.end - event!.timestamp) / 1000 / this.stats.gcd);
     }
 
     return gcds;

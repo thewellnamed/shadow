@@ -189,7 +189,7 @@ export class ReportDetailsComponent implements OnInit {
 
   private analyze(events: IEncounterEvents) {
     if (events) {
-      this.analysis = new PlayerAnalysis(this.log, this.encounterId, this.actorInfo, events);
+      this.analysis = new PlayerAnalysis(this.log, this.encounterId, this.actor, this.actorInfo, events);
 
       this.targets = this.analysis.targetIds
         .map((id) => ({ id , name: this.log.getActorName(id) }))

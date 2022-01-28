@@ -81,11 +81,6 @@ export class LogSummary {
     return this.encounters.filter((e) => actor.encounterIds.includes(e.id))
   }
 
-  targetExists(actorId: number, encounterId: number) {
-    const actor = this.getActor(actorId);
-    return actor?.encounterIds?.includes(encounterId) || false;
-  }
-
   getActorName(id: number, instance?: number) {
     let name = this.names[id];
 
