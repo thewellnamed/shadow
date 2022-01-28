@@ -32,7 +32,7 @@ export class EventAnalyzer {
 
   constructor(analysis: PlayerAnalysis) {
     this.analysis = analysis;
-    this.baseStats = analysis.actorInfo.stats;
+    this.baseStats = Object.assign({}, analysis.actorInfo.stats) as IActorStats;
 
     // initialize event data
     this.buffData = analysis.events.buffs;
@@ -284,7 +284,23 @@ export class EventAnalyzer {
   }
 
   private removeBuff(event: IBuffData) {
-    this.buffs = this.buffs.filter((b) => b.id !== event.ability.guid);
+    const index = this.buffs.findIndex((b) => b.id === event.ability.guid);
+    if (index === -1) {
+      // if we're removing a buff and we never saw the event which added it, then it was probably
+      // applied before combat. For haste rating buffs (e.g. drums of battle), this will show up
+      // in the Haste rating stats, so we can remove it there. If it was a percentage buff,
+      // we're just missing it.
+      //
+      // todo: process buffs before evaluating events to "infer missing buffs".
+      const buffRating = BuffData[event.ability.guid].hasteRating || 0,
+        baseHaste = this.baseStats.Haste?.min || 0;
+
+      if (buffRating > 0 && buffRating >= baseHaste) {
+        this.baseStats.Haste = { min: baseHaste - buffRating, max: baseHaste - buffRating};
+      }
+    } else {
+      this.buffs.splice(index, 1);
+    }
   }
 
   private setShadowfiendDamage(cast: CastDetails) {
