@@ -19,51 +19,74 @@ export class StatEvaluator {
   // if value > x, return this status
   public static thresholds: IStatThresholds = {
     dotDowntime: {
-      [Status.WARNING]: 4,
-      [Status.NOTICE]: 2
+      levels: {
+        [Status.WARNING]: 5,
+        [Status.NOTICE]: 3
+      }
     },
 
     timeOffCooldown: {
-      [Status.WARNING]: 4,
-      [Status.NOTICE]: 2
+      levels: {
+        [Status.WARNING]: 5,
+        [Status.NOTICE]: 3
+      }
     },
 
     // post-channel latency
     channelLatency: {
-      [Status.NOTICE]: 0.25
+      levels: {
+        [Status.WARNING]: 0.3,
+        [Status.NOTICE]: 0.2
+      },
+      castProperty: 'nextCastLatency',
+      damageTypes: [DamageType.CHANNEL]
     },
 
     avgChannelLatency: {
-      [Status.WARNING]: 0.35,
-      [Status.NOTICE]: 0.25
+      levels: {
+        [Status.WARNING]: 0.3,
+        [Status.NOTICE]: 0.2
+      }
     },
 
     // post-cast latency for other spell types
     castLatency: {
-      [Status.WARNING]: 0.1,
-      [Status.NOTICE]: 0.05
+      levels: {
+        [Status.WARNING]: 0.2,
+        [Status.NOTICE]: 0.1
+      },
+      castProperty: 'nextCastLatency',
+      damageTypes: [DamageType.NONE, DamageType.DOT, DamageType.AOE, DamageType.DIRECT]
     },
 
     avgCastLatency: {
-      [Status.WARNING]: 0.15,
-      [Status.NOTICE]: 0.075
+      levels: {
+        [Status.WARNING]: 0.2,
+        [Status.NOTICE]: 0.1
+      }
     },
 
     clippedDotPercent: {
-      [Status.WARNING]: 0.1,
-      [Status.NOTICE]: 0.05
+      levels: {
+        [Status.WARNING]: 0.1,
+        [Status.NOTICE]: 0.05
+      }
     },
 
     // MF clipped early
     clippedEarlyPercent: {
-      [Status.WARNING]: 0.05,
-      [Status.NOTICE]: 0.02
+      levels: {
+        [Status.WARNING]: 0.05,
+        [Status.NOTICE]: 0.02
+      }
     },
 
     // Clipped MF DPS
     clippedEarlyDps: {
-      [Status.WARNING]: 10,
-      [Status.NOTICE]: 5.0
+      levels: {
+        [Status.WARNING]: 10,
+        [Status.NOTICE]: 5.0
+      }
     }
   };
 
@@ -166,7 +189,7 @@ export class StatEvaluator {
 
   private checkThresholds(cast: CastDetails, level: Status): boolean {
     for (const statName of Object.keys(StatEvaluator.thresholds)) {
-      const stat = (cast as any)[statName] as number;
+      const stat = this.castValue(cast, statName);
       if (this.aboveThreshold(statName, stat, level)) {
         return true;
       }
@@ -175,8 +198,20 @@ export class StatEvaluator {
     return false;
   }
 
+
+  private castValue(cast: CastDetails, statName: string): number|undefined {
+    const threshold = StatEvaluator.thresholds[statName];
+    const propName = threshold.castProperty || statName;
+
+    if (threshold.damageTypes && !threshold.damageTypes.includes(Spell.get(cast.spellId).damageType)) {
+      return undefined;
+    }
+
+    return (cast as any)[propName] as number;
+  }
+
   private aboveThreshold(statName: string, value: number|undefined, level: Status) {
-    return value !== undefined && value > StatEvaluator.thresholds[statName][level];
+    return value !== undefined && value > StatEvaluator.thresholds[statName].levels[level];
   }
 }
 
@@ -185,5 +220,11 @@ interface IStatThresholds {
 }
 
 interface IStatThresholdValues {
+  levels: IStatThresholdLevels,
+  castProperty?: string;
+  damageTypes?: DamageType[];
+}
+
+interface IStatThresholdLevels {
   [level: number]: number;
 }
