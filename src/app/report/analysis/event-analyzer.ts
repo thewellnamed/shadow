@@ -230,7 +230,15 @@ export class EventAnalyzer {
 
     // require a minimum of events to infer haste from
     if (count > EventAnalyzer.MIN_INFER_HASTE_EVENTS) {
-      const hasteRating = total/count;
+      let hasteRating = total/count;
+
+      // there are no items with less than 8 haste rating at level 70
+      // so if we get here, it's just variance around casts time and the way we're calculating
+      // some of it is the way we're doing inference not working as well when the player actually has no haste
+      if (hasteRating < 8) {
+        hasteRating = 0;
+      }
+
       this.baseStats.Haste = { min: hasteRating,  max: hasteRating };
     }
     this.buffs = [];
