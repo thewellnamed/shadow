@@ -86,9 +86,11 @@ export class ReportDetailsComponent implements OnInit {
         return this.fetchData();
       })
     ).subscribe((data) => {
-      if (data) this.analyze(data);
+      if (data) {
+        this.analyze(data);
+        this.initializeTabs();
+      }
 
-      this.initializeTabs();
       this.loading = false;
       this.changeDetectorRef.detectChanges();
     });
