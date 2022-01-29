@@ -1,11 +1,15 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { CastStats } from 'src/app/report/models/cast-stats';
 import { Status, StatEvaluator } from 'src/app/report/analysis/stat-evaluator';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export class StatHighlights {
+  private analysis: PlayerAnalysis;
   private evaluator: StatEvaluator;
-  constructor() {
-    this.evaluator = new StatEvaluator();
+
+  constructor(analysis: PlayerAnalysis) {
+    this.analysis = analysis;
+    this.evaluator = new StatEvaluator(analysis);
   }
 
   // colored bar styles for highlighting a cast

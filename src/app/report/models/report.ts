@@ -1,20 +1,24 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { SpellStats } from 'src/app/report/models/spell-stats';
-import { SpellData } from 'src/app/logs/models/spell-data';
+import { Spell } from 'src/app/logs/models/spell-data';
 import { CastStats } from 'src/app/report/models/cast-stats';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export class Report {
+  analysis: PlayerAnalysis;
   casts: CastDetails[];
   spells: {[spellId: number]: SpellStats};
   targetIds: number[];
   private _stats: CastStats;
 
-  constructor(casts: CastDetails[]) {
+  constructor(analysis: PlayerAnalysis, casts: CastDetails[]) {
+    this.analysis = analysis;
     this.casts = casts;
-    this.spells = Object.keys(SpellData)
+
+    this.spells = Object.keys(Spell.data)
       .map((k) => parseInt(k))
       .reduce((spells, spellId) => {
-        spells[spellId] = new SpellStats(spellId);
+        spells[spellId] = new SpellStats(analysis, spellId);
         return spells;
       }, {} as {[spellId: number]: SpellStats});
 
@@ -47,7 +51,7 @@ export class Report {
   }
 
   private aggregateSpellStats() {
-    const stats = new CastStats();
+    const stats = new CastStats(this.analysis);
     stats.merge(Object.values(this.spells));
     this._stats = stats;
   }

@@ -1,6 +1,7 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
+import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
 import { CastStats } from 'src/app/report/models/cast-stats';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export enum Status {
   NORMAL,
@@ -9,6 +10,12 @@ export enum Status {
 }
 
 export class StatEvaluator {
+  private analysis: PlayerAnalysis;
+
+  constructor(analysis: PlayerAnalysis) {
+    this.analysis = analysis;
+  }
+
   // if value > x, return this status
   public static thresholds: IStatThresholds = {
     dotDowntime: {
@@ -67,7 +74,7 @@ export class StatEvaluator {
    */
   overall(cast: CastDetails): Status {
     // note: conditions are in order of priority for determining severity
-    const spellData = SpellData[cast.spellId];
+    const spellData = Spell.get(cast.spellId, this.analysis.actorInfo);
 
     if (cast.resisted) {
       return Status.NORMAL;
@@ -101,7 +108,7 @@ export class StatEvaluator {
   }
 
   hits(cast: CastDetails): Status {
-    const spellData = SpellData[cast.spellId];
+    const spellData = Spell.get(cast.spellId, this.analysis.actorInfo);
 
     if (cast.clippedEarly) {
       return Status.WARNING;

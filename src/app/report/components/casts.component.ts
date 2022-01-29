@@ -12,7 +12,7 @@ import { MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material/b
 
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { EventService } from 'src/app/event.service';
-import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
+import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { ParamsService, ParamType } from 'src/app/params.service';
@@ -64,7 +64,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
     if (changes.spellId) {
       this.spellData = changes.spellId.currentValue === SpellId.NONE ?
         undefined :
-        SpellData[changes.spellId.currentValue];
+        Spell.get(changes.spellId.currentValue, this.analysis.actorInfo);
     }
 
     if (changes.casts) {
@@ -130,31 +130,31 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   isDamage(cast: CastDetails) {
-    return SpellData[cast.spellId].damageType !== DamageType.NONE;
+    return Spell.get(cast.spellId).damageType !== DamageType.NONE;
   }
 
   isDot(cast: CastDetails) {
-    return SpellData[cast.spellId].damageType === DamageType.DOT;
+    return Spell.get(cast.spellId).damageType === DamageType.DOT;
   }
 
   isChannel(cast: CastDetails) {
-    return SpellData[cast.spellId].damageType === DamageType.CHANNEL;
+    return Spell.get(cast.spellId).damageType === DamageType.CHANNEL;
   }
 
   hasCooldown(cast: CastDetails) {
-    return SpellData[cast.spellId].cooldown > 0;
+    return Spell.get(cast.spellId).cooldown > 0;
   }
 
   expectHits(cast: CastDetails) {
-    return ([DamageType.DOT, DamageType.CHANNEL, DamageType.AOE].includes(SpellData[cast.spellId].damageType));
+    return ([DamageType.DOT, DamageType.CHANNEL, DamageType.AOE].includes(Spell.get(cast.spellId).damageType));
   }
 
   maxHits(cast: CastDetails) {
-    return ([DamageType.DOT, DamageType.CHANNEL].includes(SpellData[cast.spellId].damageType));
+    return ([DamageType.DOT, DamageType.CHANNEL].includes(Spell.get(cast.spellId).damageType));
   }
 
   hits(cast: CastDetails) {
-    const spellData = SpellData[cast.spellId];
+    const spellData = Spell.get(cast.spellId, this.analysis.actorInfo);
     let hits = cast.hits.toString();
 
     if (this.maxHits(cast)) {

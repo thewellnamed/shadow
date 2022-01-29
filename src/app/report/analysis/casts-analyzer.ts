@@ -1,23 +1,26 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { Report } from 'src/app/report/models/report';
-import { DamageType, ISpellData, SpellData } from 'src/app/logs/models/spell-data';
+import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export class CastsAnalyzer {
   private static MAX_LATENCY = 1000; // ignore latency for gaps large enough to represent intentional movement
   private static MAX_ACTIVE_DOWNTIME = 8000; // ignore cooldown/dot downtime for gaps over 8s
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
 
+  private analysis: PlayerAnalysis;
   private casts: CastDetails[];
 
-  constructor(casts: CastDetails[]) {
+  constructor(analysis: PlayerAnalysis, casts: CastDetails[]) {
+    this.analysis = analysis;
     this.casts = casts;
   }
 
   public run(): Report {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
-        spellData = SpellData[current.spellId];
+        spellData = Spell.get(current.spellId, this.analysis.actorInfo);
 
       this.setCastLatency(current, spellData, i);
       if (spellData.damageType === DamageType.NONE || current.totalDamage === 0) {
@@ -33,11 +36,11 @@ export class CastsAnalyzer {
             const minTimeToTick = spellData.maxDuration / spellData.maxDamageInstances;
             return c.hitType !== HitType.NONE || (current.castStart - c.castEnd < minTimeToTick);
           });
-          this.setDotDetails(current, prevCastData);
+          this.setDotDetails(current, spellData, prevCastData);
           break;
 
         case DamageType.CHANNEL:
-          this.setChannelDetails(current, i);
+          this.setChannelDetails(current, spellData, i);
           break;
       }
 
@@ -52,7 +55,7 @@ export class CastsAnalyzer {
       }
     }
 
-    return new Report(this.casts);
+    return new Report(this.analysis, this.casts);
   }
 
   private setCastLatency(current: CastDetails, spellData: ISpellData, index: number) {
@@ -70,13 +73,12 @@ export class CastsAnalyzer {
     }
   }
 
-  private setDotDetails(current: CastDetails, prevData: IPreviousCast) {
+  private setDotDetails(current: CastDetails, spellData: ISpellData, prevData: IPreviousCast) {
     if (!prevData?.onTarget) {
       return;
     }
 
     const prev = prevData.onTarget;
-    const spellData = SpellData[current.spellId];
 
     if (prev.lastDamageTimestamp && (current.castEnd - prev.lastDamageTimestamp <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME)) {
       current.dotDowntime = (current.castEnd - prev.lastDamageTimestamp) / 1000;
@@ -89,14 +91,14 @@ export class CastsAnalyzer {
     }
   }
 
-  private setChannelDetails(current: CastDetails, index: number) {
+  private setChannelDetails(current: CastDetails, spellData: ISpellData, index: number) {
     // other clipping casts require the next cast to evaluate
     if (index > this.casts.length - 2 || current.truncated) {
       return;
     }
 
     // Check for other early clipping cases
-    if (current.hits < SpellData[current.spellId].maxDamageInstances) {
+    if (current.hits < spellData.maxDamageInstances) {
       let timeToTick: number, castEnd: number;
 
       // prefer to use actual timestamps to evaluate tick time, over haste

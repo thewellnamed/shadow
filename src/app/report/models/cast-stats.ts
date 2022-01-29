@@ -1,5 +1,6 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { DamageType, Spell } from 'src/app/logs/models/spell-data';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export class CastStats {
   targetId: number|undefined;
@@ -14,6 +15,7 @@ export class CastStats {
 
   recalculate = true;
 
+  protected analysis: PlayerAnalysis;
   protected _totalWeightedSpellpower = 0;
   protected _totalNextCastLatency = 0;
   protected _totalWeightedHaste = 0;
@@ -59,7 +61,8 @@ export class CastStats {
     avgDowntime: 0
   };
 
-  constructor(targetId?: number, casts?: CastDetails[]) {
+  constructor(analysis: PlayerAnalysis, targetId?: number, casts?: CastDetails[]) {
+    this.analysis = analysis;
     this.targetId = targetId;
 
     if (casts) {
@@ -226,7 +229,7 @@ export class CastStats {
       });
     }
 
-    const spellData = SpellData[cast.spellId];
+    const spellData = Spell.get(cast.spellId, this.analysis.actorInfo);
 
     if (spellData.gcd) {
       // if there was pushback, count it as latency or as time lost.
@@ -447,7 +450,7 @@ export class CastStats {
   }
 
   private getEffectiveWindow(cast: CastDetails) {
-    const spellData = SpellData[cast.spellId];
+    const spellData = Spell.get(cast.spellId);
     const start = cast.castStart;
     let end;
 
@@ -471,19 +474,19 @@ export class CastStats {
   }
 
   private addChannelStats(cast: CastDetails) {
-    return SpellData[cast.spellId].damageType === DamageType.CHANNEL;
+    return Spell.get(cast.spellId).damageType === DamageType.CHANNEL;
   }
 
   private addCooldownStats(cast: CastDetails) {
-    return SpellData[cast.spellId].cooldown > 0 && cast.timeOffCooldown !== undefined;
+    return Spell.get(cast.spellId).cooldown > 0 && cast.timeOffCooldown !== undefined;
   }
 
   private addClipStats(cast: CastDetails) {
-    return SpellData[cast.spellId].damageType === DamageType.DOT;
+    return Spell.get(cast.spellId).damageType === DamageType.DOT;
   }
 
   private addDotDowntimeStats(cast: CastDetails) {
-    return SpellData[cast.spellId].damageType === DamageType.DOT && cast.dotDowntime !== undefined;
+    return Spell.get(cast.spellId).damageType === DamageType.DOT && cast.dotDowntime !== undefined;
   }
 
   private evaluateDamage(cast: CastDetails) {
@@ -520,7 +523,7 @@ export class CastStats {
   // annotation really should be SpellStats (or child class)
   // but that seems to annoy typescript...
   protected createTargetStats(targetId: number): any {
-    return new CastStats(targetId);
+    return new CastStats(this.analysis, targetId);
   }
 }
 

@@ -85,6 +85,7 @@ export interface IActorSummaryResponse {
 
 export interface ICombatantInfo {
   stats: IActorStats;
+  gear: IActorItem[];
 }
 
 export interface IActorStats {
@@ -97,6 +98,12 @@ export interface IActorStats {
   Spirit?: IStatValue;
   Stamina?: IStatValue;
   Strength?: IStatValue;
+}
+
+export interface IActorItem {
+  id: number;
+  slot: number;
+  name: string;
 }
 
 export interface IStatValue {

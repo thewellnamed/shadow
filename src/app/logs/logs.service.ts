@@ -5,10 +5,11 @@ import { catchError, delay, map, switchMap } from 'rxjs/operators';
 
 import { Actor } from 'src/app/logs/models/actor';
 import { BuffData } from 'src/app/logs/models/buff-data';
+import { CombatantInfo } from 'src/app/logs/models/combatant-info';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { PSEUDO_SPELL_BASE } from 'src/app/logs/models/spell-id.enum';
-import { SpellData } from 'src/app/logs/models/spell-data';
+import { Spell } from 'src/app/logs/models/spell-data';
 
 import * as wcl from 'src/app/logs/interfaces';
 
@@ -18,7 +19,7 @@ export class LogsService {
   private static API_URL = 'https://classic.warcraftlogs.com/v1';
   private static MAX_EVENT_REQUESTS = 10;
 
-  public static TRACKED_ABILITIES = Object.keys(SpellData)
+  public static TRACKED_ABILITIES = Object.keys(Spell.data)
     .map((k) => parseInt(k))
     .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
 
@@ -80,7 +81,7 @@ export class LogsService {
    * @param player
    * @param encounterId
    */
-  getPlayerInfo(log: LogSummary, player: Actor, encounterId: number): Observable<wcl.ICombatantInfo> {
+  getPlayerInfo(log: LogSummary, player: Actor, encounterId: number): Observable<CombatantInfo> {
     const cacheId = `${log.id}:${encounterId}:${player.id}`;
     if (this.playerCache.hasOwnProperty(cacheId)) {
       return of(this.playerCache[cacheId]);
@@ -92,8 +93,9 @@ export class LogsService {
     const url = this.apiUrl(`report/tables/summary/${log.id}`);
     return this.http.get<wcl.IActorSummaryResponse>(url, { params }).pipe(
       map((response) => {
-        this.playerCache[cacheId] = response.combatantInfo;
-        return response.combatantInfo;
+        const info = new CombatantInfo(response.combatantInfo);
+        this.playerCache[cacheId] = info;
+        return info;
       }),
       catchError((response: HttpErrorResponse) => {
         return throwError(`Error fetching player info: ${response.error.error}`);

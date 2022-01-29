@@ -1,5 +1,5 @@
 import { DamageInstance } from 'src/app/report/models/damage-instance';
-import { DamageType, SpellData } from 'src/app/logs/models/spell-data';
+import { DamageType, Spell } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { IAbilityData } from 'src/app/logs/interfaces';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
@@ -92,7 +92,7 @@ export class CastDetails {
     this.allTargets = [... new Set(targets)];
 
     // For channeled spells, set cast time to last tick
-    if (SpellData[this.spellId].damageType === DamageType.CHANNEL && instances.length > 0) {
+    if (Spell.data[this.spellId].damageType === DamageType.CHANNEL && instances.length > 0) {
       this.castTimeMs = this.lastDamageTimestamp! - this.castStart;
       this.baseCastTime = this.castTimeMs / 1000;
     }

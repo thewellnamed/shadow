@@ -18,6 +18,7 @@ import { IStatField } from 'src/app/report/summary/fields/base.fields';
 import { EventService, IEvent } from 'src/app/event.service';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { CastDetails } from 'src/app/report/models/cast-details';
+import { CombatantInfo } from 'src/app/logs/models/combatant-info';
 
 @Component({
   selector: 'report-details',
@@ -33,8 +34,8 @@ export class ReportDetailsComponent implements OnInit {
   log: LogSummary;
   analysis: PlayerAnalysis;
   actor: Actor;
-  actorInfo: ICombatantInfo;
-  highlight = new StatHighlights();
+  actorInfo: CombatantInfo;
+  highlight: StatHighlights;
   activeTab = 0;
   form: FormGroup;
   targets: { id: number; name: string }[];
@@ -77,7 +78,7 @@ export class ReportDetailsComponent implements OnInit {
           return of(null)
         }
       }),
-      switchMap((actorInfo: ICombatantInfo|null) => {
+      switchMap((actorInfo: CombatantInfo|null) => {
         if (actorInfo) {
           this.actorInfo = actorInfo;
         }
@@ -190,6 +191,7 @@ export class ReportDetailsComponent implements OnInit {
   private analyze(events: IEncounterEvents) {
     if (events) {
       this.analysis = new PlayerAnalysis(this.log, this.encounterId, this.actor, this.actorInfo, events);
+      this.highlight = new StatHighlights(this.analysis);
 
       this.targets = this.analysis.targetIds
         .map((id) => ({ id , name: this.log.getActorName(id) }))
