@@ -188,7 +188,7 @@ export class EventAnalyzer {
       event: IEventData,
       stats = HasteUtils.calc(this.baseStats, this.buffs);
 
-    let count = 0, total = 0;
+    let hasteCount = 0, castCount = 0, totalHaste = 0;
 
     this.buffs = [];
     for (let i = 0; i < this.events.length; i++) {
@@ -221,26 +221,28 @@ export class EventAnalyzer {
             if (castTime <= baseCastTime) {
               const inferredRating = HasteUtils.inferRating(stats.totalHaste, spellData.baseCastTime, castTime);
 
-              total += inferredRating;
-              count++;
+              if (inferredRating > 0) {
+                totalHaste += inferredRating;
+                hasteCount++;
+              }
             }
+
+            castCount++;
           }
       }
     }
 
-    // require a minimum of events to infer haste from
-    if (count > EventAnalyzer.MIN_INFER_HASTE_EVENTS) {
-      let hasteRating = total/count;
+    const hastedPercent = hasteCount/castCount,
+      estimate = totalHaste / castCount;
 
-      // there are no items with less than 8 haste rating at level 70
-      // so if we get here, it's just variance around casts time and the way we're calculating
-      // some of it is the way we're doing inference not working as well when the player actually has no haste
-      if (hasteRating < 8) {
-        hasteRating = 0;
-      }
-
-      this.baseStats.Haste = { min: hasteRating,  max: hasteRating };
+    // In order to actually estimate this somewhat reasonably, we want
+    // 1. A minimum number of casts evaluated
+    // 2. of which at least 2/3 had evidence of "extra" unaccounted for haste.
+    // 3. with an estimate of at least 8 haste rating, since no item has less haste than that at 70
+    if (castCount > EventAnalyzer.MIN_INFER_HASTE_EVENTS && hastedPercent > 0.66 && estimate >= 8) {
+      this.baseStats.Haste = { min: estimate,  max: estimate };
     }
+
     this.buffs = [];
   }
 
@@ -327,7 +329,7 @@ export class EventAnalyzer {
       const buffRating = BuffData[event.ability.guid].hasteRating || 0,
         baseHaste = this.baseStats.Haste?.min || 0;
 
-      if (buffRating > 0 && buffRating >= baseHaste) {
+      if (buffRating > 0 && baseHaste >= buffRating) {
         this.baseStats.Haste = { min: baseHaste - buffRating, max: baseHaste - buffRating};
       }
     } else {
