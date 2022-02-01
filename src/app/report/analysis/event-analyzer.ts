@@ -404,14 +404,16 @@ export class EventAnalyzer {
         // We want to keep the damage instance for the full resist in that case, but only if it's the first instance.
         // Otherwise we can encounter a full resist in a string of dot damage instances and it just means some
         // *future* cast resisted, and we should ignore it for the cast currently processing.
-        if (spellData.damageType === DamageType.AOE || count === 0 || !this.failed(nextDamage.hitType)) {
+        const failed = this.failed(nextDamage);
+
+        if (spellData.damageType === DamageType.AOE || count === 0 || !failed) {
           instances.push(new DamageInstance(nextDamage));
           nextDamage.read = true;
           count++;
         }
 
         // if the whole cast is failing, don't add more damage
-        if (spellData.damageType !== DamageType.AOE && count === 1 && this.failed(nextDamage.hitType)) {
+        if (spellData.damageType !== DamageType.AOE && count === 1 && failed) {
           break;
         }
       }
@@ -452,7 +454,7 @@ export class EventAnalyzer {
 
     // check for resist/immune
     const failed = events.find((e) =>
-      this.failed(e.hitType) && this.matchTarget(next, e) &&
+      this.failed(e) && this.matchTarget(next, e) &&
         e.timestamp > next.timestamp - 50 && e.timestamp < next.timestamp + 50
     );
     if (failed) {
@@ -462,8 +464,8 @@ export class EventAnalyzer {
     return true;
   }
 
-  private failed(hitType: HitType) {
-    return hitType === HitType.RESIST || hitType === HitType.IMMUNE;
+  private failed(event: IDamageData) {
+    return event.hitType === HitType.RESIST;
   }
 
   private matchDamage(cast: CastDetails,

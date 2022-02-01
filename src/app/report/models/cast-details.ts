@@ -84,22 +84,18 @@ export class CastDetails {
       }
     }
 
-    this.setHitType();
     this.totalDamage = damage + absorbed;
     this.totalAbsorbed = absorbed;
     this.totalResisted = resisted;
     this.hits = hits;
     this.allTargets = [... new Set(targets)];
+    this.setHitType();
 
     // For channeled spells, set cast time to last tick
     if (Spell.data[this.spellId].damageType === DamageType.CHANNEL && instances.length > 0) {
       this.castTimeMs = this.lastDamageTimestamp! - this.castStart;
       this.baseCastTime = this.castTimeMs / 1000;
     }
-  }
-
-  get dealtDamage() {
-    return this.totalDamage > 0;
   }
 
   get failed() {
@@ -127,15 +123,17 @@ export class CastDetails {
   }
 
   private setHitType() {
-    // none of the multi-instance abilities can crit, so if there are multiple instances of damage
-    // then we didn't fully resist, so call it a hit.
-    // Could interrogate all the instances and mark as partial resist, etc., but not needed now
-    if (this.instances.length > 1) {
-      this.hitType = HitType.HIT;
-    }
-
-    else if (this.instances.length === 1 ) {
-      this.hitType = this.instances[0].hitType;
+    if (this.instances.length > 0) {
+      const types = new Set(this.instances.map((i) => i.hitType));
+      if (types.size > 1) {
+        if (this.totalDamage > 0) {
+          this.hitType = HitType.HIT;
+        } else {
+          this.hitType = HitType.NONE;
+        }
+      } else {
+        this.hitType = types.values().next().value;
+      }
     }
 
     else {

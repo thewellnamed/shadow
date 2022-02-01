@@ -28,6 +28,14 @@ export class DamageInstance {
     return this.absorbed > 0 || this.resisted > 0;
   }
 
+  get isResist() {
+    return this.hitType === HitType.RESIST;
+  }
+
+  get isImmune() {
+    return this.hitType === HitType.IMMUNE;
+  }
+
   get partialSummary() {
     if (!this.partial) {
       return '';

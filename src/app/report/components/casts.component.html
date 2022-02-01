@@ -108,15 +108,17 @@
           <div *ngIf="cast.truncated">Truncated: <span [ngClass]="highlight.hits(cast)">true</span></div>
         </div>
 
-        <div class="instances" *ngIf="cast.dealtDamage">
+        <div class="instances" *ngIf="cast.instances.length > 0">
           Hits:
           <div class="instance" *ngFor="let instance of cast.instances">
             <span class="timestamp table-accent">{{ offsetTime(instance.timestamp) }}</span>
             <span class="target">{{ targetName(instance.targetId, instance.targetInstance) }}</span>
-            <span class="damage">
+            <span class="damage" *ngIf="instance.totalDamage > 0">
               <span class="damage-label">Damage:&nbsp;</span> <span class="spell-accent">{{ instance.amount }}</span>
               <span *ngIf="instance.partial">&nbsp;({{ instance.partialSummary }})</span>
             </span>
+            <span class="damage text-warning" *ngIf="instance.isResist">Resisted</span>
+            <span class="damage text-warning" *ngIf="instance.isImmune">Immune</span>
           </div>
         </div>
       </ng-template>

@@ -506,11 +506,11 @@ export class CastStats {
 
   private evaluateHits(cast: CastDetails, totalDamage: number) {
     if (cast.instances.length > 1) {
-      const instances = this.targetId ?
-        cast.instances.filter((i) => i.targetId === this.targetId) :
-        cast.instances;
-
-      return instances.length;
+      if (this.targetId) {
+        return cast.instances.filter((i) => i.targetId === this.targetId && i.totalDamage > 0).length;
+      } else {
+        return cast.hits;
+      }
     }
 
     if (totalDamage > 0) {
