@@ -4,10 +4,6 @@ import { CastStats } from 'src/app/report/models/cast-stats';
 
 export class CooldownFields extends BaseFields {
   fields(stats: CastStats) {
-    if (!stats.hasCooldownStats) {
-      return [];
-    }
-
     const spellData = this.spellData(stats);
     let fields: IStatField[] = [];
 

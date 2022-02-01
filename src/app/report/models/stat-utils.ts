@@ -1,4 +1,4 @@
-const NO_VALUE = '---';
+export const NO_VALUE = '---';
 
 export function duration(lengthMs: number, format = 'mm:ss.dd') {
   const offset = lengthMs/1000;
@@ -30,7 +30,7 @@ export function duration(lengthMs: number, format = 'mm:ss.dd') {
 }
 
 export function format(value: number|undefined, decimals = 1, suffix = '') {
-  if (value === undefined) {
+  if (value === undefined || isNaN(value)) {
     return NO_VALUE;
   }
 
@@ -40,7 +40,7 @@ export function format(value: number|undefined, decimals = 1, suffix = '') {
 }
 
 export function latency(value: number|undefined) {
-  if (value === undefined) {
+  if (value === undefined || isNaN(value)) {
     return NO_VALUE;
   }
 

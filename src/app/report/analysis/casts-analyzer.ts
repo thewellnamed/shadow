@@ -81,7 +81,7 @@ export class CastsAnalyzer {
     const prev = prevData.onTarget;
 
     if (prev.lastDamageTimestamp && (current.castEnd - prev.lastDamageTimestamp <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME)) {
-      current.dotDowntime = (current.castEnd - prev.lastDamageTimestamp) / 1000;
+      current.dotDowntime = Math.max((current.castEnd - prev.lastDamageTimestamp) / 1000, 0);
     }
 
     const expectedDuration = prev.castEnd + (spellData.maxDuration * 1000);

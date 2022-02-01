@@ -31,7 +31,7 @@ export class CastStats {
   private _avgHit = 0;
   private _avgHaste = 0;
   private _avgSpellpower = 0;
-  private _avgNextCastLatency = 0;
+  private _avgNextCastLatency: number|undefined = undefined;
   private _targetStats: IStatsMap = {};
 
   private _channelStats: IChannelStats = {
@@ -44,7 +44,7 @@ export class CastStats {
   private _cooldownStats: ICooldownStats = {
     castCount: 0,
     totalOffCooldown: 0,
-    avgOffCooldown: 0
+    avgOffCooldown: undefined
   };
 
   private _clipStats: IDotClipStats = {
@@ -52,13 +52,13 @@ export class CastStats {
     clipCount: 0,
     clippedTicks: 0,
     clippedPercent: 0,
-    expectedTicks: 0,
+    expectedTicks: 0
   };
 
   private _dotDowntimeStats: IDotDownTimeStats = {
     castCount: 0,
     totalDowntime: 0,
-    avgDowntime: 0
+    avgDowntime: undefined
   };
 
   constructor(analysis: PlayerAnalysis, targetId?: number, casts?: CastDetails[]) {
@@ -541,7 +541,7 @@ export interface IChannelStats {
 export interface ICooldownStats {
   castCount: number;
   totalOffCooldown: number;
-  avgOffCooldown: number;
+  avgOffCooldown: number|undefined;
 }
 
 export interface IDotClipStats {
@@ -555,5 +555,5 @@ export interface IDotClipStats {
 export interface IDotDownTimeStats {
   castCount: number;
   totalDowntime: number;
-  avgDowntime: number
+  avgDowntime: number|undefined;
 }

@@ -1,13 +1,13 @@
 import { BaseFields } from 'src/app/report/summary/fields/base.fields';
 import { DamageType } from 'src/app/logs/models/spell-data';
-import { format, latency } from 'src/app/report/models/stat-utils';
+import { format, latency, NO_VALUE } from 'src/app/report/models/stat-utils';
 import { CastStats } from 'src/app/report/models/cast-stats';
 
 export class ChannelFields extends BaseFields {
   fields(stats: CastStats, forSummary = false) {
     const spellData = this.spellData(stats);
     if (spellData?.damageType !== DamageType.CHANNEL) {
-      return [];
+      stats = new CastStats(this.analysis);
     }
 
     const spellLabel = forSummary ? ' MF' : '';
@@ -35,8 +35,11 @@ export class ChannelFields extends BaseFields {
   }
 
   private clipString(stats: CastStats) {
-    let str = stats.channelStats.clippedEarlyCount.toString();
+    if (stats.channelStats.castCount === 0) {
+      return NO_VALUE;
+    }
 
+    let str = stats.channelStats.clippedEarlyCount.toString();
     if (stats.channelStats.clippedEarlyPercent > 0) {
       str += ` (${format(stats.channelStats.clippedEarlyPercent * 100, 1, '%')})`;
     }
@@ -45,8 +48,11 @@ export class ChannelFields extends BaseFields {
   }
 
   private clippedDpsString(stats: CastStats) {
-    const clippedDps = this.clippedDps(stats);
+    if (stats.channelStats.castCount === 0) {
+      return NO_VALUE;
+    }
 
+    const clippedDps = this.clippedDps(stats);
     if (clippedDps === 0) {
       return clippedDps;
     }
