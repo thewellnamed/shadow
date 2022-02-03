@@ -106,7 +106,7 @@ However, Damage/GCD provides a more universal way to compare the relative DPS co
 ### Early MF Clips
 
 In cases where a Mind Flay channel is clearly interrupted for a new spell very close to the next expected tick, the cast is flagged as 
-"clipped early". Currently the threshold for flagging is if the clip occurs more than 75% of the way to the next expected tick of the channel, 
+"clipped early". Currently the threshold for flagging is if the clip occurs more than 2/3 of the way to the next expected tick of the channel, 
 taking haste into account. The number displayed is the number of casts that were clipped early by this measure.
 
 Haste is accounted for by using the time between ticks (or between the cast and first tick), therefore at least one MF ticks must
