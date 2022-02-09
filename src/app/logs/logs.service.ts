@@ -42,9 +42,9 @@ export class LogsService {
     let id: string | null = value || '';
 
     if (id.startsWith('http')) {
-      const match = id.match(/warcraftlogs\.com\/reports\/([A-Za-z0-9]{16})/m);
+      const match = id.match(/warcraftlogs\.com\/reports\/((?:a\:)?[A-Za-z0-9]{16})/m);
       id = (match && match[1]) || null;
-    } else if (!/^[A-Za-z0-9]{16}$/.test(id)) {
+    } else if (!/^(?:a\:)?[A-Za-z0-9]{16}$/.test(id)) {
       id = null;
     }
 
@@ -109,15 +109,15 @@ export class LogsService {
    * @param playerName
    * @param encounterId
    */
-  getEvents(log: LogSummary, playerName: string, encounterId: number): Observable<IEncounterEvents> {
+  getEvents(log: LogSummary, actor: Actor, encounterId: number): Observable<IEncounterEvents> {
     const encounter = log.getEncounter(encounterId) as EncounterSummary;
-    const cacheId = `${log.id}:${encounterId}:${playerName}`;
+    const cacheId = `${log.id}:${encounterId}:${actor.id}`;
 
     if (this.eventCache.hasOwnProperty(cacheId)) {
       return of(this.eventCache[cacheId]);
     }
 
-    const filter = `(source.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})) OR source.name="Shadowfiend"`
+    const filter = `(source.name="${actor.name}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})) OR source.name="Shadowfiend"`
     const castParams = this.makeParams(encounter, { filter });
 
     return combineLatest(
@@ -128,7 +128,7 @@ export class LogsService {
           hostility: 1
         })),
         this.requestEvents<wcl.IBuffData>(log.id, 'buffs', this.makeParams(encounter, {
-          filter: `target.name="${playerName}" AND ability.id IN (${LogsService.TRACKED_BUFFS.join(',')})`
+          filter: `target.name="${actor.name}" AND ability.id IN (${LogsService.TRACKED_BUFFS.join(',')})`
         })),
       ])
       .pipe(

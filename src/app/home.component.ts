@@ -15,7 +15,7 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 export class HomeComponent implements OnInit {
   @ViewChild('selectEncounter') public encounterSelect: MatSelect;
   @ViewChild('selectPlayer') public playerSelect: MatSelect;
-  public summary?: LogSummary;
+  public summary: LogSummary|undefined;
   public form: FormGroup;
   public searching = false;
   public encounters: EncounterSummary[];
@@ -102,8 +102,9 @@ export class HomeComponent implements OnInit {
 
   analyze(event: Event) {
     event.preventDefault();
-    const playerName = this.summary?.getActor(this.player?.value)?.name;
-    this.router.navigateByUrl(`report/${this.logId}/${playerName}/${this.encounter?.value}`);
+    const player = this.summary?.getActor(this.player?.value);
+
+    this.router.navigateByUrl(`report/${this.logId}/${player?.routeId}/${this.encounter?.value}`);
   }
 
   private filterEncounters() {

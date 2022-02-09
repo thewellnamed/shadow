@@ -9,6 +9,7 @@ export class LogSummary {
   title: string;
   owner: string;
   url: string;
+  anon = false;
   encounters: EncounterSummary[];
   actors: Actor[];
   shadowPriests: Actor[] = [];
@@ -18,6 +19,10 @@ export class LogSummary {
     this.title = data.title;
     this.owner = data.owner;
     this.url = `https://classic.warcraftlogs.com/reports/${id}`;
+
+    if (id.startsWith('a:')) {
+      this.anon = true;
+    }
 
     this.encounters = data.fights
       .filter((fight) => {
@@ -37,7 +42,7 @@ export class LogSummary {
     const allFriendlies = data.friendlies
       .concat(data.friendlyPets)
       .map((friendlyData) => {
-        const actor = new Actor(friendlyData, true);
+        const actor = new Actor(friendlyData, true, this.anon);
         this.names[actor.id] = actor.name;
 
         if (friendlyData.icon === 'Priest-Shadow') {
@@ -70,6 +75,14 @@ export class LogSummary {
 
   getActorByName(name: string) {
     return this.actors.find((a) => a.name === name);
+  }
+
+  getActorByRouteId(routeId: string) {
+    if (routeId.startsWith('player')) {
+      return this.getActor(parseInt(routeId.substr(6)));
+    }
+
+    return this.getActorByName(routeId);
   }
 
   getActorEncounters(id: number, friendly = true) {

@@ -22,7 +22,7 @@ export class ReportWrapperComponent implements OnInit {
   logId: string;
   encounterId: number;
   encounters: EncounterSummary[];
-  playerName: string;
+  playerId: string;
   form: FormGroup;
   log: LogSummary;
 
@@ -43,7 +43,7 @@ export class ReportWrapperComponent implements OnInit {
       switchMap(([params, detailsParams]) => {
         this.logId = params.get('logId') as string;
         this.encounterId = parseInt(detailsParams.get('encounterId') as string, 10);
-        this.playerName = detailsParams.get('player') as string;
+        this.playerId = detailsParams.get('player') as string;
 
         return this.logs.getSummary(this.logId);
       })
@@ -51,14 +51,14 @@ export class ReportWrapperComponent implements OnInit {
       this.log = log;
 
       this.encounter.setValue(this.encounterId);
-      this.player.setValue(this.log.getActorByName(this.playerName)!.id);
+      this.player.setValue(this.log.getActorByRouteId(this.playerId)!.id);
       this.filterEncounters();
       this.handleFormUpdates();
     });
   }
 
   private updateDetails(navType: NavigationType) {
-    const route = this.encounterId > 0 ? [this.playerName, this.encounterId] : [this.playerName];
+    const route = this.encounterId > 0 ? [this.playerId, this.encounterId] : [this.playerId];
     this.router.navigate(route, {
       relativeTo: this.route,
       queryParams: this.params.forNavigation(navType)
@@ -81,7 +81,7 @@ export class ReportWrapperComponent implements OnInit {
     });
 
     this.player.valueChanges.subscribe(() => {
-      this.playerName = this.log.getActor(this.player.value)!.name;
+      this.playerId = this.log.getActor(this.player.value)!.name;
 
       this.filterEncounters();
 

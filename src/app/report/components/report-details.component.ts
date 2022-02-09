@@ -29,7 +29,7 @@ import { CombatantInfo } from 'src/app/logs/models/combatant-info';
 export class ReportDetailsComponent implements OnInit {
   logId: string;
   encounterId: number;
-  playerName: string;
+  playerId: string;
 
   log: LogSummary;
   analysis: PlayerAnalysis;
@@ -57,7 +57,7 @@ export class ReportDetailsComponent implements OnInit {
       withLatestFrom(this.route.parent!.paramMap),
       switchMap(([params, parentParams]) => {
         this.logId = parentParams.get('logId') as string;
-        this.playerName = params.get('player') as string;
+        this.playerId = params.get('player') as string;
 
         if (params.has('encounterId')) {
           this.encounterId = parseInt(params.get('encounterId') as string, 10);
@@ -70,7 +70,7 @@ export class ReportDetailsComponent implements OnInit {
       }),
       switchMap((log: LogSummary) => {
         this.log = log;
-        this.actor = this.log.getActorByName(this.playerName) as Actor;
+        this.actor = this.log.getActorByRouteId(this.playerId) as Actor;
 
         if (this.encounterId) {
           return this.logs.getPlayerInfo(log, this.actor, this.encounterId);
@@ -184,7 +184,7 @@ export class ReportDetailsComponent implements OnInit {
 
   private fetchData() {
     if (this.encounterId > 0) {
-      return this.logs.getEvents(this.log, this.playerName, this.encounterId);
+      return this.logs.getEvents(this.log, this.actor, this.encounterId);
     } else {
       return of(null);
     }
