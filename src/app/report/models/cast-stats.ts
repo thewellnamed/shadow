@@ -221,11 +221,13 @@ export class CastStats {
     if (this.targetId === undefined) {
       const targetIds = cast.targetId > 0 ? [cast.targetId] : cast.allTargets;
       targetIds.forEach((t) => {
-        this._targetIds.add(t);
-        if (!this._targetStats.hasOwnProperty(t)) {
-          this._targetStats[t] = this.createTargetStats(t);
+        if (t !== undefined) {
+          this._targetIds.add(t);
+          if (!this._targetStats.hasOwnProperty(t)) {
+            this._targetStats[t] = this.createTargetStats(t);
+          }
+          this._targetStats[t].addCast(cast);
         }
-        this._targetStats[t].addCast(cast);
       });
     }
 
