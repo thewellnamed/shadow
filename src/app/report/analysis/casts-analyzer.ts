@@ -6,7 +6,7 @@ import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export class CastsAnalyzer {
   private static MAX_LATENCY = 1000; // ignore latency for gaps large enough to represent intentional movement
-  private static MAX_ACTIVE_DOWNTIME = 8000; // ignore cooldown/dot downtime for gaps over 8s
+  private static MAX_ACTIVE_DOWNTIME = 10000; // ignore cooldown/dot downtime for gaps over 10s
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
 
   private analysis: PlayerAnalysis;
@@ -21,13 +21,24 @@ export class CastsAnalyzer {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
         spellData = Spell.get(current.spellId, this.analysis.actorInfo);
+      let prevCastData;
 
       this.setCastLatency(current, spellData, i);
-      if (spellData.damageType === DamageType.NONE || current.totalDamage === 0) {
+
+      if (spellData.cooldown > 0) {
+        prevCastData = this.findPreviousCast(current, i);
+        if (prevCastData.onAll) {
+          const delta = current.castStart - prevCastData.onAll.castEnd;
+          if ((delta - (spellData.cooldown * 1000)) <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME) {
+            current.timeOffCooldown = (delta - (spellData.cooldown * 1000)) / 1000;
+          }
+        }
+      }
+
+      if (spellData.damageType === DamageType.NONE || current.resisted) {
         continue;
       }
 
-      let prevCastData;
       switch (spellData.damageType) {
         case DamageType.DOT:
           prevCastData = this.findPreviousCast(current, i, (c) => {
@@ -42,16 +53,6 @@ export class CastsAnalyzer {
         case DamageType.CHANNEL:
           this.setChannelDetails(current, spellData, i);
           break;
-      }
-
-      if (spellData.cooldown > 0) {
-        prevCastData = this.findPreviousCast(current, i);
-        if (prevCastData.onAll) {
-          const delta = current.castStart - prevCastData.onAll.castEnd;
-          if ((delta - (spellData.cooldown * 1000)) <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME) {
-            current.timeOffCooldown = (delta - (spellData.cooldown * 1000)) / 1000;
-          }
-        }
       }
     }
 
