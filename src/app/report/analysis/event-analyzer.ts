@@ -515,8 +515,8 @@ export class EventAnalyzer {
   // but the damage is recorded. Check the first few damage spells and create casts
   // if one is not found.
   private inferMissingCasts() {
-    const instancesToCheck = this.damageData.length >= 3 ? 2 : this.damageData.length - 1,
-      spellIdsInferred: number[] = [];
+    let instancesToCheck = this.damageData.length >= 3 ? 2 : this.damageData.length - 1;
+    const spellIdsInferred: number[] = [];
 
     // find first damage cast so we can borrow its spellpower if we find a missing cast
     const firstDamageCast = this.castData.find((c) => {
@@ -526,6 +526,12 @@ export class EventAnalyzer {
 
     for (let i = instancesToCheck; i >= 0; i--) {
       const instance = this.damageData[i];
+
+      if (instance.ability.guid < 0) {
+        instancesToCheck++;
+        continue;
+      }
+
       let castIndex = 0, match = false, nextCast = this.castData[castIndex];
 
       do {

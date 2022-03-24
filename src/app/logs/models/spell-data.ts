@@ -101,6 +101,7 @@ export class Spell {
 
     [SpellId.MELEE]: data({
       damageType: DamageType.DIRECT,
+      gcd: false
     }),
 
     [SpellId.MIND_BLAST]: data({
