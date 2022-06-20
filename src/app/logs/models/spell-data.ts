@@ -70,6 +70,10 @@ export class Spell {
       cooldown: 180
     }),
 
+    [SpellId.DISPEL_MAGIC]: data({
+      damageType: DamageType.NONE
+    }),
+
     [SpellId.FADE]: data({
       damageType: DamageType.NONE,
       maxDuration: 10,
@@ -97,6 +101,10 @@ export class Spell {
       damageType: DamageType.AOE,
       maxDamageInstances: 20,
       gcd: false
+    }),
+
+    [SpellId.MASS_DISPEL]: data({
+      damageType: DamageType.NONE
     }),
 
     [SpellId.MELEE]: data({

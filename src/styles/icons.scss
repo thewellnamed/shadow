@@ -77,6 +77,15 @@
     background-image: url('/shadow/assets/berserking.jpg');
   }
 
+  // Dispel Magic
+  &.spell-988, &.spell-dispel-magic {
+    background-image: url('/shadow/assets/dispel.jpg');
+  }
+
+  &.spell-32375, &.spell-mass-dispel {
+    background-image: url('/shadow/assets/massdispel.jpg');
+  }
+
   /**
    * Engineering
    */
