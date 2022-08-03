@@ -20,7 +20,10 @@ export class CombatantInfo {
       31070, // shoulderpads of absolution
       31065, // shroud of absolution
       31067, // leggings of absolution
-      31061 // handguards of absolution
+      31061, // handguards of absolution
+      34434, // bracers of absolution
+      34528, // cord of absolution
+      34563 // treads of absolution
     ];
 
     let count = 0;
