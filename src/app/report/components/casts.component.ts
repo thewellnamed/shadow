@@ -150,7 +150,8 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   maxHits(cast: CastDetails) {
-    return ([DamageType.DOT, DamageType.CHANNEL].includes(Spell.get(cast.spellId).damageType));
+    const spell = Spell.get(cast.spellId);
+    return [DamageType.DOT, DamageType.CHANNEL].includes(spell.damageType) && spell.maxDamageInstances > 0;
   }
 
   hits(cast: CastDetails) {

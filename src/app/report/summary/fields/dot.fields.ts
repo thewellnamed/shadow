@@ -9,7 +9,7 @@ export class DotFields extends BaseFields {
 
     if (spellData) {
       fields = [this.field({
-        label: 'Avg Latency',
+        label: 'Avg Delay',
         value: latency(stats.avgNextCastLatency),
         highlight: this.highlight.castLatency(stats)
       })];

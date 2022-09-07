@@ -47,6 +47,7 @@ export class CastsAnalyzer {
             const minTimeToTick = spellData.maxDuration / spellData.maxDamageInstances;
             return c.hitType !== HitType.NONE || (current.castStart - c.castEnd < minTimeToTick);
           });
+
           this.setDotDetails(current, spellData, prevCastData);
           break;
 
@@ -86,6 +87,7 @@ export class CastsAnalyzer {
     }
 
     const expectedDuration = prev.castEnd + (spellData.maxDuration * 1000);
+
     if (prev.hits < spellData.maxDamageInstances && current.castEnd <= expectedDuration) {
       current.clippedPreviousCast = true;
       current.clippedTicks = spellData.maxDamageInstances - prev.hits;

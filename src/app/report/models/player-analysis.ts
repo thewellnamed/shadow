@@ -28,9 +28,6 @@ export class PlayerAnalysis {
     this.actorInfo = actorInfo;
     this.events = events;
 
-    // eslint-disable-next-line no-console
-    console.log(actorInfo);
-
     // filter out extraneous shadow fiend events
     // todo -- would probably be nicer to find a way to avoid querying these...
     this.events.damage = this.events.damage

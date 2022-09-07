@@ -54,6 +54,7 @@ export class CastDetails {
   haste = 0;
 
   constructor(params: ICastDetailsParams) {
+    this.castId = params.castId;
     this.spellId = params.spellId;
     this.name = params.ability.name;
 

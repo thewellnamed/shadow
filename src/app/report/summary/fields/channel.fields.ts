@@ -14,7 +14,7 @@ export class ChannelFields extends BaseFields {
 
     return [
       this.field({
-        label: `Avg${spellLabel} Latency`,
+        label: `Avg${spellLabel} Delay`,
         value: latency(stats.avgNextCastLatency),
         highlight: this.highlight.channelLatency(stats)
       }),

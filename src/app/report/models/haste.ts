@@ -1,4 +1,4 @@
-import { IActorStats } from 'src/app/logs/interfaces';
+import { IActorStats, IBuffData } from 'src/app/logs/interfaces';
 import { IBuffEvent } from 'src/app/logs/models/buff-data';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { Spell } from 'src/app/logs/models/spell-data';
@@ -18,7 +18,9 @@ export class HasteUtils {
 
       // combine haste percent buff effects multiplicatively
       hastePercent: buffs.reduce((haste, buff) => {
-        haste *= (1 + buff.data.haste);
+        if (HasteUtils.includeBuff(buff, buffs)) {
+          haste *= (1 + buff.data.haste);
+        }
         return haste;
       }, 1),
 
@@ -51,6 +53,23 @@ export class HasteUtils {
 
     // convert from percent to rating
     return (hasteFromRating - 1) * 100 * HasteUtils.RATING_FACTOR;
+  }
+
+  // handle buffs that don't stack. Will return true if this buff is the largest of the set of non-stacking,
+  // else false
+  public static includeBuff(buff: IBuffEvent, buffs: IBuffEvent[]) {
+    if (buff.data.doesNotStackWith.length === 0) {
+      return true;
+    }
+
+    for (const otherId of buff.data.doesNotStackWith) {
+      const otherBuff = buffs.find((b) => b.id === otherId);
+      if (otherBuff && otherBuff.data.haste > buff.data.haste) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 

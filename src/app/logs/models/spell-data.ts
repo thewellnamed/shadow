@@ -27,14 +27,24 @@ export class Spell {
   };
 
   public static get(id: SpellId, haste?: number): ISpellData {
-    const data = Object.assign({}, { mainId: id }, Spell.dataBySpellId[id]);
+    if (!haste) {
+      return Spell.dataBySpellId[id];
+    }
 
-    // todo, apply haste
-    if (haste && data.damageType === DamageType.DOT && data.dotHaste) {
+    const data = Object.assign({}, Spell.dataBySpellId[id]);
+    if (data.damageType === DamageType.DOT && data.dotHaste) {
       data.maxDuration = HasteUtils.duration(id, haste);
     }
 
     return data;
+  }
+
+  public static fromDamageId(id: number): ISpellData|undefined {
+    if (this.dataBySpellId.hasOwnProperty(id)) {
+      return this.dataBySpellId[id];
+    }
+
+    return Object.values(this.data).find((spell) => spell.damageIds.includes(id));
   }
 
   public static damageIds(spellId: number, data: ISpellData) {
@@ -55,7 +65,6 @@ export class Spell {
     }),
 
     [SpellId.DEATH]: data({
-      mainId: SpellId.DEATH,
       rankIds: [32379, 32996, 48157],
       damageType: DamageType.DIRECT,
       maxDamageInstances: 1,
@@ -70,12 +79,11 @@ export class Spell {
     }),
 
     [SpellId.DEVOURING_PLAGUE]: data({
-      mainId: SpellId.DEVOURING_PLAGUE,
       rankIds: [19278, 19279, 19280],
       damageIds: [25467, 63675],
       damageType: DamageType.DOT,
       dotHaste: true,
-      maxDamageInstances: 8,
+      maxDamageInstances: 9, // +1 for improved devouring plague
       maxDuration: 24
     }),
 
@@ -134,7 +142,6 @@ export class Spell {
     }),
 
     [SpellId.MIND_BLAST]: data({
-      mainId: SpellId.MIND_BLAST,
       rankIds: [25372, 25375],
       damageType: DamageType.DIRECT,
       baseCastTime: 1.5,
@@ -143,7 +150,6 @@ export class Spell {
     }),
 
     [SpellId.MIND_FLAY]: data({
-      mainId: SpellId.MIND_FLAY,
       rankIds: [18807, 25387, 48155],
       damageIds: [58381],
       damageType: DamageType.CHANNEL,
@@ -157,9 +163,7 @@ export class Spell {
       cooldown: 60
     }),
 
-    // todo: next
     [SpellId.PAIN]: data({
-      mainId: SpellId.PAIN,
       rankIds: [25367, 25368, 48124],
       damageType: DamageType.DOT,
       dotHaste: false
@@ -172,7 +176,6 @@ export class Spell {
     }),
 
     [SpellId.SHIELD]: data({
-      mainId: SpellId.SHIELD,
       rankIds: [25217, 25218, 48065],
       damageType: DamageType.NONE,
       maxDuration: 30,
@@ -194,7 +197,6 @@ export class Spell {
     }),
 
     [SpellId.VAMPIRIC_TOUCH]: data({
-      mainId: SpellId.VAMPIRIC_TOUCH,
       rankIds: [34916, 34917, 48159],
       damageType: DamageType.DOT,
       dotHaste: true,
@@ -206,7 +208,10 @@ export class Spell {
 
   public static dataBySpellId: {[spellId: number]: ISpellData} =
     Object.keys(Spell.data).reduce((lookup, next) => {
-      const spellId = parseInt(next), data: ISpellData = Spell.data[spellId];
+      const spellId = parseInt(next),
+        data: ISpellData = Spell.data[spellId];
+
+      data.mainId = spellId;
       lookup[spellId] = data;
 
       for (let rankId of data.rankIds) {

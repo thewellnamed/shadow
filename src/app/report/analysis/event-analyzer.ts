@@ -6,7 +6,7 @@ import { DamageInstance } from 'src/app/report/models/damage-instance';
 import { HasteUtils, IHasteStats } from 'src/app/report/models/haste';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { IActorStats, IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
-import { IDeathLookup, LogsService } from 'src/app/logs/logs.service';
+import { IDeathLookup } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
@@ -42,7 +42,7 @@ export class EventAnalyzer {
 
     // sometimes casts that start before combat begins for the logger are omitted,
     // but the damage is recorded. In that case, infer the cast...
-    // todo: is this necessary in wrath? If so, need to update to handle improved devouring plague
+    // TODO: is this necessary in wrath?
     //this.inferMissingCasts();
 
     // partition damage events by spell ID for association with casts
@@ -133,13 +133,13 @@ export class EventAnalyzer {
       }
 
       else if (spellData.damageType !== DamageType.NONE) {
-        if (spellData.maxDamageInstances > 1) {
+        if (spellData.damageType === DamageType.DIRECT) {
+          this.setDamage(details, spellData);
+        } else {
           this.setMultiInstanceDamage(details, spellData);
 
           // check for lost ticks to enemy death
           this.setTruncationByDeath(details, spellData);
-        } else {
-          this.setDamage(details, spellData);
         }
       }
 
@@ -265,17 +265,17 @@ export class EventAnalyzer {
   }
 
   private initializeDamageBuckets() {
-    this.damageBySpell = LogsService.TRACKED_DAMAGE
-      .concat(SpellId.MELEE)
+    this.damageBySpell = Object.keys(Spell.data)
       .reduce((lookup, spellId) => {
-        lookup[spellId] = [];
+        lookup[parseInt(spellId)] = [];
         return lookup;
       }, {} as {[spellId: number]: IDamageData[]});
 
     for (const event of this.damageData) {
-      const spellId = mapSpellId(event.ability.guid);
-      if (this.damageBySpell.hasOwnProperty(spellId)) {
-        this.damageBySpell[spellId].push(event);
+      const data = Spell.fromDamageId(mapSpellId(event.ability.guid));
+
+      if (data && this.damageBySpell.hasOwnProperty(data.mainId)) {
+        this.damageBySpell[data.mainId].push(event);
       }
     }
   }
@@ -292,12 +292,6 @@ export class EventAnalyzer {
   private removeBuff(event: IBuffData) {
     const index = this.buffs.findIndex((b) => b.id === event.ability.guid);
     if (index === -1) {
-      // if we're removing a buff and we never saw the event which added it, then it was probably
-      // applied before combat. For haste rating buffs (e.g. drums of battle), this will show up
-      // in the Haste rating stats, so we can remove it there. If it was a percentage buff,
-      // we're just missing it.
-      //
-      // todo: process buffs before evaluating events to "infer missing buffs".
       const buffRating = BuffData[event.ability.guid].hasteRating || 0,
         baseHaste = this.baseStats.Haste?.min || 0;
 
@@ -331,9 +325,8 @@ export class EventAnalyzer {
   }
 
   private setDamage(cast: CastDetails, spellData: ISpellData) {
-    for (let damageId of Spell.damageIds(cast.castId, spellData)) {
-      if (this.damageBySpell.hasOwnProperty(damageId)) {
-        const event = this.damageBySpell[damageId].find((d) =>
+      if (this.damageBySpell.hasOwnProperty(cast.spellId)) {
+        const event = this.damageBySpell[cast.spellId].find((d) =>
           this.matchDamage(cast, spellData, d, cast.castEnd, true));
 
         if (event) {
@@ -343,25 +336,24 @@ export class EventAnalyzer {
           return;
         }
       }
-    }
   }
 
   private setMultiInstanceDamage(cast: CastDetails, spellData: ISpellData) {
     let i = 0;
-    let maxDamageTimestamp = cast.castEnd + (spellData.maxDuration * 1000);
     let instances: DamageInstance[] = [];
     let nextCast: ICastData|null;
     let nextDamage: IDamageData|null;
+    let maxDamageTimestamp = spellData.maxDuration > 0 ?
+      cast.castEnd + (spellData.maxDuration * 1000) + (spellData.maxDamageInstances * EventAnalyzer.EVENT_LEEWAY) :
+      this.analysis.encounter.end;
 
-    const damageEvents = Spell
-      .damageIds(cast.castId, spellData)
-      .flatMap((damageId) => this.damageBySpell[damageId] || []);
+    const damageEvents = this.damageBySpell[cast.spellId] || [];
 
     if (cast.targetId && this.analysis.getActorName(cast.targetId) === undefined) {
       // cast on "Unknown Actor" in WCL. Try to infer the target first
       // look for a damage event around the time we should expect a hit for the spell
       // and infer the actual target from that instance, if found.
-      const delta = spellData.maxDuration > 0 ? (spellData.maxDuration / spellData.maxDamageInstances) * 1000 : 0;
+      const delta = spellData.maxDuration > 0 ? (spellData.maxDuration / spellData.maxDamageInstances) * 1000 : 3000;
       const firstDamageTimestamp = cast.castEnd + delta + EventAnalyzer.EVENT_LEEWAY;
       const firstInstance = damageEvents.find((e) =>
         this.matchDamage(cast, spellData, e, firstDamageTimestamp, true));
@@ -387,7 +379,7 @@ export class EventAnalyzer {
     let count = 0;
     i = 0;
 
-    while (nextDamage && count < spellData.maxDamageInstances) {
+    while (nextDamage && (!spellData.maxDamageInstances || count < spellData.maxDamageInstances)) {
       if (this.matchDamage(cast, spellData, nextDamage, maxDamageTimestamp)) {
         // This is a little complicated because of differences between channeled, dot, and AoE damage
         // Each individual damage instance for AoE can resist individually, so we just count them all without condition
@@ -439,7 +431,7 @@ export class EventAnalyzer {
   // -- and the cast was not resisted (requires finding an associated damage instance)
   private castIsReplacement(cast: CastDetails, next: ICastData, events: IDamageData[]) {
     // check for matching target
-    if (next.type !== 'cast' || mapSpellId(next.ability.guid) !== cast.castId ||
+    if (next.type !== 'cast' || Spell.get(next.ability.guid).mainId !== cast.spellId ||
       next.targetID !== cast.targetId || next.targetInstance !== cast.targetInstance) {
       return false;
     }
