@@ -19,8 +19,16 @@ export class LogsService {
   private static API_URL = 'https://classic.warcraftlogs.com/v1';
   private static MAX_EVENT_REQUESTS = 10;
 
-  public static TRACKED_ABILITIES = Object.keys(Spell.data)
+  public static TRACKED_CASTS = Object.keys(Spell.dataBySpellId)
     .map((k) => parseInt(k))
+    .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
+
+  public static TRACKED_DAMAGE = Object.values(Spell.data)
+    .flatMap((spell) => {
+      return spell.damageIds.length > 0 ?
+        spell.damageIds :
+        spell.rankIds.concat([spell.mainId]);
+    })
     .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
 
   public static TRACKED_BUFFS = Object.keys(BuffData).map((k) => parseInt(k));
@@ -116,14 +124,17 @@ export class LogsService {
     if (this.eventCache.hasOwnProperty(cacheId)) {
       return of(this.eventCache[cacheId]);
     }
-
-    const filter = `(source.name="${actor.name}" AND ability.id IN (${LogsService.TRACKED_ABILITIES.join(',')})) OR source.name="Shadowfiend"`
-    const castParams = this.makeParams(encounter, { filter });
+    const castParams = this.makeParams(encounter, {
+      filter: `(source.name="${actor.name}" AND ability.id IN (${LogsService.TRACKED_CASTS.join(',')})) OR source.name="Shadowfiend"`
+    });
+    const damageParams = this.makeParams(encounter, {
+      filter: `(source.name="${actor.name}" AND ability.id IN (${LogsService.TRACKED_DAMAGE.join(',')})) OR source.name="Shadowfiend"`
+    });
 
     return combineLatest(
       [
         this.requestEvents<wcl.ICastData>(log.id,'casts', castParams),
-        this.requestEvents<wcl.IDamageData>(log.id,'damage-done', castParams),
+        this.requestEvents<wcl.IDamageData>(log.id,'damage-done', damageParams),
         this.requestEvents<wcl.IDeathData>(log.id, 'deaths', this.makeParams(encounter, {
           hostility: 1
         })),

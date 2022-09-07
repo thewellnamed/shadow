@@ -231,7 +231,7 @@ export class CastStats {
       });
     }
 
-    const spellData = Spell.get(cast.spellId, this.analysis.actorInfo);
+    const spellData = Spell.get(cast.spellId, cast.haste);
 
     if (spellData.gcd) {
       // if there was pushback, count it as latency or as time lost.

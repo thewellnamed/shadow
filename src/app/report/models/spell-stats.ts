@@ -18,7 +18,7 @@ export class SpellStats extends CastStats {
     super(analysis, targetId);
 
     this.spellId = spellId;
-    this.spellData = Spell.get(spellId, this.analysis.actorInfo);
+    this.spellData = Spell.get(spellId);
     this.targetId = targetId;
     this.hitCount = hitCount;
   }

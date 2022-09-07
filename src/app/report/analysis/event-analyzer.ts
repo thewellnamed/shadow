@@ -1,4 +1,4 @@
-import { berserkingFromCast, BuffData, BuffTrigger, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
+import { BuffData, BuffTrigger, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
 import { Report } from 'src/app/report/models/report';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
@@ -42,7 +42,8 @@ export class EventAnalyzer {
 
     // sometimes casts that start before combat begins for the logger are omitted,
     // but the damage is recorded. In that case, infer the cast...
-    this.inferMissingCasts();
+    // todo: is this necessary in wrath? If so, need to update to handle improved devouring plague
+    //this.inferMissingCasts();
 
     // partition damage events by spell ID for association with casts
     this.initializeDamageBuckets();
@@ -107,11 +108,11 @@ export class EventAnalyzer {
         activeStats = HasteUtils.calc(this.baseStats, this.buffs);
       }
 
-      const spellId = mapSpellId(currentCast.ability.guid);
-      const damageEvents = this.damageBySpell[spellId];
-      const spellData = Spell.get(spellId, this.analysis.actorInfo);
+      const castId = mapSpellId(currentCast.ability.guid);
+      const spellData = Spell.get(castId, activeStats.totalHaste - 1);
       const details = new CastDetails({
-        spellId,
+        castId,
+        spellId: spellData.mainId,
         ability: currentCast.ability,
         sourceId: currentCast.sourceID,
         targetId: currentCast.targetID,
@@ -131,43 +132,14 @@ export class EventAnalyzer {
         this.setShadowfiendDamage(details);
       }
 
-      // special case -- Berserking!
-      // we need to track the buff from the cast in order to know how much haste the player got, based on health
-      else if (details.spellId === SpellId.BERSERKING) {
-        const { event, buff } = berserkingFromCast(currentCast);
-        this.applyBuff(event, buff);
-      }
-
-      else if (this.damageBySpell.hasOwnProperty(spellId)) {
-        // for dots, we need to associate damage ticks with the appropriate cast
-        // we know how far into the future this cast could tick, but we need to
-        // look for a future cast on the same target, because the current cast can only
-        // be responsible for ticks up until the next cast on a given target
+      else if (spellData.damageType !== DamageType.NONE) {
         if (spellData.maxDamageInstances > 1) {
-          this.setMultiInstanceDamage(details, spellData, damageEvents);
+          this.setMultiInstanceDamage(details, spellData);
 
           // check for lost ticks to enemy death
           this.setTruncationByDeath(details, spellData);
-        } else if (spellData.damageType !== DamageType.NONE) {
-          // find the next instance of damage for this spell for this target.
-          const damage = damageEvents.find((d) =>
-            this.matchDamage(details, spellData, d, details.castEnd, true));
-
-          if (damage) {
-            details.targetId = damage.targetID;
-            details.setInstances([new DamageInstance((damage))]);
-            damage.read = true;
-          }
-        }
-      }
-
-      // prune read events
-      // this is probably unnecessary given the small size of these arrays, but whatever.
-      if (damageEvents) {
-        nextDamage = damageEvents[0];
-        while (nextDamage && nextDamage.read) {
-          damageEvents.shift();
-          nextDamage = damageEvents[0];
+        } else {
+          this.setDamage(details, spellData);
         }
       }
 
@@ -211,7 +183,7 @@ export class EventAnalyzer {
 
         case 'cast':
           cast = event as ICastData;
-          spellData = Spell.get(mapSpellId(event.ability.guid), this.analysis.actorInfo);
+          spellData = Spell.get(mapSpellId(event.ability.guid), stats.totalHaste - 1);
           if ((cast.ability.guid === SpellId.VAMPIRIC_TOUCH || cast.ability.guid === SpellId.MIND_BLAST) &&
             cast.ability.guid === startingCast?.ability?.guid) {
 
@@ -293,7 +265,7 @@ export class EventAnalyzer {
   }
 
   private initializeDamageBuckets() {
-    this.damageBySpell = LogsService.TRACKED_ABILITIES
+    this.damageBySpell = LogsService.TRACKED_DAMAGE
       .concat(SpellId.MELEE)
       .reduce((lookup, spellId) => {
         lookup[spellId] = [];
@@ -358,12 +330,32 @@ export class EventAnalyzer {
     cast.setInstances(instances);
   }
 
-  private setMultiInstanceDamage(cast: CastDetails, spellData: ISpellData, damageEvents: IDamageData[]) {
+  private setDamage(cast: CastDetails, spellData: ISpellData) {
+    for (let damageId of Spell.damageIds(cast.castId, spellData)) {
+      if (this.damageBySpell.hasOwnProperty(damageId)) {
+        const event = this.damageBySpell[damageId].find((d) =>
+          this.matchDamage(cast, spellData, d, cast.castEnd, true));
+
+        if (event) {
+          cast.targetId = event.targetID;
+          cast.setInstances([new DamageInstance((event))]);
+          event.read = true;
+          return;
+        }
+      }
+    }
+  }
+
+  private setMultiInstanceDamage(cast: CastDetails, spellData: ISpellData) {
     let i = 0;
     let maxDamageTimestamp = cast.castEnd + (spellData.maxDuration * 1000);
     let instances: DamageInstance[] = [];
     let nextCast: ICastData|null;
     let nextDamage: IDamageData|null;
+
+    const damageEvents = Spell
+      .damageIds(cast.castId, spellData)
+      .flatMap((damageId) => this.damageBySpell[damageId] || []);
 
     if (cast.targetId && this.analysis.getActorName(cast.targetId) === undefined) {
       // cast on "Unknown Actor" in WCL. Try to infer the target first
@@ -447,7 +439,7 @@ export class EventAnalyzer {
   // -- and the cast was not resisted (requires finding an associated damage instance)
   private castIsReplacement(cast: CastDetails, next: ICastData, events: IDamageData[]) {
     // check for matching target
-    if (next.type !== 'cast' || mapSpellId(next.ability.guid) !== cast.spellId ||
+    if (next.type !== 'cast' || mapSpellId(next.ability.guid) !== cast.castId ||
       next.targetID !== cast.targetId || next.targetInstance !== cast.targetInstance) {
       return false;
     }
@@ -521,7 +513,7 @@ export class EventAnalyzer {
     // find first damage cast so we can borrow its spellpower if we find a missing cast
     const firstDamageCast = this.castData.find((c) => {
       const spellId = mapSpellId(c.ability.guid);
-      return c.type === 'cast' && Spell.data[spellId].damageType !== DamageType.NONE
+      return c.type === 'cast' && Spell.dataBySpellId[spellId].damageType !== DamageType.NONE
     });
 
     for (let i = instancesToCheck; i >= 0; i--) {
@@ -561,7 +553,7 @@ export class EventAnalyzer {
   }
 
   private inferCastTimestamp(damage: IDamageData) {
-    const spellData = Spell.get(mapSpellId(damage.ability.guid), this.analysis.actorInfo);
+    const spellData = Spell.get(mapSpellId(damage.ability.guid));
 
     if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData?.damageType)) {
       // First find the earliest tick we want to associate to our inferred cast,

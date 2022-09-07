@@ -6,7 +6,8 @@ import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { HasteUtils } from 'src/app/report/models/haste';
 
 export class CastDetails {
-  spellId: SpellId;
+  spellId: SpellId; // the main ID for the spell (i.e. the max rank spell ID)
+  castId: SpellId; // the actual spell ID in the log
   name: string;
   castStart: number;
   castEnd: number;
@@ -144,6 +145,7 @@ export class CastDetails {
 }
 
 interface ICastDetailsParams {
+  castId: SpellId;
   spellId: SpellId;
   ability: IAbilityData;
   sourceId: number,

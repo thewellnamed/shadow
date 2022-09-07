@@ -4,20 +4,20 @@ export enum SpellId {
   NONE = 0,
 
   // Shadow Priest Abilities
-  BERSERKING = 20554,
-  DEATH = 32996,
-  DESPERATE_PRAYER = 25437,
+  BERSERKING = 26297,
+  DEATH = 48158,
   DEVOURING_PLAGUE = 25467,
-  FADE = 25429,
+  DISPERSION = 47585,
+  FADE = 586,
   FEAR_WARD = 6346,
-  MIND_BLAST = 25375,
-  MIND_FLAY = 25387,
-  PAIN = 25368,
+  HOLY_NOVA = 48078,
+  MIND_BLAST = 48126,
+  MIND_FLAY = 48156,
+  PAIN = 48125,
   SHADOW_FIEND = 34433,
-  SHIELD = 25218,
-  STARSHARDS = 25446,
+  SHIELD = 48066,
   VAMPIRIC_EMBRACE = 15286,
-  VAMPIRIC_TOUCH = 34917,
+  VAMPIRIC_TOUCH = 48160,
   DISPEL_MAGIC = 988,
   MASS_DISPEL = 32375,
 
@@ -39,7 +39,6 @@ export enum SpellId {
 
 // Map WCL ability IDS (ability.guid) to a local spell ID
 // Mostly here now to allow processing of shadowfiend melee
-// TODO - can use this to handle multiple ranks of spells
 export function mapSpellId(guid: number) {
   if (guid > 0) {
     return guid;

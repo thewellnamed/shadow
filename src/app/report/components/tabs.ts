@@ -1,6 +1,7 @@
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { TimelineSummary } from 'src/app/report/summary/timeline.summary';
 import { BaseSummary } from 'src/app/report/summary/base.summary';
+import { DevouringPlagueSummary } from 'src/app/report/summary/devouring-plague.summary';
 import { VampiricTouchSummary } from 'src/app/report/summary/vampiric-touch.summary';
 import { PainSummary } from 'src/app/report/summary/pain.summary';
 import { MindFlaySummary } from 'src/app/report/summary/mind-flay.summary';
@@ -9,6 +10,7 @@ import { MindBlastSummary } from 'src/app/report/summary/mind-blast.summary';
 
 export enum Tab {
   Timeline = 0,
+  DP,
   VT,
   SWP,
   MB,
@@ -22,6 +24,14 @@ export const TabDefinitions: ITabDefinition[] = [
     label: 'Timeline',
     spellId: SpellId.NONE,
     summaryType: TimelineSummary
+  },
+
+  // Tab.DP
+  {
+    label: 'DP',
+    icon: 'dp',
+    spellId: SpellId.DEVOURING_PLAGUE,
+    summaryType: DevouringPlagueSummary
   },
 
   // Tab.VT

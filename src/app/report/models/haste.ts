@@ -33,7 +33,11 @@ export class HasteUtils {
 
   // get expected cast time for a given spell, with a given amount of total haste
   public static castTime(spellId: SpellId, haste: number) {
-    return Spell.data[spellId].baseCastTime / (1 + haste);
+    return Spell.dataBySpellId[spellId].baseCastTime / (1 + haste);
+  }
+
+  public static duration(spellId: SpellId, haste: number) {
+    return Spell.dataBySpellId[spellId].maxDuration / (1 + haste);
   }
 
   public static inferRating(hastePercent: number, baseCastTime: number, actualCastTime: number) {

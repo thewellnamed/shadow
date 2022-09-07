@@ -8,27 +8,27 @@
   background-repeat: no-repeat;
 
   // VT
-  &.spell-34917, &.spell-vt {
+  &.spell-48160, &.spell-vt {
     background-image: url('/shadow/assets/vt.jpg');
   }
 
   // SW:P
-  &.spell-25368, &.spell-swp {
+  &.spell-48125, &.spell-swp {
     background-image: url('/shadow/assets/swp.jpg');
   }
 
   // Mind Blast
-  &.spell-25375, &.spell-mb {
+  &.spell-48126, &.spell-mb {
     background-image: url('/shadow/assets/mb.jpg');
   }
 
   // Mind Flay
-  &.spell-25387, &.spell-flay {
+  &.spell-48156, &.spell-flay {
     background-image: url('/shadow/assets/flay.jpg');
   }
 
   // SW: Death
-  &.spell-32996, &.spell-swd {
+  &.spell-48158, &.spell-swd {
     background-image: url('/shadow/assets/swd.jpg');
   }
 
@@ -38,7 +38,7 @@
   }
 
   // Shield
-  &.spell-25218, &.spell-shield {
+  &.spell-48066, &.spell-shield {
     background-image: url('/shadow/assets/shield.jpg');
   }
 
@@ -58,13 +58,8 @@
   }
 
   // Devouring Plague
-  &.spell-25467, &.spell-plague {
+  &.spell-25467, &.spell-dp {
     background-image: url('/shadow/assets/plague.jpg');
-  }
-
-  // Starshards
-  &.spell-25446, &.spell-starshards {
-    background-image: url('/shadow/assets/starshards.jpg');
   }
 
   // Desperate prayer
@@ -73,7 +68,7 @@
   }
 
   // Berserking
-  &.spell-20554, &.spell-berserking {
+  &.spell-26297, &.spell-berserking {
     background-image: url('/shadow/assets/berserking.jpg');
   }
 
@@ -84,6 +79,14 @@
 
   &.spell-32375, &.spell-mass-dispel {
     background-image: url('/shadow/assets/massdispel.jpg');
+  }
+
+  &.spell-48078, &.spell-holy-nova {
+    background-image: url('/shadow/assets/holynova.jpg');
+  }
+
+  &.spell-47585, &.spell-dispersion {
+    background-image: url('/shadow/assets/dispersion.jpg');
   }
 
   /**

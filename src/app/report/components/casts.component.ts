@@ -64,7 +64,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
     if (changes.spellId) {
       this.spellData = changes.spellId.currentValue === SpellId.NONE ?
         undefined :
-        Spell.get(changes.spellId.currentValue, this.analysis.actorInfo);
+        Spell.get(changes.spellId.currentValue);
     }
 
     if (changes.casts) {
@@ -154,7 +154,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   hits(cast: CastDetails) {
-    const spellData = Spell.get(cast.spellId, this.analysis.actorInfo);
+    const spellData = Spell.get(cast.spellId);
     let hits = cast.hits.toString();
 
     if (this.maxHits(cast)) {

@@ -1,5 +1,5 @@
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { CombatantInfo } from 'src/app/logs/models/combatant-info';
+import { HasteUtils, IHasteStats } from 'src/app/report/models/haste';
 
 export enum DamageType {
   NONE,
@@ -15,22 +15,30 @@ function data(params: Partial<ISpellData> = {}): ISpellData {
 
 export class Spell {
   public static readonly DEFAULTS: Partial<ISpellData> = {
+    rankIds: [],
+    damageIds: [],
     baseCastTime: 0,
     maxDamageInstances: 0,
     maxDuration: 0,
     cooldown: 0,
     gcd: true,
+    dotHaste: false,
     statsByTick: false
   };
 
-  public static get(id: SpellId, actorInfo?: CombatantInfo) {
-    const data = Spell.data[id], bonus = actorInfo?.bonuses[id];
+  public static get(id: SpellId, haste?: number): ISpellData {
+    const data = Object.assign({}, { mainId: id }, Spell.dataBySpellId[id]);
 
-    if (data && bonus) {
-      return Object.assign({}, data, bonus);
+    // todo, apply haste
+    if (haste && data.damageType === DamageType.DOT && data.dotHaste) {
+      data.maxDuration = HasteUtils.duration(id, haste);
     }
 
     return data;
+  }
+
+  public static damageIds(spellId: number, data: ISpellData) {
+    return data.damageIds.length === 0 ? [spellId] : data.damageIds;
   }
 
   public static data: {[spellId: number]: ISpellData} = {
@@ -47,6 +55,8 @@ export class Spell {
     }),
 
     [SpellId.DEATH]: data({
+      mainId: SpellId.DEATH,
+      rankIds: [32379, 32996, 48157],
       damageType: DamageType.DIRECT,
       maxDamageInstances: 1,
       cooldown: 12
@@ -59,19 +69,23 @@ export class Spell {
       gcd: false
     }),
 
-    [SpellId.DESPERATE_PRAYER]: data({
-      damageType: DamageType.NONE
-    }),
-
     [SpellId.DEVOURING_PLAGUE]: data({
+      mainId: SpellId.DEVOURING_PLAGUE,
+      rankIds: [19278, 19279, 19280],
+      damageIds: [25467, 63675],
       damageType: DamageType.DOT,
+      dotHaste: true,
       maxDamageInstances: 8,
-      maxDuration: 24,
-      cooldown: 180
+      maxDuration: 24
     }),
 
     [SpellId.DISPEL_MAGIC]: data({
       damageType: DamageType.NONE
+    }),
+
+    [SpellId.DISPERSION]: data({
+      damageType: DamageType.NONE,
+      gcd: true
     }),
 
     [SpellId.FADE]: data({
@@ -103,6 +117,13 @@ export class Spell {
       gcd: false
     }),
 
+    [SpellId.HOLY_NOVA]: data({
+      damageType: DamageType.AOE,
+      rankIds: [27801, 25331, 48077],
+      maxDamageInstances: 20,
+      gcd: true,
+    }),
+
     [SpellId.MASS_DISPEL]: data({
       damageType: DamageType.NONE
     }),
@@ -113,6 +134,8 @@ export class Spell {
     }),
 
     [SpellId.MIND_BLAST]: data({
+      mainId: SpellId.MIND_BLAST,
+      rankIds: [25372, 25375],
       damageType: DamageType.DIRECT,
       baseCastTime: 1.5,
       maxDamageInstances: 1,
@@ -120,6 +143,9 @@ export class Spell {
     }),
 
     [SpellId.MIND_FLAY]: data({
+      mainId: SpellId.MIND_FLAY,
+      rankIds: [18807, 25387, 48155],
+      damageIds: [58381],
       damageType: DamageType.CHANNEL,
       maxDamageInstances: 3,
       maxDuration: 3,
@@ -131,29 +157,26 @@ export class Spell {
       cooldown: 60
     }),
 
+    // todo: next
     [SpellId.PAIN]: data({
+      mainId: SpellId.PAIN,
+      rankIds: [25367, 25368, 48124],
       damageType: DamageType.DOT,
-      maxDamageInstances: 8,
-      maxDuration: 24,
+      dotHaste: false
     }),
 
     [SpellId.SHADOW_FIEND]: data({
       damageType: DamageType.DIRECT,
       maxDuration: 15,
-      cooldown: 300
+      cooldown: 180
     }),
 
     [SpellId.SHIELD]: data({
+      mainId: SpellId.SHIELD,
+      rankIds: [25217, 25218, 48065],
       damageType: DamageType.NONE,
       maxDuration: 30,
       cooldown: 4
-    }),
-
-    [SpellId.STARSHARDS]: data({
-      damageType: DamageType.DOT,
-      maxDamageInstances: 5,
-      maxDuration: 15,
-      cooldown: 30
     }),
 
     [SpellId.SUPER_SAPPER]: data({
@@ -167,26 +190,43 @@ export class Spell {
     }),
 
     [SpellId.VAMPIRIC_EMBRACE]: data({
-      damageType: DamageType.NONE,
-      maxDuration: 60,
-      cooldown: 10
+      damageType: DamageType.NONE
     }),
 
     [SpellId.VAMPIRIC_TOUCH]: data({
+      mainId: SpellId.VAMPIRIC_TOUCH,
+      rankIds: [34916, 34917, 48159],
       damageType: DamageType.DOT,
+      dotHaste: true,
       baseCastTime: 1.5,
       maxDamageInstances: 5,
       maxDuration: 15
     })
   }
+
+  public static dataBySpellId: {[spellId: number]: ISpellData} =
+    Object.keys(Spell.data).reduce((lookup, next) => {
+      const spellId = parseInt(next), data: ISpellData = Spell.data[spellId];
+      lookup[spellId] = data;
+
+      for (let rankId of data.rankIds) {
+        lookup[rankId] = data;
+      }
+
+      return lookup;
+    }, {} as {[spellId: number]: ISpellData});
 }
 
 export interface ISpellData {
+  mainId: number;
   damageType: DamageType;
+  rankIds: number[];
+  damageIds: number[]
   baseCastTime: number;
   maxDamageInstances: number;
   maxDuration: number;
   cooldown: number;
   gcd: boolean;
+  dotHaste: boolean;
   statsByTick: boolean;
 }
