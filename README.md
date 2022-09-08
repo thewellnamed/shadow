@@ -1,6 +1,6 @@
-# TBCC Shadow Priest Log Analyzer
+# Wrath Shadow Priest Log Analyzer
 
-To build and run locally, you'll either need [Angular CLI](https://github.com/angular/angular-cli) (built with v12.2.7)
+To build and run locally, you'll either need [Angular CLI](https://github.com/angular/angular-cli) (built with v14.2.2)
 or [Yarn](https://yarnpkg.com/). If you're familiar with ng-cli commands, you can use those.
 
 ### Yarn Commands
@@ -20,21 +20,30 @@ https://thewellnamed.github.io/shadow
 A brief explanation of the shadow gameplay principles which inform this analyzer is available in [Basics](BASICS.md). For more information,
 or for questions about shadow priest gameplay, check out #vod-and-log-review in [shadow priest discord](https://discord.gg/classicshadow).
 
+Note: not yet updated for WOTLK!
+
 ### Glossary
 
-Definitions of stats/terms available via the [Glossary](GLOSSARY.md)
+Definitions of stats/terms available via the [Glossary](GLOSSARY.md). Also not yet updated for WOTLK
 
 ### Credits
 
 Almost the entirety of the underlying information about how to maximize performance as a shadow priest comes from
 [priest discord](https://discord.gg/priestclassic) (and now, [shadow priest discord](https://discord.gg/classicshadow)).
-Special thanks to Passion for his organizing efforts.
+Special thanks to Passion for his organizing efforts, Linelo for him theorycrafting and sim work, and BTGF for being the best.
 
-### Todo
-
-[Todo List](TODO.md)
 
 ### Changelog
+- September 8th, 2022
+  - **Wrath Pre-patch Release (Beta)!**
+  
+    Notable:
+    - Basic support for hasted dots and crit
+    - Updates spell IDs for wrath, and handles multiple ranks per spell
+
+    Todo:
+    - More work is needed to track haste from buffs/auras, TBD for wrath release.
+
 - January 28th, 2022
   - **Phase 3 Release!**
   
