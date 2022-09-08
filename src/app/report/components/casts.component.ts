@@ -7,7 +7,7 @@ import {
   OnInit, SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material/button-toggle';
 
 import { CastDetails } from 'src/app/report/models/cast-details';
@@ -36,8 +36,8 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
 
   visibleCasts: CastDetails[];
   spellData: ISpellData|undefined;
-  spellFilter = new FormControl();
-  hitCount = new FormControl(-1);
+  spellFilter = new UntypedFormControl();
+  hitCount = new UntypedFormControl(-1);
   spells: { id: string; name: string }[] = [];
   spellNames: { [id: string]: string };
   showHaste = false;

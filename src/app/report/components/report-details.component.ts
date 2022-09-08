@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -37,7 +37,7 @@ export class ReportDetailsComponent implements OnInit {
   actorInfo: CombatantInfo;
   highlight: StatHighlights;
   activeTab = 0;
-  form: FormGroup;
+  form: UntypedFormGroup;
   targets: { id: number; name: string }[];
   hitCount = -1;
   loading = true;
@@ -124,7 +124,7 @@ export class ReportDetailsComponent implements OnInit {
   }
 
   get target() {
-    return this.form.get('target') as FormControl;
+    return this.form.get('target') as UntypedFormControl;
   }
 
   private initializeForm() {
@@ -140,10 +140,10 @@ export class ReportDetailsComponent implements OnInit {
     }
 
     const target = this.params.has(ParamType.TARGET) ? parseInt(this.params.get(ParamType.TARGET)) : 0;
-    this.form = new FormGroup({
-      encounter: new FormControl(null),
-      player: new FormControl(null),
-      target: new FormControl(target)
+    this.form = new UntypedFormGroup({
+      encounter: new UntypedFormControl(null),
+      player: new UntypedFormControl(null),
+      target: new UntypedFormControl(target)
     });
   }
 

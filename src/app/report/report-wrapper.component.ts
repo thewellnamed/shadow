@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 
@@ -23,7 +23,7 @@ export class ReportWrapperComponent implements OnInit {
   encounterId: number;
   encounters: EncounterSummary[];
   playerId: string;
-  form: FormGroup;
+  form: UntypedFormGroup;
   log: LogSummary;
 
   constructor(private router: Router,
@@ -32,10 +32,10 @@ export class ReportWrapperComponent implements OnInit {
               private params: ParamsService) {}
 
   ngOnInit() {
-    this.form = new FormGroup({
-      encounter: new FormControl(null),
-      player: new FormControl(null),
-      target: new FormControl(0)
+    this.form = new UntypedFormGroup({
+      encounter: new UntypedFormControl(null),
+      player: new UntypedFormControl(null),
+      target: new UntypedFormControl(0)
     });
 
     this.route.paramMap.pipe(
@@ -98,10 +98,10 @@ export class ReportWrapperComponent implements OnInit {
   }
 
   get encounter() {
-    return this.form.get('encounter') as FormControl;
+    return this.form.get('encounter') as UntypedFormControl;
   }
 
   get player() {
-    return this.form.get('player') as FormControl;
+    return this.form.get('player') as UntypedFormControl;
   }
 }

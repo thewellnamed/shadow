@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 import { Router } from '@angular/router';
 
@@ -16,7 +16,7 @@ export class HomeComponent implements OnInit {
   @ViewChild('selectEncounter') public encounterSelect: MatSelect;
   @ViewChild('selectPlayer') public playerSelect: MatSelect;
   public summary: LogSummary|undefined;
-  public form: FormGroup;
+  public form: UntypedFormGroup;
   public searching = false;
   public encounters: EncounterSummary[];
 
@@ -24,10 +24,10 @@ export class HomeComponent implements OnInit {
 
   constructor(private logs: LogsService,
               private router: Router) {
-    this.form = new FormGroup({
-      log: new FormControl(null, this.validateLogId),
-      encounter: new FormControl({ value: null, disabled: true }),
-      player: new FormControl({ value: null, disabled: true })
+    this.form = new UntypedFormGroup({
+      log: new UntypedFormControl(null, this.validateLogId),
+      encounter: new UntypedFormControl({ value: null, disabled: true }),
+      player: new UntypedFormControl({ value: null, disabled: true })
     });
   }
 
@@ -42,11 +42,11 @@ export class HomeComponent implements OnInit {
   }
 
   get encounter() {
-    return this.form.get('encounter') as FormControl;
+    return this.form.get('encounter') as UntypedFormControl;
   }
 
   get player() {
-    return this.form.get('player') as FormControl;
+    return this.form.get('player') as UntypedFormControl;
   }
 
   validateLogId = (control: AbstractControl): ValidationErrors | null => {
