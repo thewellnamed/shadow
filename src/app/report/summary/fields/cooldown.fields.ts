@@ -24,8 +24,7 @@ export class CooldownFields extends BaseFields {
     fields = fields.concat([
       this.field({
         label: 'Avg Off Cooldown',
-        value: format(stats.cooldownStats.avgOffCooldown, 1, 's'),
-        highlight: this.highlight.cooldown(stats)
+        value: format(stats.cooldownStats.avgOffCooldown, 1, 's')
       })
     ]);
 

@@ -80,11 +80,15 @@ export class Spell {
 
     [SpellId.DEVOURING_PLAGUE]: data({
       rankIds: [19278, 19279, 19280],
-      damageIds: [25467, 63675],
+      damageIds: [SpellId.DEVOURING_PLAGUE, SpellId.IMPROVED_DEVOURING_PLAGUE],
       damageType: DamageType.DOT,
       dotHaste: true,
       maxDamageInstances: 9, // +1 for improved devouring plague
-      maxDuration: 24
+      maxDuration: 24,
+      maxInstancesPerDamageId: {
+        [SpellId.IMPROVED_DEVOURING_PLAGUE]: 1,
+        [SpellId.DEVOURING_PLAGUE]: 8
+      }
     }),
 
     [SpellId.DISPEL_MAGIC]: data({
@@ -234,4 +238,5 @@ export interface ISpellData {
   gcd: boolean;
   dotHaste: boolean;
   statsByTick: boolean;
+  maxInstancesPerDamageId?: {[id: number]: number};
 }

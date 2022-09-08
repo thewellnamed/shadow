@@ -25,13 +25,6 @@ export class StatEvaluator {
       }
     },
 
-    timeOffCooldown: {
-      levels: {
-        [Status.WARNING]: 5,
-        [Status.NOTICE]: 3
-      }
-    },
-
     // post-channel latency
     channelLatency: {
       levels: {

@@ -54,6 +54,7 @@ export class GcdAnalyzer {
       const newStats = HasteUtils.calc(this.baseStats, this.buffs);
       if (newStats.totalHaste !== this.stats.totalHaste) {
         const increment = Math.ceil((event.timestamp - start)/ 1000 / this.stats.gcd);
+
         gcds += increment;
         start += (increment * this.stats.gcd * 1000);
         this.stats = newStats;
@@ -62,8 +63,8 @@ export class GcdAnalyzer {
       buffIndex++;
     }
 
-    if (this.analysis.encounter.end > event!.timestamp) {
-      gcds += Math.floor((this.analysis.encounter.end - event!.timestamp) / 1000 / this.stats.gcd);
+    if (this.analysis.encounter.end > start) {
+      gcds += Math.floor((this.analysis.encounter.end - start) / 1000 / this.stats.gcd);
     }
 
     return gcds;

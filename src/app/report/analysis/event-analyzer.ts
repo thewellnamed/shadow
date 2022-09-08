@@ -68,8 +68,7 @@ export class EventAnalyzer {
     let event: IEventData,
       currentCast: ICastData,
       activeStats: IHasteStats|null = null,
-      startingCast: ICastData|null = null,
-      nextDamage: IDamageData|null;
+      startingCast: ICastData|null = null;
 
     const casts: CastDetails[] = [];
 
@@ -341,6 +340,7 @@ export class EventAnalyzer {
   private setMultiInstanceDamage(cast: CastDetails, spellData: ISpellData) {
     let i = 0;
     let instances: DamageInstance[] = [];
+    let instancesById: {[id: number]: number} = {};
     let nextCast: ICastData|null;
     let nextDamage: IDamageData|null;
     let maxDamageTimestamp = spellData.maxDuration > 0 ?
@@ -388,17 +388,29 @@ export class EventAnalyzer {
         // We want to keep the damage instance for the full resist in that case, but only if it's the first instance.
         // Otherwise we can encounter a full resist in a string of dot damage instances and it just means some
         // *future* cast resisted, and we should ignore it for the cast currently processing.
-        const failed = this.failed(nextDamage);
 
-        if (spellData.damageType === DamageType.AOE || count === 0 || !failed) {
+        // Additionally, now this has to deal with mobs being immune to the DoT portion of DP but not the
+        // direct damage part of Improved DP
+        const damageId = mapSpellId(nextDamage.ability.guid);
+
+        const maxForDamageId = spellData.maxInstancesPerDamageId ?
+          spellData.maxInstancesPerDamageId[damageId] :
+          spellData.maxDamageInstances;
+        const countForDamageId = instancesById[damageId] || 0;
+        const failed = this.failed(cast.spellId, nextDamage, countForDamageId);
+
+        if ((!maxForDamageId || countForDamageId < maxForDamageId) &&
+          (spellData.damageType === DamageType.AOE || countForDamageId === 0 || !failed)) {
           instances.push(new DamageInstance(nextDamage));
+
+          if (instancesById.hasOwnProperty(damageId)) {
+            instancesById[damageId]++;
+          } else {
+            instancesById[damageId] = 1;
+          }
+
           nextDamage.read = true;
           count++;
-        }
-
-        // if the whole cast is failing, don't add more damage
-        if (spellData.damageType !== DamageType.AOE && count === 1 && failed) {
-          break;
         }
       }
       nextDamage = damageEvents[++i];
@@ -438,7 +450,7 @@ export class EventAnalyzer {
 
     // check for resist/immune
     const failed = events.find((e) =>
-      this.failed(e) && this.matchTarget(next, e) &&
+      this.failed(cast.spellId, e) && this.matchTarget(next, e) &&
         e.timestamp > next.timestamp - 50 && e.timestamp < next.timestamp + 50
     );
     if (failed) {
@@ -448,8 +460,23 @@ export class EventAnalyzer {
     return true;
   }
 
-  private failed(event: IDamageData) {
-    return event.hitType === HitType.RESIST;
+  private failed(spellId: SpellId, event: IDamageData, count?: number) {
+    // resists always failed.
+    if (event.hitType === HitType.RESIST) {
+      return true;
+    }
+
+    // ye old hack fix for DP
+    // TODO: Find a better solution for this.
+    if (spellId === SpellId.DEVOURING_PLAGUE &&
+      event.ability.guid === SpellId.DEVOURING_PLAGUE &&
+      count !== undefined &&
+      count < 2 &&
+      event.hitType === HitType.IMMUNE) {
+      return true;
+    }
+
+    return false;
   }
 
   private matchDamage(cast: CastDetails,
