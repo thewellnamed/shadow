@@ -469,7 +469,7 @@ export class EventAnalyzer {
     // ye old hack fix for DP
     // TODO: Find a better solution for this.
     if (spellId === SpellId.DEVOURING_PLAGUE &&
-      event.ability.guid === SpellId.DEVOURING_PLAGUE &&
+      event.ability.guid !== SpellId.IMPROVED_DEVOURING_PLAGUE &&
       count !== undefined &&
       count < 2 &&
       event.hitType === HitType.IMMUNE) {

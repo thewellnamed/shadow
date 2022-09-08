@@ -3,16 +3,15 @@ export const PSEUDO_SPELL_BASE = 10000000;
 export enum SpellId {
   NONE = 0,
 
-  // Shadow Priest Abilities
+  // Shadow Priest Abilities (Max Rank)
   BERSERKING = 26297,
   DEATH = 48158,
-  DEVOURING_PLAGUE = 25467,
+  DEVOURING_PLAGUE = 48300,
   DISPERSION = 47585,
   FADE = 586,
   FEAR_WARD = 6346,
   HOLY_NOVA = 48078,
-  IMPROVED_DEVOURING_PLAGUE = 63675,
-  MIND_BLAST = 48126,
+  MIND_BLAST = 48127,
   MIND_FLAY = 48156,
   PAIN = 48125,
   SHADOW_FIEND = 34433,
@@ -21,6 +20,10 @@ export enum SpellId {
   VAMPIRIC_TOUCH = 48160,
   DISPEL_MAGIC = 988,
   MASS_DISPEL = 32375,
+
+  // Related damage IDs
+  IMPROVED_DEVOURING_PLAGUE = 63675,
+  MIND_FLAY_TICK = 58381,
 
   // Engineering
   ADAMANTITE_GRENDADE = 30217,

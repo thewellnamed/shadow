@@ -24,11 +24,12 @@ export class LogsService {
     .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
 
   public static TRACKED_DAMAGE = Object.values(Spell.data)
-    .flatMap((spell) => {
-      return spell.damageIds.length > 0 ?
-        spell.damageIds :
-        spell.rankIds.concat([spell.mainId]);
-    })
+    .flatMap((spell) =>
+      Object
+        .keys(spell.rankIds)
+        .map((id) => parseInt(id))
+        .concat(spell.mainId, spell.damageIds)
+    )
     .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
 
   public static TRACKED_BUFFS = Object.keys(BuffData).map((k) => parseInt(k));
