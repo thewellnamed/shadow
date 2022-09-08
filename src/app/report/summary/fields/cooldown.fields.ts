@@ -15,6 +15,10 @@ export class CooldownFields extends BaseFields {
           highlight: this.highlight.castLatency(stats)
         }),
         this.field({
+          label: 'Crit Rate',
+          value: format(stats.critRate * 100, 1, '%')
+        }),
+        this.field({
           label: 'Damage/GCD',
           value: format(stats.damagePerGcd, 0)
         })

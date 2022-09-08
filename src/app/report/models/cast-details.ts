@@ -23,6 +23,7 @@ export class CastDetails {
   totalAbsorbed = 0;
   totalResisted = 0;
   hits = 0;
+  crits = 0;
   spellPower = 0;
 
   // for DoTs/flay (spells with multiple damage ticks), did this cast clip a previous cast
@@ -74,7 +75,7 @@ export class CastDetails {
   setInstances(instances: DamageInstance[]) {
     this.instances = instances;
 
-    let hits = 0, damage = 0, absorbed = 0, resisted = 0, targets = [];
+    let hits = 0, crits = 0, damage = 0, absorbed = 0, resisted = 0, targets = [];
     for (const next of instances) {
       damage += next.amount;
       absorbed += next.absorbed;
@@ -84,12 +85,17 @@ export class CastDetails {
       if (![HitType.RESIST, HitType.IMMUNE].includes(next.hitType)) {
         hits++;
       }
+
+      if ([HitType.CRIT, HitType.CRIT_PARTIAL_RESIST].includes(next.hitType)) {
+        crits++;
+      }
     }
 
     this.totalDamage = damage + absorbed;
     this.totalAbsorbed = absorbed;
     this.totalResisted = resisted;
     this.hits = hits;
+    this.crits = crits;
     this.allTargets = [... new Set(targets)];
     this.setHitType();
 
@@ -110,6 +116,10 @@ export class CastDetails {
 
   get immune() {
     return this.hitType === HitType.IMMUNE;
+  }
+
+  get crit() {
+    return this.hitType === HitType.CRIT || this.hitType === HitType.CRIT_PARTIAL_RESIST;
   }
 
   hasSameTarget(other: CastDetails) {

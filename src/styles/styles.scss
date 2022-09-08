@@ -95,6 +95,10 @@ form mat-form-field {
   color: mat.get-color-from-palette(mat.$pink-palette, 100);
 }
 
+.spell-accent.crit {
+  color: mat.get-color-from-palette(mat.$pink-palette, 300);
+}
+
 .warning {
   background-color: orangered;
 }

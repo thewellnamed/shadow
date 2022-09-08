@@ -10,6 +10,8 @@ export class CastStats {
   maxTimestamp = 0;
   totalDamage = 0;
   totalHits = 0;
+  totalCrits = 0;
+  totalDamageInstances = 0;
   latencyCount = 0;
   gcds = 0;
 
@@ -31,6 +33,7 @@ export class CastStats {
   private _avgHit = 0;
   private _avgHaste = 0;
   private _avgSpellpower = 0;
+  private _critRate = 0;
   private _avgNextCastLatency: number|undefined = undefined;
   private _targetStats: IStatsMap = {};
 
@@ -154,6 +157,14 @@ export class CastStats {
     return this._avgNextCastLatency;
   }
 
+  get critRate() {
+    if (this.recalculate) {
+      this.updateStats();
+    }
+
+    return this._critRate;
+  }
+
   get hasChannelStats() {
     return this._channelStats.castCount > 0;
   }
@@ -261,6 +272,8 @@ export class CastStats {
       this.successCount++;
       this.totalDamage += totalDamage;
       this.totalHits += this.evaluateHits(cast, totalDamage);
+      this.totalCrits += this.evaluateCrits(cast);
+      this.totalDamageInstances += cast.instances.length;
       this._totalWeightedSpellpower += (cast.spellPower * totalDamage);
     } else {
       this._totalWeightedSpellpower += cast.spellPower;
@@ -349,6 +362,8 @@ export class CastStats {
       this.latencyCount += next.latencyCount;
       this.totalDamage += next.totalDamage;
       this.totalHits += next.totalHits;
+      this.totalCrits += next.totalCrits;
+      this.totalDamageInstances += next.totalDamageInstances;
       this.gcds += next.gcds;
 
       this._totalWeightedSpellpower += next._totalWeightedSpellpower;
@@ -413,6 +428,7 @@ export class CastStats {
     this._avgSpellpower = this._totalWeightedSpellpower / (this.totalDamage || this.castCount);
     this._avgNextCastLatency = this._totalNextCastLatency / this.latencyCount;
     this._avgHaste = this._totalWeightedHaste / this.gcds;
+    this._critRate = this.totalDamageInstances > 0 ? this.totalCrits / this.totalDamageInstances : 0;
 
     if (this.hasChannelStats) {
       this._channelStats.clippedEarlyPercent = this._channelStats.clippedEarlyCount / this._channelStats.castCount;
@@ -520,6 +536,18 @@ export class CastStats {
     }
 
     return 0;
+  }
+
+  private evaluateCrits(cast: CastDetails) {
+    if (cast.instances.length > 1) {
+      if (this.targetId) {
+        return cast.instances.filter((i) => i.targetId === this.targetId && i.isCrit).length;
+      } else {
+        return cast.crits;
+      }
+    }
+
+    return cast.crit ? 1 : 0;
   }
 
   // annotation really should be SpellStats (or child class)
