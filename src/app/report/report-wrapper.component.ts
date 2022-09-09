@@ -61,7 +61,7 @@ export class ReportWrapperComponent implements OnInit {
     const route = this.encounterId > 0 ? [this.playerId, this.encounterId] : [this.playerId];
     this.router.navigate(route, {
       relativeTo: this.route,
-      queryParams: this.params.forNavigation(navType)
+      queryParams: this.params.forNavigation()
     });
   }
 

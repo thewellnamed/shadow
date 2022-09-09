@@ -17,6 +17,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { CastsComponent } from 'src/app/report/components/casts.component';
 import { ReportDetailsComponent } from 'src/app/report/components/report-details.component';
 import { ReportWrapperComponent } from 'src/app/report/report-wrapper.component';
+import { SettingsComponent } from 'src/app/report/components/settings.component';
 import { SummaryComponent } from 'src/app/report/components/summary.component';
 
 @NgModule({
@@ -24,6 +25,7 @@ import { SummaryComponent } from 'src/app/report/components/summary.component';
     CastsComponent,
     ReportDetailsComponent,
     ReportWrapperComponent,
+    SettingsComponent,
     SummaryComponent
   ],
   imports: [

@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { Location } from '@angular/common';
 import { Params } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
-
-import { NavigationType } from 'src/app/navigation-type.enum';
 import { Tab } from 'src/app/report/components/tabs';
 
 @Injectable()
@@ -38,7 +36,7 @@ export class ParamsService {
     this.location.replaceState(path, updated.toString());
   }
 
-  forNavigation(_type: NavigationType) {
+  forNavigation() {
     const params = this.all();
 
     // reset MF ticks if we're navigating to a new player/encounter and not actively viewing MF tab

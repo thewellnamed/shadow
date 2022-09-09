@@ -19,6 +19,7 @@ import { AppComponent } from 'src/app/app.component';
 import { HomeComponent } from 'src/app/home.component';
 import { EventService } from 'src/app/event.service';
 import { ParamsService } from 'src/app/params.service';
+import { SettingsService } from 'src/app/settings.service';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import { ParamsService } from 'src/app/params.service';
   ],
   providers: [
     EventService,
-    ParamsService
+    ParamsService,
+    SettingsService
   ],
   bootstrap: [AppComponent]
 })

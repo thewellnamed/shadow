@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -6,7 +6,6 @@ import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { Actor } from 'src/app/logs/models/actor';
-import { ICombatantInfo } from 'src/app/logs/interfaces';
 import { IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { IStatsSearch, PlayerAnalysis } from 'src/app/report/models/player-analysis';
