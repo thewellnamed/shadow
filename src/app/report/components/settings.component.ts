@@ -62,7 +62,7 @@ export class SettingsComponent implements OnInit {
       this.settings = this.settingsSvc.get();
 
       this.form = new FormGroup<ISettingsForm>({
-        hasteRating: new FormControl(this.logHasteRating || null),
+        hasteRating: new FormControl(this.logHasteRating),
         improvedMindBlast: new FormControl(this.settings.improvedMindBlast, { nonNullable: true }),
         improvedMoonkinAura: new FormControl(this.settings.improvedMoonkinAura, { nonNullable: true }),
         improvedRetAura: new FormControl(this.settings.improvedRetAura, { nonNullable: true }),
@@ -76,12 +76,19 @@ export class SettingsComponent implements OnInit {
   }
 
   cancel() {
-    // navigate back
+    this.exitSettings();
   }
 
   apply() {
-    // update settings from form
-    // navigate back
+    this.settingsSvc.update(new Settings(this.form.getRawValue()))
+    this.exitSettings();
+  }
+
+  private exitSettings() {
+    this.router.navigate([this.playerId, this.encounterId], {
+      relativeTo: this.route,
+      queryParams: this.params.forNavigation()
+    });
   }
 }
 

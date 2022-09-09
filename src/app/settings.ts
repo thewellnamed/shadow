@@ -1,5 +1,5 @@
 export class Settings {
-  public hasteRating: number|undefined;
+  public hasteRating: number|null = null;
   public improvedMindBlast = 5;
   public improvedMoonkinAura = true;
   public improvedRetAura = true;
@@ -17,7 +17,7 @@ export class Settings {
 }
 
 export interface ISettings {
-  hasteRating: number;
+  hasteRating: number|null;
   improvedMindBlast: number;
   improvedMoonkinAura: boolean;
   improvedRetAura: boolean;
