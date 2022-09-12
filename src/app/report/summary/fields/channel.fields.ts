@@ -60,7 +60,8 @@ export class ChannelFields extends BaseFields {
     return `~${format(clippedDps, 1)}`;
   }
 
+  // totalClippedDamage assumes non-crit. Modify using overall MF crit rate here to estimate lost DPS
   private clippedDps(stats: CastStats) {
-    return stats.channelStats.totalClippedDamage / this.analysis.encounter.durationSeconds;
+    return (stats.channelStats.totalClippedDamage * (1 + stats.critRate)) / this.analysis.encounter.durationSeconds;
   }
 }
