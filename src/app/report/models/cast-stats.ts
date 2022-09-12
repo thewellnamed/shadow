@@ -297,9 +297,12 @@ export class CastStats {
       if (cast.clippedEarly) {
         this._channelStats.clippedEarlyCount++;
 
-        // assume one lost tick for the same damage as the last actual tick
-        // discounted by a factor representing how far away the next tick really was
-        const lostDamage = cast.instances[cast.instances.length - 1].totalDamage
+        // assume one lost tick and include non-crit damage for that tick
+        // using the (normalized) damage of the prior tick.
+        // Note: Crit rate is factored in when this is presented via ChannelFields
+        const lastTick = cast.instances[cast.instances.length - 1];
+        const lostDamage = lastTick.isCrit ? lastTick.totalDamage/2 : lastTick.totalDamage;
+
         this._channelStats.totalClippedDamage += lostDamage * cast.earlyClipLostDamageFactor;
       }
     }
