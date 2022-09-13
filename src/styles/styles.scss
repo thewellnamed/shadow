@@ -23,6 +23,7 @@ $theme: mat.define-dark-theme((
 @include mat.input-theme($theme);
 @include mat.progress-spinner-theme($theme);
 @include mat.select-theme($theme);
+@include mat.slide-toggle-theme($theme);
 @include mat.tabs-theme($theme);
 
 html, body {

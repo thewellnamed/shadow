@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
@@ -12,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { CastsComponent } from 'src/app/report/components/casts.component';
@@ -30,6 +32,7 @@ import { SummaryComponent } from 'src/app/report/components/summary.component';
   ],
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     MatButtonModule,
     MatButtonToggleModule,
@@ -40,6 +43,7 @@ import { SummaryComponent } from 'src/app/report/components/summary.component';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatSlideToggleModule,
     MatTabsModule,
     ReactiveFormsModule
   ]

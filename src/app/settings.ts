@@ -3,7 +3,7 @@ export class Settings {
   public improvedMindBlast = 5;
   public improvedMoonkinAura = true;
   public improvedRetAura = true;
-  public wrathOfAir = true;
+  public wrathOfAir = false;
 
   constructor(settings?: ISettings) {
     if (settings) {

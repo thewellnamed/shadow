@@ -1,11 +1,11 @@
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { of } from 'rxjs';
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ParamsService } from 'src/app/params.service';
 import { SettingsService } from 'src/app/settings.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Settings } from 'src/app/settings';
+import { ISettings, Settings } from 'src/app/settings';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { Actor } from 'src/app/logs/models/actor';
@@ -15,7 +15,8 @@ import { LogsService } from 'src/app/logs/logs.service';
 @Component({
   selector: 'report-settings',
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss']
+  styleUrls: ['./settings.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class SettingsComponent implements OnInit {
   log: LogSummary;
@@ -57,9 +58,8 @@ export class SettingsComponent implements OnInit {
         }
       })
     ).subscribe((playerInfo: CombatantInfo|null) => {
-      // initialize Form
-      this.logHasteRating = playerInfo?.stats?.Haste?.min || null;
       this.settings = this.settingsSvc.get();
+      this.logHasteRating = playerInfo?.stats?.Haste?.min || this.settings.hasteRating || null;
 
       this.form = new FormGroup<ISettingsForm>({
         hasteRating: new FormControl(this.logHasteRating),
@@ -69,24 +69,25 @@ export class SettingsComponent implements OnInit {
         wrathOfAir: new FormControl(this.settings.wrathOfAir, { nonNullable: true })
       });
 
-      if (this.logHasteRating === null) {
+      if (playerInfo?.stats?.Haste?.min) {
         this.form.controls.hasteRating.disable();
       }
     });
   }
 
-  cancel() {
+  cancel(event: Event) {
+    event.preventDefault();
     this.exitSettings();
   }
 
-  apply() {
-    this.settingsSvc.update(new Settings(this.form.getRawValue()))
+  apply(event: Event) {
+    event.preventDefault();
+    this.settingsSvc.update(new Settings(this.form.value as ISettings));
     this.exitSettings();
   }
 
   private exitSettings() {
-    this.router.navigate([this.playerId, this.encounterId], {
-      relativeTo: this.route,
+    this.router.navigate(['/report', this.logId, this.playerId, this.encounterId], {
       queryParams: this.params.forNavigation()
     });
   }
@@ -94,8 +95,8 @@ export class SettingsComponent implements OnInit {
 
 interface ISettingsForm {
   hasteRating: FormControl<number|null>;
-  improvedMindBlast: FormControl<number>;
-  improvedMoonkinAura: FormControl<boolean>;
-  improvedRetAura: FormControl<boolean>;
-  wrathOfAir: FormControl<boolean>;
+  improvedMindBlast: FormControl<number>,
+  improvedMoonkinAura: FormControl<boolean>,
+  improvedRetAura: FormControl<boolean>,
+  wrathOfAir: FormControl<boolean>
 }

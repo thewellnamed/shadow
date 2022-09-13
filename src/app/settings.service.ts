@@ -14,7 +14,6 @@ export class SettingsService {
   }
 
   public update(settings: Settings) {
-    // write settings to localstorage
     localStorage.setItem('settings', JSON.stringify(settings));
   }
 }
