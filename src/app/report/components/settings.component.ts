@@ -58,7 +58,7 @@ export class SettingsComponent implements OnInit {
         }
       })
     ).subscribe((playerInfo: CombatantInfo|null) => {
-      this.settings = this.settingsSvc.get();
+      this.settings = this.settingsSvc.get(this.playerId);
       this.logHasteRating = playerInfo?.stats?.Haste?.min || this.settings.hasteRating || null;
 
       this.form = new FormGroup<ISettingsForm>({
@@ -82,7 +82,7 @@ export class SettingsComponent implements OnInit {
 
   apply(event: Event) {
     event.preventDefault();
-    this.settingsSvc.update(new Settings(this.form.value as ISettings));
+    this.settingsSvc.update(this.playerId, new Settings(this.form.value as ISettings));
     this.exitSettings();
   }
 

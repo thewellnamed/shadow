@@ -3,8 +3,8 @@ import { Settings } from 'src/app/settings';
 
 @Injectable()
 export class SettingsService {
-  public get() {
-    const stored = localStorage.getItem('settings');
+  public get(playerName: string) {
+    const stored = localStorage.getItem(this.key(playerName));
 
     if (stored === null) {
       return new Settings();
@@ -13,7 +13,11 @@ export class SettingsService {
     return new Settings(JSON.parse(stored));
   }
 
-  public update(settings: Settings) {
-    localStorage.setItem('settings', JSON.stringify(settings));
+  public update(playerName: string, settings: Settings) {
+    localStorage.setItem(this.key(playerName), JSON.stringify(settings));
+  }
+
+  private key(playerName: string) {
+    return `settings_${playerName}`;
   }
 }
