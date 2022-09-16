@@ -64,7 +64,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
     if (changes.spellId) {
       this.spellData = changes.spellId.currentValue === SpellId.NONE ?
         undefined :
-        Spell.get(changes.spellId.currentValue);
+        Spell.baseData(changes.spellId.currentValue);
     }
 
     if (changes.casts) {
@@ -130,32 +130,32 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   isDamage(cast: CastDetails) {
-    return Spell.get(cast.spellId).damageType !== DamageType.NONE;
+    return Spell.baseData(cast.spellId).damageType !== DamageType.NONE;
   }
 
   isDot(cast: CastDetails) {
-    return Spell.get(cast.spellId).damageType === DamageType.DOT;
+    return Spell.baseData(cast.spellId).damageType === DamageType.DOT;
   }
 
   isChannel(cast: CastDetails) {
-    return Spell.get(cast.spellId).damageType === DamageType.CHANNEL;
+    return Spell.baseData(cast.spellId).damageType === DamageType.CHANNEL;
   }
 
   hasCooldown(cast: CastDetails) {
-    return Spell.get(cast.spellId).cooldown > 0;
+    return Spell.baseData(cast.spellId).cooldown > 0;
   }
 
   expectHits(cast: CastDetails) {
-    return ([DamageType.DOT, DamageType.CHANNEL, DamageType.AOE].includes(Spell.get(cast.spellId).damageType));
+    return ([DamageType.DOT, DamageType.CHANNEL, DamageType.AOE].includes(Spell.baseData(cast.spellId).damageType));
   }
 
   maxHits(cast: CastDetails) {
-    const spell = Spell.get(cast.spellId);
+    const spell = Spell.baseData(cast.spellId);
     return [DamageType.DOT, DamageType.CHANNEL].includes(spell.damageType) && spell.maxDamageInstances > 0;
   }
 
   hits(cast: CastDetails) {
-    const spellData = Spell.get(cast.spellId);
+    const spellData = Spell.baseData(cast.spellId);
     let hits = cast.hits.toString();
 
     if (this.maxHits(cast)) {

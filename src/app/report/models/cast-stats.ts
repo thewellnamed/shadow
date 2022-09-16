@@ -242,7 +242,7 @@ export class CastStats {
       });
     }
 
-    const spellData = Spell.get(cast.spellId, cast.haste);
+    const spellData = Spell.get(cast.spellId, this.analysis.settings, cast.haste);
 
     if (spellData.gcd) {
       // if there was pushback, count it as latency or as time lost.
@@ -471,7 +471,7 @@ export class CastStats {
   }
 
   private getEffectiveWindow(cast: CastDetails) {
-    const spellData = Spell.get(cast.spellId);
+    const spellData = Spell.baseData(cast.spellId);
     const start = cast.castStart;
     let end;
 
@@ -495,19 +495,19 @@ export class CastStats {
   }
 
   private addChannelStats(cast: CastDetails) {
-    return Spell.get(cast.spellId).damageType === DamageType.CHANNEL;
+    return Spell.baseData(cast.spellId).damageType === DamageType.CHANNEL;
   }
 
   private addCooldownStats(cast: CastDetails) {
-    return Spell.get(cast.spellId).cooldown > 0 && cast.timeOffCooldown !== undefined;
+    return Spell.get(cast.spellId, this.analysis.settings).cooldown > 0 && cast.timeOffCooldown !== undefined;
   }
 
   private addClipStats(cast: CastDetails) {
-    return Spell.get(cast.spellId).damageType === DamageType.DOT;
+    return Spell.baseData(cast.spellId).damageType === DamageType.DOT;
   }
 
   private addDotDowntimeStats(cast: CastDetails) {
-    return Spell.get(cast.spellId).damageType === DamageType.DOT && cast.dotDowntime !== undefined;
+    return Spell.baseData(cast.spellId).damageType === DamageType.DOT && cast.dotDowntime !== undefined;
   }
 
   private evaluateDamage(cast: CastDetails) {

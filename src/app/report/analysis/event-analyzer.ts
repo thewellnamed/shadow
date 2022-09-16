@@ -52,7 +52,7 @@ export class EventAnalyzer {
     // Merge buff and cast data into a single array to process
     this.events = this.mergeEvents();
 
-    // if haste info is missing from combatant info, try to infer it...
+    // if haste info is missing from combatant info, and not specified in settings, then try to infer it...
     if (typeof this.baseStats.Haste === 'undefined') {
       this.inferBaseHaste();
     }
@@ -109,7 +109,7 @@ export class EventAnalyzer {
       }
 
       const castId = mapSpellId(currentCast.ability.guid);
-      const spellData = Spell.get(castId, activeStats.totalHaste - 1);
+      const spellData = Spell.get(castId, this.analysis.settings, activeStats.totalHaste - 1);
       const details = new CastDetails({
         castId,
         spellId: spellData.mainId,
@@ -183,7 +183,7 @@ export class EventAnalyzer {
 
         case 'cast':
           cast = event as ICastData;
-          spellData = Spell.get(mapSpellId(event.ability.guid), stats.totalHaste - 1);
+          spellData = Spell.baseData(mapSpellId(event.ability.guid));
           if ((cast.ability.guid === SpellId.VAMPIRIC_TOUCH || cast.ability.guid === SpellId.MIND_BLAST) &&
             cast.ability.guid === startingCast?.ability?.guid) {
 
@@ -437,7 +437,7 @@ export class EventAnalyzer {
   // -- and the cast was not resisted (requires finding an associated damage instance)
   private castIsReplacement(cast: CastDetails, next: ICastData, events: IDamageData[]) {
     // check for matching target
-    if (next.type !== 'cast' || Spell.get(next.ability.guid).mainId !== cast.spellId ||
+    if (next.type !== 'cast' || Spell.baseData(next.ability.guid).mainId !== cast.spellId ||
       next.targetID !== cast.targetId || next.targetInstance !== cast.targetInstance) {
       return false;
     }

@@ -90,7 +90,7 @@ export class StatEvaluator {
    */
   overall(cast: CastDetails): Status {
     // note: conditions are in order of priority for determining severity
-    const spellData = Spell.get(cast.spellId, cast.haste);
+    const spellData = Spell.get(cast.spellId, this.analysis.settings, cast.haste);
 
     if (cast.resisted) {
       return Status.NORMAL;
@@ -124,7 +124,7 @@ export class StatEvaluator {
   }
 
   hits(cast: CastDetails): Status {
-    const spellData = Spell.get(cast.spellId, cast.haste);
+    const spellData = Spell.get(cast.spellId, this.analysis.settings, cast.haste);
 
     if (cast.clippedEarly) {
       return Status.WARNING;
@@ -196,7 +196,7 @@ export class StatEvaluator {
     const threshold = StatEvaluator.thresholds[statName];
     const propName = threshold.castProperty || statName;
 
-    if (threshold.damageTypes && !threshold.damageTypes.includes(Spell.get(cast.spellId).damageType)) {
+    if (threshold.damageTypes && !threshold.damageTypes.includes(Spell.baseData(cast.spellId).damageType)) {
       return undefined;
     }
 

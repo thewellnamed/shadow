@@ -70,7 +70,7 @@ export class EventPreprocessor {
 
       let castIndex = 0, match = false,
         nextCast = casts[castIndex],
-        castSpell = Spell.get(mapSpellId(nextCast.ability.guid));
+        castSpell = Spell.baseData(mapSpellId(nextCast.ability.guid));
 
       do {
         const damageSpell = Spell.fromDamageId(instance.ability.guid);
@@ -79,7 +79,7 @@ export class EventPreprocessor {
           break;
         }
         nextCast = casts[++castIndex];
-        castSpell = Spell.get(mapSpellId(nextCast.ability.guid));
+        castSpell = Spell.baseData(mapSpellId(nextCast.ability.guid));
       } while (nextCast && nextCast.timestamp < instance.timestamp + EventAnalyzer.EVENT_LEEWAY);
 
       if (!match && !spellIdsInferred.includes(instance.ability.guid)) {
@@ -103,7 +103,7 @@ export class EventPreprocessor {
   }
 
   private inferCastTimestamp(damage: IDamageData) {
-    const spellData = Spell.get(mapSpellId(damage.ability.guid));
+    const spellData = Spell.baseData(mapSpellId(damage.ability.guid));
 
     if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData?.damageType)) {
       // First find the earliest tick we want to associate to our inferred cast,

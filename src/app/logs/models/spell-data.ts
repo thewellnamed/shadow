@@ -1,5 +1,6 @@
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { HasteUtils } from 'src/app/report/models/haste';
+import { ISettings, Settings } from 'src/app/settings';
 
 export enum DamageType {
   NONE,
@@ -26,14 +27,20 @@ export class Spell {
     statsByTick: false
   };
 
-  public static get(id: SpellId, haste?: number): ISpellData {
-    if (!haste) {
-      return Spell.dataBySpellId[id];
-    }
+  public static baseData(id: SpellId) {
+    return Spell.dataBySpellId[id];
+  }
 
-    const data = Object.assign({}, Spell.dataBySpellId[id]);
-    if (data.damageType === DamageType.DOT && data.dotHaste) {
-      data.maxDuration = HasteUtils.duration(id, haste);
+  public static get(id: SpellId, settings: Settings, currentHaste?: number): ISpellData {
+    const baseData = Spell.dataBySpellId[id];
+
+    // apply overrides for dynamic data
+    const dynamic = baseData.dynamic ? baseData.dynamic.call(null, baseData, settings) : {};
+    const data = Object.assign({}, Spell.dataBySpellId[id], dynamic);
+
+    // apply haste adjustments if haste specified.
+    if (currentHaste !== undefined && data.damageType === DamageType.DOT && data.dotHaste) {
+      data.maxDuration = HasteUtils.duration(id, currentHaste);
     }
 
     return data;
@@ -162,7 +169,10 @@ export class Spell {
       damageType: DamageType.DIRECT,
       baseCastTime: 1.5,
       maxDamageInstances: 1,
-      cooldown: 5.5
+      cooldown: 8,
+      dynamic: (baseData, settings) => ({
+        cooldown: baseData.cooldown - (0.5 * settings.improvedMindBlast)
+      })
     }),
 
     [SpellId.MIND_FLAY]: data({
@@ -267,4 +277,5 @@ export interface ISpellData {
   dotHaste: boolean;
   statsByTick: boolean;
   maxInstancesPerDamageId?: {[id: number]: number};
+  dynamic?: (baseData: ISpellData, settings: ISettings) => Partial<ISpellData>
 }

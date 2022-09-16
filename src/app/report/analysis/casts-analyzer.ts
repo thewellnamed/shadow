@@ -20,7 +20,7 @@ export class CastsAnalyzer {
   public run(): Report {
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
-        spellData = Spell.get(current.spellId, current.haste);
+        spellData = Spell.get(current.spellId, this.analysis.settings, current.haste);
       let prevCastData;
 
       this.setCastLatency(current, spellData, i);
