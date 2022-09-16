@@ -11,30 +11,37 @@ import { Spell } from 'src/app/logs/models/spell-data';
 import { SpellStats } from 'src/app/report/models/spell-stats';
 import { Actor } from 'src/app/logs/models/actor';
 import { CombatantInfo } from 'src/app/logs/models/combatant-info';
+import { Settings } from 'src/app/settings';
+import { EventPreprocessor } from 'src/app/report/analysis/event-preprocessor';
 
 export class PlayerAnalysis {
   public log: LogSummary;
   public encounter: EncounterSummary;
   public actor: Actor;
   public actorInfo: CombatantInfo;
+  public settings: Settings;
   public events: IEncounterEvents;
   public report: Report;
   public totalGcds: number;
 
-  constructor(log: LogSummary, encounterId: number, actor: Actor, actorInfo: CombatantInfo, events: IEncounterEvents) {
+  private _applyWrathOfAir: boolean;
+
+  constructor(log: LogSummary, encounterId: number, actor: Actor, actorInfo: CombatantInfo, settings: Settings, events: IEncounterEvents) {
     this.log = log;
     this.encounter = log.getEncounter(encounterId) as EncounterSummary;
     this.actor = actor;
-    this.actorInfo = actorInfo;
-    this.events = events;
+    this.actorInfo = Object.assign({}, actorInfo);
+    this.settings = settings;
 
-    // filter out extraneous shadow fiend events
-    // todo -- would probably be nicer to find a way to avoid querying these...
-    this.events.damage = this.events.damage
-      .filter((e) => e.sourceID === this.actor.id || e.sourceID === this.actor.shadowFiendId)
-      .map((e) => Object.assign({}, e, { read: false }));
+    // pre-process events
+    this.events = new EventPreprocessor(this, events).run();
 
-    // analyze event info
+    // apply haste rating from settings if missing from log
+    if (this.actorInfo.stats?.Haste === undefined && settings.hasteRating) {
+      this.actorInfo.stats = { Haste: { min: settings.hasteRating, max: settings.hasteRating }};
+    }
+
+    // analyze events and generate casts report
     const casts = new EventAnalyzer(this).createCasts();
     this.report = new CastsAnalyzer(this, casts).run();
 
@@ -80,6 +87,24 @@ export class PlayerAnalysis {
     }
 
     return stats?.hitCounts || [];
+  }
+
+  // if a shaman is in the raid, and wrath of air is enabled in settings...
+  get applyWrathOfAir() {
+    if (this._applyWrathOfAir !== undefined) {
+      return this._applyWrathOfAir;
+    }
+
+    if (!this.settings?.wrathOfAir) {
+      this._applyWrathOfAir = false;
+    } else {
+      const shamans = this.log.actors.filter((a) => {
+        return a.type === 'Shaman' && a.encounterIds.includes(this.encounter.id)
+      });
+
+      this._applyWrathOfAir = shamans.length > 0;
+    }
+    return this._applyWrathOfAir;
   }
 }
 

@@ -29,7 +29,8 @@ export const BuffData: IBuffLookup = {
   [BuffId.HASTE]: buff({ hasteRating: 400, trigger: BuffTrigger.ON_USE }),
   [BuffId.HEROISM]: buff({ haste: 0.3, trigger: BuffTrigger.EXTERNAL, doesNotStackWith: [BuffId.POWER_INFUSION] }),
   [BuffId.POWER_INFUSION]: buff({ haste: 0.2, trigger: BuffTrigger.EXTERNAL, doesNotStackWith: [BuffId.HEROISM, BuffId.BLOODLUST] }),
-  [BuffId.QUAGS_EYE]: buff({ hasteRating: 320, trigger: BuffTrigger.CAST_END })
+  [BuffId.QUAGS_EYE]: buff({ hasteRating: 320, trigger: BuffTrigger.CAST_END }),
+  [BuffId.WRATH_OF_AIR]: buff({ haste: 0.05, trigger: BuffTrigger.EXTERNAL })
 };
 
 interface IBuffLookup {

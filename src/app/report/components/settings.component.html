@@ -12,7 +12,10 @@
           Set from summary information in the log.
         </mat-hint>
         <mat-hint class="table-accent"*ngIf="form.controls.hasteRating.valid">
-          Missing from log. You can set the value manually.</mat-hint>
+          Missing from log.
+          <span *ngIf="logHasteRating !== null">Using saved setting.</span>
+          <span *ngIf="logHasteRating === null">You can set the value manually.</span>
+        </mat-hint>
         <mat-error *ngIf="form.controls.hasteRating.invalid">
           Set a value between 0 and 2000.
         </mat-error>

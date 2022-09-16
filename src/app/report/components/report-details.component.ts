@@ -18,6 +18,8 @@ import { EventService, IEvent } from 'src/app/event.service';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { CombatantInfo } from 'src/app/logs/models/combatant-info';
+import { Settings } from 'src/app/settings';
+import { SettingsService } from 'src/app/settings.service';
 
 @Component({
   selector: 'report-details',
@@ -34,6 +36,7 @@ export class ReportDetailsComponent implements OnInit {
   analysis: PlayerAnalysis;
   actor: Actor;
   actorInfo: CombatantInfo;
+  settings: Settings;
   highlight: StatHighlights;
   activeTab = 0;
   form: UntypedFormGroup;
@@ -47,6 +50,7 @@ export class ReportDetailsComponent implements OnInit {
               private route: ActivatedRoute,
               private logs: LogsService,
               private eventSvc: EventService,
+              private settingsSvc: SettingsService,
               private params: ParamsService) {
   }
 
@@ -70,6 +74,7 @@ export class ReportDetailsComponent implements OnInit {
       switchMap((log: LogSummary) => {
         this.log = log;
         this.actor = this.log.getActorByRouteId(this.playerId) as Actor;
+        this.settings = this.settingsSvc.get(this.playerId);
 
         if (this.encounterId) {
           return this.logs.getPlayerInfo(log, this.actor, this.encounterId);
@@ -191,7 +196,7 @@ export class ReportDetailsComponent implements OnInit {
 
   private analyze(events: IEncounterEvents) {
     if (events) {
-      this.analysis = new PlayerAnalysis(this.log, this.encounterId, this.actor, this.actorInfo, events);
+      this.analysis = new PlayerAnalysis(this.log, this.encounterId, this.actor, this.actorInfo, this.settings, events);
       this.highlight = new StatHighlights(this.analysis);
 
       this.targets = this.analysis.targetIds

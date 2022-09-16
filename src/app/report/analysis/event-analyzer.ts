@@ -9,11 +9,12 @@ import { IActorStats, IBuffData, ICastData, IDamageData, IEventData } from 'src/
 import { IDeathLookup } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
+import { matchTarget } from 'src/app/report/analysis/utils';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export class EventAnalyzer {
-  private static EVENT_LEEWAY = 100; // ms. allow damage to occur just slightly later than "should" be possible given
-                                     // strict debuff times. Blah blah server doesn't keep time exactly.
+  public static EVENT_LEEWAY = 100; // in milliseconds. Allow damage to occur just slightly later than "should" be
+                                    // possible given strict debuff times. Blah blah server doesn't keep time exactly.
 
   private static MIN_INFER_HASTE_EVENTS = 8; // require a minimum of MB/VT casts to infer missing haste value
 
@@ -290,14 +291,7 @@ export class EventAnalyzer {
 
   private removeBuff(event: IBuffData) {
     const index = this.buffs.findIndex((b) => b.id === event.ability.guid);
-    if (index === -1) {
-      const buffRating = BuffData[event.ability.guid].hasteRating || 0,
-        baseHaste = this.baseStats.Haste?.min || 0;
-
-      if (buffRating > 0 && baseHaste >= buffRating) {
-        this.baseStats.Haste = { min: baseHaste - buffRating, max: baseHaste - buffRating};
-      }
-    } else {
+    if (index >= 0) {
       this.buffs.splice(index, 1);
     }
   }
@@ -450,7 +444,7 @@ export class EventAnalyzer {
 
     // check for resist/immune
     const failed = events.find((e) =>
-      this.failed(cast.spellId, e) && this.matchTarget(next, e) &&
+      this.failed(cast.spellId, e) && matchTarget(this.analysis, next, e) &&
         e.timestamp > next.timestamp - 50 && e.timestamp < next.timestamp + 50
     );
     if (failed) {
@@ -484,7 +478,7 @@ export class EventAnalyzer {
                       next: IDamageData,
                       maxTimestamp: number,
                       allowUnknown = false) {
-    if (next.read || !this.matchTarget(cast, next, allowUnknown)) {
+    if (next.read || !matchTarget(this.analysis, cast, next, allowUnknown)) {
       return false;
     }
 
@@ -499,97 +493,5 @@ export class EventAnalyzer {
     }
 
     return true;
-  }
-
-  private matchTarget(source: CastDetails|ICastData, dest: IDamageData, allowUnknown = false) {
-    const sourceId = source instanceof CastDetails ? source.targetId : source.targetID;
-
-    // must match instance if one exists
-    if (source.targetInstance && source.targetInstance !== dest.targetInstance) {
-      return false;
-    }
-
-    // Must match targetId if one exists... usually
-    // There's a weird bug in WCL sometimes where the cast on a target has a different target ID
-    // than the damage ticks, shows up as "Unknown Actor," and isn't returned as an enemy in the summary
-    // If allowUnknown === true, relax the target ID match to handle this case specifically
-    // We can tell the ID is "unknown actor" if no actor name exists for it.
-    if (sourceId && sourceId !== dest.targetID &&
-      (!allowUnknown || this.analysis.getActorName(sourceId) !== undefined)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  // sometimes casts that start before combat begins for the logger are omitted,
-  // but the damage is recorded. Check the first few damage spells and create casts
-  // if one is not found.
-  private inferMissingCasts() {
-    let instancesToCheck = this.damageData.length >= 3 ? 2 : this.damageData.length - 1;
-    const spellIdsInferred: number[] = [];
-
-    // find first damage cast so we can borrow its spellpower if we find a missing cast
-    const firstDamageCast = this.castData.find((c) => {
-      const spellId = mapSpellId(c.ability.guid);
-      return c.type === 'cast' && Spell.dataBySpellId[spellId].damageType !== DamageType.NONE
-    });
-
-    for (let i = instancesToCheck; i >= 0; i--) {
-      const instance = this.damageData[i];
-
-      if (instance.ability.guid < 0) {
-        instancesToCheck++;
-        continue;
-      }
-
-      let castIndex = 0, match = false, nextCast = this.castData[castIndex];
-
-      do {
-        if (nextCast.ability.guid === instance.ability.guid && this.matchTarget(nextCast, instance, true)) {
-          match = true;
-          break;
-        }
-        nextCast = this.castData[++castIndex];
-      } while (nextCast && nextCast.timestamp < instance.timestamp +EventAnalyzer.EVENT_LEEWAY);
-
-      if (!match && !spellIdsInferred.includes(instance.ability.guid)) {
-        this.castData.unshift({
-          type: 'cast',
-          ability: instance.ability,
-          timestamp: this.inferCastTimestamp(instance),
-          sourceID: instance.sourceID,
-          targetID: instance.targetID,
-          targetInstance: instance.targetInstance,
-          hitPoints: 100,
-          maxHitPoints: 100,
-          read: false,
-          spellPower: firstDamageCast?.spellPower || 0 // we really have no idea, but it should be close to this
-        });
-        spellIdsInferred.push(instance.ability.guid);
-      }
-    }
-  }
-
-  private inferCastTimestamp(damage: IDamageData) {
-    const spellData = Spell.get(mapSpellId(damage.ability.guid));
-
-    if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData?.damageType)) {
-      // First find the earliest tick we want to associate to our inferred cast,
-      // then infer the cast time based on how frequently the spell ticks
-      const timeToTick = (spellData.maxDuration / spellData.maxDamageInstances) * 1000,
-        earliestPossible = damage.timestamp - (spellData.maxDuration * 1000);
-
-      const earliestInstance = this.damageData.find((d) =>
-        d.ability.guid === damage.ability.guid &&
-          d.timestamp >= earliestPossible - EventAnalyzer.EVENT_LEEWAY &&
-          d.targetID === damage.targetID &&
-          d.targetInstance === damage.targetInstance
-      ) as IDamageData;
-
-      return Math.max(earliestInstance.timestamp - timeToTick, this.analysis.encounter.start);
-    }
-
-    return damage.timestamp;
   }
 }
