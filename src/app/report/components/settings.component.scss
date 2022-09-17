@@ -9,13 +9,17 @@ section.settings {
     text-align: center;
   }
 
+  h3 {
+    margin: 0 0 16px 0;
+  }
+
   h4 {
     margin: 0 0 12px 0;
   }
 
   form {
     > div {
-      margin-bottom: 25px;
+      margin-bottom: 20px;
 
       &.slide-toggle > .mat-hint, &.aura-checkboxes > .mat-hint {
         margin: 4px 0;
