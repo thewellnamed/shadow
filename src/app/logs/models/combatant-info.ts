@@ -1,14 +1,18 @@
-import { IActorItem, IActorStats, ICombatantInfo } from 'src/app/logs/interfaces';
+import { ICombatantAura, ICombatantData, ICombatantItem } from 'src/app/logs/interfaces';
 import { ISpellData } from 'src/app/logs/models/spell-data';
+import { ActorStats } from 'src/app/logs/models/actor-stats';
 
 export class CombatantInfo {
-  stats: IActorStats;
-  items: IActorItem[];
+  stats: ActorStats;
+  gear: ICombatantItem[];
+  auras: ICombatantAura[];
   bonuses: IBonusStats = {};
 
-  constructor(info: ICombatantInfo) {
-    this.stats = info.stats;
-    this.items = info.gear;
+  constructor(info?: ICombatantData) {
+    this.gear = info?.gear || [];
+    this.auras = info?.auras || [];
+    this.stats = new ActorStats(info);
+
     this.bonuses = this.evaluateBonuses();
   }
 

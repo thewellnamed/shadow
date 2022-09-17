@@ -6,7 +6,7 @@ import { DamageType, Spell } from 'src/app/logs/models/spell-data';
 import { IBuffData, IDamageData } from 'src/app/logs/interfaces';
 import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
 import { matchTarget } from 'src/app/report/analysis/utils';
-import { BuffData } from 'src/app/logs/models/buff-data';
+import { Buff } from 'src/app/logs/models/buff-data';
 import { BuffId } from 'src/app/logs/models/buff-id.enum';
 
 import * as wcl from 'src/app/logs/interfaces';
@@ -125,7 +125,22 @@ export class EventPreprocessor {
   }
 
   private inferMissingBuffs() {
-    const buffs = this.inputEvents.buffs.slice();
+    // create fake buff events for tracked auras present at encounter start.
+    const buffs: IBuffData[] = this.analysis.actorInfo.auras
+      .filter((aura) => Buff.data.hasOwnProperty(aura.ability))
+      .map((aura) => ({
+        type: 'applybuff',
+        timestamp: this.analysis.encounter.start - 1,
+        sourceID: aura.source,
+        targetID: this.analysis.actor.id,
+        targetInstance: 0,
+        ability: { guid: aura.ability, name: aura.name },
+        read: false
+      }));
+
+    // append in-combat events...
+    buffs.push(... this.inputEvents.buffs.slice());
+
     const active: {[id: number]: IBuffData} = {};
     const missing: IBuffData[] = [];
 
@@ -151,7 +166,7 @@ export class EventPreprocessor {
     for (const event of missing) {
       buffs.unshift({
         type: 'applybuff',
-        timestamp: this.analysis.encounter.start,
+        timestamp: this.analysis.encounter.start - 1,
         targetID: event.targetID,
         targetInstance: event.targetInstance,
         ability: event.ability,
@@ -160,10 +175,10 @@ export class EventPreprocessor {
 
       // if the inferred buff modifies haste rating, WCL typically has the extra rating applied to the
       // combatant info, so we need to remove it there.
-      const baseRating = this.analysis.actorInfo?.stats?.Haste?.min || 0;
-      const buffData = BuffData[event.ability.guid];
+      const baseRating = this.analysis.actorInfo?.stats?.hasteRating || 0;
+      const buffData = Buff.data[event.ability.guid];
       if (buffData.hasteRating > 0 && baseRating > buffData.hasteRating) {
-        this.analysis.actorInfo!.stats!.Haste!.min -= buffData.hasteRating;
+        this.analysis.actorInfo!.stats!.hasteRating -= buffData.hasteRating;
       }
     }
 

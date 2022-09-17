@@ -44,7 +44,7 @@ export interface IAbilityData {
 }
 
 export interface IEventData {
-  type: 'cast' | 'begincast' | 'damage' | 'death' | 'applybuff' | 'removebuff' | 'refreshbuff';
+  type: 'combatantinfo' | 'cast' | 'begincast' | 'damage' | 'death' | 'applybuff' | 'removebuff' | 'refreshbuff';
   ability: IAbilityData;
   timestamp: number;
   targetID: number;
@@ -78,14 +78,28 @@ export interface IBuffData extends IEventData {
   type: 'applybuff' | 'removebuff' | 'refreshbuff';
 }
 
-// leaving partial for now on purpose
-export interface IActorSummaryResponse {
-  combatantInfo: ICombatantInfo;
+export interface ICombatantData extends IEventData {
+  type: 'combatantinfo';
+  intellect: number;
+  spirit: number;
+  stamina: number;
+  critSpell: number;
+  hasteSpell: number;
+  hitSpell: number;
+  gear: ICombatantItem[];
+  auras: ICombatantAura[];
 }
 
-export interface ICombatantInfo {
-  stats: IActorStats;
-  gear: IActorItem[];
+export interface ICombatantAura {
+  source: number;
+  ability: number;
+  name: string;
+  stacks: number;
+}
+
+export interface ICombatantItem {
+  id: number;
+  permanentEnchant?: number;
 }
 
 export interface IActorStats {

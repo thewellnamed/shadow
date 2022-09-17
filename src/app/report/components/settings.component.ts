@@ -59,7 +59,7 @@ export class SettingsComponent implements OnInit {
       })
     ).subscribe((playerInfo: CombatantInfo|null) => {
       this.settings = this.settingsSvc.get(this.playerId);
-      this.logHasteRating = playerInfo?.stats?.Haste?.min || this.settings.hasteRating || null;
+      this.logHasteRating = playerInfo?.stats?.hasteRating || this.settings.hasteRating || null;
 
       this.form = new FormGroup<ISettingsForm>({
         hasteRating: new FormControl(this.logHasteRating),
@@ -69,7 +69,7 @@ export class SettingsComponent implements OnInit {
         wrathOfAir: new FormControl(this.settings.wrathOfAir, { nonNullable: true })
       });
 
-      if (playerInfo?.stats?.Haste?.min) {
+      if (playerInfo?.stats?.hasteRating) {
         this.form.controls.hasteRating.disable();
       }
     });

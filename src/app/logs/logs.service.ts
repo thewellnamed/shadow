@@ -4,7 +4,7 @@ import { combineLatest, Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, switchMap } from 'rxjs/operators';
 
 import { Actor } from 'src/app/logs/models/actor';
-import { BuffData } from 'src/app/logs/models/buff-data';
+import { Buff } from 'src/app/logs/models/buff-data';
 import { CombatantInfo } from 'src/app/logs/models/combatant-info';
 import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { LogSummary } from 'src/app/logs/models/log-summary';
@@ -12,6 +12,7 @@ import { PSEUDO_SPELL_BASE } from 'src/app/logs/models/spell-id.enum';
 import { Spell } from 'src/app/logs/models/spell-data';
 
 import * as wcl from 'src/app/logs/interfaces';
+import { ICombatantData } from 'src/app/logs/interfaces';
 
 @Injectable()
 export class LogsService {
@@ -32,7 +33,7 @@ export class LogsService {
     )
     .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
 
-  public static TRACKED_BUFFS = Object.keys(BuffData).map((k) => parseInt(k));
+  public static TRACKED_BUFFS = Object.keys(Buff.data).map((k) => parseInt(k));
 
   private summaryCache: { [id: string]: LogSummary} = {};
   private eventCache: { [id: string]: IEncounterEvents} = {};
@@ -97,12 +98,15 @@ export class LogsService {
     }
 
     const encounter = log.getEncounter(encounterId) as EncounterSummary;
-    const params = this.makeParams(encounter, { sourceid: player.id });
+    const params = this.makeParams(encounter, {
+      sourceid: player.id,
+      filter: 'type="combatantinfo"'
+    });
 
-    const url = this.apiUrl(`report/tables/summary/${log.id}`);
-    return this.http.get<wcl.IActorSummaryResponse>(url, { params }).pipe(
+    const url = this.apiUrl(`report/events/summary/${log.id}`);
+    return this.http.get<{ events: ICombatantData[]}>(url, { params }).pipe(
       map((response) => {
-        const info = new CombatantInfo(response.combatantInfo);
+        const info = new CombatantInfo(response.events.length > 0 ? response.events[0] : undefined);
         this.playerCache[cacheId] = info;
         return info;
       }),

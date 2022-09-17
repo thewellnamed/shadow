@@ -1,11 +1,12 @@
-import { BuffData, BuffTrigger, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
+import { ActorStats } from 'src/app/logs/models/actor-stats';
+import { Buff, BuffTrigger, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
 import { Report } from 'src/app/report/models/report';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
 import { DamageInstance } from 'src/app/report/models/damage-instance';
 import { HasteUtils, IHasteStats } from 'src/app/report/models/haste';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
-import { IActorStats, IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
+import { IBuffData, ICastData, IDamageData, IEventData } from 'src/app/logs/interfaces';
 import { IDeathLookup } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
@@ -20,7 +21,7 @@ export class EventAnalyzer {
 
   private analysis: PlayerAnalysis;
 
-  private baseStats: IActorStats;
+  private baseStats: ActorStats;
   private buffData: IBuffData[];
   private castData: ICastData[];
   private damageData: IDamageData[];
@@ -33,18 +34,13 @@ export class EventAnalyzer {
 
   constructor(analysis: PlayerAnalysis) {
     this.analysis = analysis;
-    this.baseStats = Object.assign({}, analysis.actorInfo.stats) as IActorStats;
+    this.baseStats = Object.assign({}, analysis.actorInfo.stats) as ActorStats;
 
     // initialize event data
     this.buffData = analysis.events.buffs;
     this.castData = analysis.events.casts;
     this.damageData = analysis.events.damage;
     this.deaths = analysis.events.deaths;
-
-    // sometimes casts that start before combat begins for the logger are omitted,
-    // but the damage is recorded. In that case, infer the cast...
-    // TODO: is this necessary in wrath?
-    //this.inferMissingCasts();
 
     // partition damage events by spell ID for association with casts
     this.initializeDamageBuckets();
@@ -53,7 +49,7 @@ export class EventAnalyzer {
     this.events = this.mergeEvents();
 
     // if haste info is missing from combatant info, and not specified in settings, then try to infer it...
-    if (typeof this.baseStats.Haste === 'undefined') {
+    if (typeof this.baseStats?.hasteRating === 'undefined') {
       this.inferBaseHaste();
     }
   }
@@ -79,7 +75,7 @@ export class EventAnalyzer {
       switch (event.type) {
         case 'applybuff':
         case 'refreshbuff':
-          this.applyBuff(event as IBuffData, BuffData[event.ability.guid]);
+          this.applyBuff(event as IBuffData, Buff.get(event.ability.guid, this.analysis.settings));
           continue;
 
         case 'removebuff':
@@ -169,7 +165,7 @@ export class EventAnalyzer {
       switch (event.type) {
         case 'applybuff':
         case 'refreshbuff':
-          this.applyBuff(event as IBuffData, BuffData[event.ability.guid]);
+          this.applyBuff(event as IBuffData, Buff.get(event.ability.guid, this.analysis.settings));
           continue;
 
         case 'removebuff':
@@ -212,7 +208,7 @@ export class EventAnalyzer {
     // 2. of which at least 2/3 had evidence of "extra" unaccounted for haste.
     // 3. with an estimate of at least 8 haste rating, since no item has less haste than that at 70
     if (castCount > EventAnalyzer.MIN_INFER_HASTE_EVENTS && hastedPercent > 0.66 && estimate >= 8) {
-      this.baseStats.Haste = { min: estimate,  max: estimate };
+      this.baseStats = ActorStats.inferred(estimate);
     }
 
     this.buffs = [];
@@ -244,7 +240,7 @@ export class EventAnalyzer {
 
   // should buff be applied before this cast?
   private buffHasPriority(buff: IBuffData, nextCast: ICastData, lastCast?: ICastData) {
-    const data = BuffData[buff.ability.guid];
+    const data = Buff.data[buff.ability.guid];
     switch (data?.trigger) {
       case BuffTrigger.CAST_END:
         // if this buff was triggered by the end of the previous cast

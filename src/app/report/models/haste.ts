@@ -1,4 +1,4 @@
-import { IActorStats, IBuffData } from 'src/app/logs/interfaces';
+import { ActorStats } from 'src/app/logs/models/actor-stats';
 import { IBuffEvent } from 'src/app/logs/models/buff-data';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { Spell } from 'src/app/logs/models/spell-data';
@@ -8,13 +8,13 @@ export class HasteUtils {
 
   // Get haste values, combining base rating from gear (summary data)
   // and values from a set of current buffs
-  public static calc(playerStats: Partial<IActorStats>, buffs: IBuffEvent[] = []) {
+  public static calc(playerStats: ActorStats, buffs: IBuffEvent[] = []) {
     const stats: IHasteStats = {
       // combine haste rating from buffs with haste rating from gear, additively
       hasteRating: buffs.reduce((hasteRating, buff) => {
         hasteRating += buff.data.hasteRating;
         return hasteRating;
-      }, playerStats.Haste?.min || 0),
+      }, playerStats.hasteRating || 0),
 
       // combine haste percent buff effects multiplicatively
       hastePercent: buffs.reduce((haste, buff) => {

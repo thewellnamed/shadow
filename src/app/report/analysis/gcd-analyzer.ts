@@ -1,14 +1,15 @@
-import { IActorStats, IBuffData } from 'src/app/logs/interfaces';
+import { IBuffData } from 'src/app/logs/interfaces';
 import { HasteUtils, IHasteStats } from 'src/app/report/models/haste';
-import { BuffData, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
+import { Buff, IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { ActorStats } from 'src/app/logs/models/actor-stats';
 
 export class GcdAnalyzer {
   private gcds: number;
   private events: IBuffData[];
   private buffs: IBuffEvent[] = [];
   private stats: IHasteStats;
-  private baseStats: IActorStats;
+  private baseStats: ActorStats;
 
   constructor(private analysis: PlayerAnalysis) {
     this.events = analysis.events.buffs;
@@ -43,7 +44,7 @@ export class GcdAnalyzer {
       switch (event.type) {
         case 'applybuff':
         case 'refreshbuff':
-          this.applyBuff(event, BuffData[event.ability.guid]);
+          this.applyBuff(event, Buff.data[event.ability.guid]);
           break;
 
         case 'removebuff':
@@ -81,14 +82,7 @@ export class GcdAnalyzer {
 
   private removeBuff(event: IBuffData) {
     const index = this.buffs.findIndex((b) => b.id === event.ability.guid);
-    if (index === -1) {
-      const buffRating = BuffData[event.ability.guid].hasteRating || 0,
-        baseHaste = this.stats.hasteRating || 0;
-
-      if (buffRating > 0 && baseHaste >= buffRating) {
-        this.baseStats.Haste = { min: baseHaste - buffRating, max: baseHaste - buffRating};
-      }
-    } else {
+    if (index >= 0) {
       this.buffs.splice(index, 1);
     }
   }

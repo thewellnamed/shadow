@@ -1,3 +1,4 @@
+import { ActorStats } from 'src/app/logs/models/actor-stats';
 import { CastStats } from 'src/app/report/models/cast-stats';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { IEncounterEvents } from 'src/app/logs/logs.service';
@@ -37,8 +38,8 @@ export class PlayerAnalysis {
     this.events = new EventPreprocessor(this, events).run();
 
     // apply haste rating from settings if missing from log
-    if (this.actorInfo.stats?.Haste === undefined && settings.hasteRating) {
-      this.actorInfo.stats = { Haste: { min: settings.hasteRating, max: settings.hasteRating }};
+    if (this.actorInfo.stats?.hasteRating === undefined && settings.hasteRating) {
+      this.actorInfo.stats = ActorStats.inferred(settings.hasteRating);
     }
 
     // analyze events and generate casts report
