@@ -1,7 +1,8 @@
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { of } from 'rxjs';
 
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { BuffId } from 'src/app/logs/models/buff-id.enum';
 import { ParamsService } from 'src/app/params.service';
 import { SettingsService } from 'src/app/settings.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,6 +24,7 @@ export class SettingsComponent implements OnInit {
   logId: string;
   encounterId: number;
   playerId: string;
+  playerInfo: CombatantInfo|null;
   actor: Actor;
   logHasteRating: number|null;
   settings: Settings;
@@ -58,6 +60,7 @@ export class SettingsComponent implements OnInit {
         }
       })
     ).subscribe((playerInfo: CombatantInfo|null) => {
+      this.playerInfo = playerInfo;
       this.settings = this.settingsSvc.get(this.playerId);
       this.logHasteRating = playerInfo?.stats?.hasteRating || this.settings.hasteRating || null;
 
@@ -66,11 +69,13 @@ export class SettingsComponent implements OnInit {
         improvedMindBlast: new FormControl(this.settings.improvedMindBlast, { nonNullable: true }),
         improvedMoonkinAura: new FormControl(this.settings.improvedMoonkinAura, { nonNullable: true }),
         improvedRetAura: new FormControl(this.settings.improvedRetAura, { nonNullable: true }),
-        wrathOfAir: new FormControl(this.settings.wrathOfAir, { nonNullable: true })
+        wrathOfAir: new FormControl(this.settings.wrathOfAir, { nonNullable: true }),
+        moonkinAura: new FormControl(this.auraState(BuffId.MOONKIN_AURA), { nonNullable: true })
       });
 
-      if (playerInfo?.stats?.hasteRating) {
+      if (playerInfo?.initFromLog) {
         this.form.controls.hasteRating.disable();
+        this.form.controls.moonkinAura.disable();
       }
     });
   }
@@ -82,7 +87,19 @@ export class SettingsComponent implements OnInit {
 
   apply(event: Event) {
     event.preventDefault();
-    this.settingsSvc.update(this.playerId, new Settings(this.form.value as ISettings));
+
+    const settings = new Settings(this.form.value as ISettings);
+
+    // form.value excludes disabled controls. That's annoying.
+    settings.hasteRating = this.form.controls.hasteRating.value;
+
+    if (!this.playerInfo?.initFromLog) {
+      if (this.form.controls.moonkinAura.value) {
+        settings.auras.push(BuffId.MOONKIN_AURA);
+      }
+    }
+
+    this.settingsSvc.update(this.playerId, settings);
     this.exitSettings();
   }
 
@@ -91,12 +108,22 @@ export class SettingsComponent implements OnInit {
       queryParams: this.params.forNavigation()
     });
   }
+
+
+  private auraState(id: BuffId) {
+    if (this.playerInfo?.initFromLog) {
+      return this.playerInfo.haveAura(id);
+    }
+
+    return this.settings.haveAura(id);
+  }
 }
 
 interface ISettingsForm {
   hasteRating: FormControl<number|null>;
-  improvedMindBlast: FormControl<number>,
-  improvedMoonkinAura: FormControl<boolean>,
-  improvedRetAura: FormControl<boolean>,
-  wrathOfAir: FormControl<boolean>
+  improvedMindBlast: FormControl<number>;
+  improvedMoonkinAura: FormControl<boolean>;
+  improvedRetAura: FormControl<boolean>;
+  wrathOfAir: FormControl<boolean>;
+  moonkinAura: FormControl<boolean>;
 }

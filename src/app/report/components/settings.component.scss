@@ -9,14 +9,22 @@ section.settings {
     text-align: center;
   }
 
+  h4 {
+    margin: 0 0 12px 0;
+  }
+
   form {
     > div {
       margin-bottom: 25px;
 
-      &.slide-toggle > .mat-hint {
+      &.slide-toggle > .mat-hint, &.aura-checkboxes > .mat-hint {
         margin: 4px 0;
         font-size: 75%;
       }
+    }
+
+    .aura {
+      margin: 0 2em 0 0;
     }
   }
 

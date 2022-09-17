@@ -4,6 +4,7 @@
   </div>
 
   <form [formGroup]="form" (ngSubmit)="apply($event)">
+    <h4>Player Info</h4>
     <div>
       <mat-form-field class="fill" appearance="standard">
         <mat-label>Gear Haste Rating</mat-label>
@@ -33,6 +34,13 @@
           Enter a value between 0 and 5.
         </mat-error>
       </mat-form-field>
+    </div>
+
+    <h4>Auras</h4>
+    <div class="aura-checkboxes">
+      <mat-checkbox color="primary" class="aura" formControlName="moonkinAura">Moonkin/Ret Aura</mat-checkbox>
+      <p class="mat-hint table-accent" *ngIf="playerInfo?.initFromLog">Auras set from log.</p>
+      <p class="mat-hint table-accent" *ngIf="!playerInfo?.initFromLog">Data missing from log. Enable to assume haste aura present pre-fight.</p>
     </div>
 
     <div class="slide-toggle">

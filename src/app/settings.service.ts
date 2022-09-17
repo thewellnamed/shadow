@@ -18,6 +18,6 @@ export class SettingsService {
   }
 
   private key(playerName: string) {
-    return `settings_${playerName}`;
+    return `settings_${playerName.toLocaleLowerCase()}`;
   }
 }

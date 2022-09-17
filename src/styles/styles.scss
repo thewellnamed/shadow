@@ -15,6 +15,7 @@ $theme: mat.define-dark-theme((
 @include mat.button-theme($theme);
 @include mat.button-toggle-theme($theme);
 @include mat.card-theme($theme);
+@include mat.checkbox-theme($theme);
 @include mat.core-theme($theme);
 @include mat.divider-theme($theme);
 @include mat.expansion-theme($theme);
@@ -43,6 +44,11 @@ h1 {
 
 h3 {
   font-size: 1.8em;
+  font-weight: normal;
+}
+
+h4 {
+  font-size: 1.4em;
   font-weight: normal;
 }
 
