@@ -34,6 +34,11 @@ Special thanks to Passion for his organizing efforts, Linelo for him theorycraft
 
 
 ### Changelog
+- September 17th, 2022
+  - Improved buff tracking and added display of active buff icons for each spell in the timeline.
+  - Added settings screen for configuration (For details, see [Configuration Settings](SETTINGS.md))
+
+
 - September 8th, 2022
   - **Wrath Pre-patch Release (Beta)!**
   
@@ -43,6 +48,7 @@ Special thanks to Passion for his organizing efforts, Linelo for him theorycraft
 
     Todo:
     - More work is needed to track haste from buffs/auras, TBD for wrath release.
+
 
 - January 28th, 2022
   - **Phase 3 Release!**
