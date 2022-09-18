@@ -19,6 +19,10 @@ https://thewellnamed.github.io/shadow
 
 For more information, or for questions about shadow priest gameplay, check out #vod-and-log-review in [shadow priest discord](https://discord.gg/classicshadow).
 
+### Configuration Settings
+
+For information on analyzer settings, see [Configuration Settings](SETTINGS.md)
+
 ### Glossary
 
 Definitions of stats/terms available via the [Glossary](GLOSSARY.md).
