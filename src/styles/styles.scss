@@ -56,6 +56,7 @@ h4 {
 .tooltip {
   background-color: mat.get-color-from-palette(mat.$dark-theme-background-palette, 'background');
   padding: 4px 8px;
+  font-size: 0.8em;
 }
 
 form mat-form-field {
