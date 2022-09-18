@@ -1,5 +1,5 @@
 import { BuffId } from 'src/app/logs/models/buff-id.enum';
-import { IBuffData } from 'src/app/logs/interfaces';
+import { IAbilityData, IBuffData } from 'src/app/logs/interfaces';
 import { Settings } from 'src/app/settings';
 
 export enum BuffTrigger {
@@ -22,11 +22,11 @@ export class Buff {
     detailsIcon: true
   };
 
-  public static get(id: number, settings: Settings) {
-    const baseData = Buff.data[id];
+  public static get(ability: IAbilityData, settings: Settings) {
+    const baseData = Buff.data[ability.guid];
     const dynamic = baseData.dynamic ? baseData.dynamic.call(null, baseData, settings) : {};
 
-    return Object.assign({ id }, baseData, dynamic);
+    return Object.assign({ id: ability.guid, name: ability.name }, baseData, dynamic);
   }
 
   public static data: IBuffLookup = {
@@ -46,6 +46,16 @@ export class Buff {
     [BuffId.BREATH_HASTE]: buff({
       haste: 0.25,
       trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
+    }),
+
+    [BuffId.DARK_IRON_PIPE]: buff({
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
+    [BuffId.DESTRUCTION]: buff({
+      trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
@@ -86,12 +96,27 @@ export class Buff {
       summaryIcon: true
     }),
 
+    [BuffId.ICON_CRESCENT]: buff({
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
+    [BuffId.LIMITLESS_POWER]: buff({
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
     [BuffId.MOONKIN_AURA]: buff({
       trigger: BuffTrigger.EXTERNAL,
       doesNotStackWith: [BuffId.RETRIBUTION_AURA],
       dynamic: (baseData, settings) => ({
         haste: settings.improvedMoonkinAura ? 0.03 : 0
       })
+    }),
+
+    [BuffId.MOJO_MADNESS]: buff({
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
     }),
 
     [BuffId.POWER_INFUSION]: buff({
@@ -128,6 +153,7 @@ interface IBuffLookup {
 
 export interface IBuffDetails {
   id: BuffId;
+  name: string;
   haste: number;
   hasteRating: number;
   trigger: BuffTrigger;

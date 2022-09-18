@@ -26,6 +26,7 @@ $theme: mat.define-dark-theme((
 @include mat.select-theme($theme);
 @include mat.slide-toggle-theme($theme);
 @include mat.tabs-theme($theme);
+@include mat.toolbar-theme($theme);
 
 html, body {
   height: 100%;
@@ -50,6 +51,11 @@ h3 {
 h4 {
   font-size: 1.4em;
   font-weight: normal;
+}
+
+.tooltip {
+  background-color: mat.get-color-from-palette(mat.$dark-theme-background-palette, 'background');
+  padding: 4px 8px;
 }
 
 form mat-form-field {

@@ -178,6 +178,10 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
+  buffTooltip(buff: IBuffDetails) {
+    return `${buff.name} (${buff.id})`;
+  }
+
   iconClass(cast: CastDetails) {
     return {
       [`spell-${cast.spellId}`]: true

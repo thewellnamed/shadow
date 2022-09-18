@@ -52,7 +52,7 @@
         <mat-panel-description *ngIf="isDamage(cast)">
           <span class="buffs">
             <span class="buff" *ngFor="let buff of cast.summaryBuffs">
-              <span class="icon" [ngClass]="buffClass(buff)"></span>
+              <span class="icon" [ngClass]="buffClass(buff)" [matTooltip]="buffTooltip(buff)" matTooltipClass="tooltip" [matTooltipShowDelay]="200"></span>
             </span>
           </span>
           <span class="downtime" *ngIf="spellId && isDot(cast)">
@@ -119,7 +119,7 @@
         <div class="buff-details" *ngIf="cast.detailBuffs.length > 0">
           Buffs: <br/>
           <span class="buff" *ngFor="let buff of cast.detailBuffs">
-            <span class="icon" [ngClass]="buffClass(buff)"></span>
+            <span class="icon" [ngClass]="buffClass(buff)" [matTooltip]="buffTooltip(buff)" matTooltipClass="tooltip" [matTooltipShowDelay]="200"></span>
           </span>
         </div>
 

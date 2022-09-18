@@ -16,6 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { CastsComponent } from 'src/app/report/components/casts.component';
 import { ReportDetailsComponent } from 'src/app/report/components/report-details.component';
@@ -47,6 +48,7 @@ import { SummaryComponent } from 'src/app/report/components/summary.component';
     MatSelectModule,
     MatSlideToggleModule,
     MatTabsModule,
+    MatTooltipModule,
     ReactiveFormsModule
   ]
 })
