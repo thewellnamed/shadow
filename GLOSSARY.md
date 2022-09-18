@@ -45,33 +45,32 @@ cast.timeOffCooldown = current.castStart - previous.castEnd - spell.cooldown
 The Avg Time Off Cooldown is the mean of the downtime for all included casts. Casts with downtime greater than 10s are ignored for the
 average as outliers likely to represent time moving for mechanics, phase transitions, etc.
 
-### Avg Latency (non channeled casts)
+### Avg Delay (non channeled casts)
 
 For non-channeled casts, latency measures the delay from the _end_ of the GCD for the current cast and the start of the next cast.
-For Mind Flay latency, see below. Note that latency is measured going forward, so the latency for a cast is not how slow you were
-to start that cast, but how much delay was at the end of the cast. Casts with latency greater than 1s are ignored, since they most
-likely represent movement, not "latency" per se.
+For Mind Flay delay, which has a few nuances, see below. Note that this is measured going forward, so the value for a cast is not 
+how slow you were to start that cast, but how much delay was at the end of the cast. Casts with delays greater than 1s are ignored,
+since they most likely represent movement, not inefficiency in casting, per se.
 
-Typically, you should be trying to use spell queueing for non-channeled casts, even during the GCD, so post-cast latency ought
+Typically, you should be trying to use spell queueing for non-channeled casts, even during the GCD, so delays ought
 to be small. This value does however include server latency in processing events, so 10-30ms of delay may be observed after a GCD
 even when queueing properly. 
 
-### Avg MF Latency
+### Avg MF Delay
 
-The post-channel latency on a Mind Flay cast is the delta between the last damage tick of the channel (or the end of the GCD, if
+The delay on a Mind Flay cast is the delta between the last damage tick of the channel (or the end of the GCD, if
 no ticks) and the start of the next cast:
 
 ```
 endOfCurrent = current.lastDamageTimestamp OR current.endOfGcd
-current.nextCastLatency = next.castStart - endOfCurrent
+current.nextCastDelay = next.castStart - endOfCurrent
 ```
 
-The Avg latency is the mean of the latency for each included cast. Casts with latency greater than 1s are ignored, since they likely
-represent movement rather than casting latency. Casts which were [clipped early](#early-mf-clips) are also excluded, since they are reported
-separately. Thus the "avg latency" for mind flay casts represents something like how efficiently you cast after a mind flay under "normal" circumstances without
+The Avg delay is the mean over each included cast. Casts with delays greater than 1s are ignored, since they likely
+represent movement rather than casting inefficiency. Casts which were [clipped early](#early-mf-clips) are also excluded, since they are reported
+separately. Thus the "avg delay" for mind flay casts represents something like how efficiently you cast after a mind flay under "normal" circumstances without
 mistakes. For stats on how frequently you mis-clip mind flay, see [Early MF Clips](#early-mf-clips) instead.
 
-See [Basics](BASICS.md) for more on the mechanics of mind flay clipping.
 
 ### Avg Spellpower
 

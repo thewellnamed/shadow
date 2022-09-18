@@ -17,14 +17,11 @@ https://thewellnamed.github.io/shadow
 
 ### Gameplay Basics
 
-A brief explanation of the shadow gameplay principles which inform this analyzer is available in [Basics](BASICS.md). For more information,
-or for questions about shadow priest gameplay, check out #vod-and-log-review in [shadow priest discord](https://discord.gg/classicshadow).
-
-Note: not yet updated for WOTLK!
+For more information, or for questions about shadow priest gameplay, check out #vod-and-log-review in [shadow priest discord](https://discord.gg/classicshadow).
 
 ### Glossary
 
-Definitions of stats/terms available via the [Glossary](GLOSSARY.md). Also not yet updated for WOTLK
+Definitions of stats/terms available via the [Glossary](GLOSSARY.md).
 
 ### Credits
 
