@@ -18,6 +18,7 @@ import { StatHighlights } from 'src/app/report/analysis/stat-highlights';
 import { ParamsService, ParamType } from 'src/app/params.service';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 import * as StatUtils from 'src/app/report/models/stat-utils';
+import { IBuffDetails } from 'src/app/logs/models/buff-data';
 
 @Component({
   selector: 'casts',
@@ -169,6 +170,12 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
     return cast.haste > 0 ?
       this.format(cast.haste * 100, cast.haste > 0.1 ? 0 : 1, '%') :
       '---';
+  }
+
+  buffClass(buff: IBuffDetails) {
+    return {
+      [`spell-${buff.id}`]: true
+    }
   }
 
   iconClass(cast: CastDetails) {

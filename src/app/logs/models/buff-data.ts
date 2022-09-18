@@ -17,62 +17,73 @@ export class Buff {
     haste: 0,
     hasteRating: 0,
     trigger: BuffTrigger.EXTERNAL,
-    doesNotStackWith: []
-  }
+    doesNotStackWith: [],
+    summaryIcon: false,
+    detailsIcon: true
+  };
 
   public static get(id: number, settings: Settings) {
     const baseData = Buff.data[id];
     const dynamic = baseData.dynamic ? baseData.dynamic.call(null, baseData, settings) : {};
 
-    return Object.assign({}, baseData, dynamic);
+    return Object.assign({ id }, baseData, dynamic);
   }
 
   public static data: IBuffLookup = {
     [BuffId.BERSERKING]: buff({
       haste: 0.2,
-      trigger: BuffTrigger.ON_USE
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
     }),
 
     [BuffId.BLOODLUST]: buff({
       haste: 0.3,
       trigger: BuffTrigger.EXTERNAL,
-      doesNotStackWith: [BuffId.POWER_INFUSION]
+      doesNotStackWith: [BuffId.POWER_INFUSION],
+      summaryIcon: true
     }),
 
     [BuffId.BREATH_HASTE]: buff({
       haste: 0.25,
-      trigger: BuffTrigger.EXTERNAL
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
     }),
 
     [BuffId.DRUMS_OF_BATTLE]: buff({
       hasteRating: 80,
-      trigger: BuffTrigger.EXTERNAL
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
     }),
 
     [BuffId.GREATER_DRUMS_OF_BATTLE]: buff({
       hasteRating: 80,
-      trigger: BuffTrigger.EXTERNAL
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
     }),
 
     [BuffId.FEL_INFUSION]: buff({
       hasteRating: 175,
-      trigger: BuffTrigger.ON_USE
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
     }),
 
     [BuffId.FOCUS]: buff({
       hasteRating: 320,
-      trigger: BuffTrigger.CAST_END
+      trigger: BuffTrigger.CAST_END,
+      summaryIcon: true
     }),
 
     [BuffId.HASTE]: buff({
       hasteRating: 400,
-      trigger: BuffTrigger.ON_USE
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
     }),
 
     [BuffId.HEROISM]: buff({
       haste: 0.3,
       trigger: BuffTrigger.EXTERNAL,
-      doesNotStackWith: [BuffId.POWER_INFUSION]
+      doesNotStackWith: [BuffId.POWER_INFUSION],
+      summaryIcon: true
     }),
 
     [BuffId.MOONKIN_AURA]: buff({
@@ -86,12 +97,14 @@ export class Buff {
     [BuffId.POWER_INFUSION]: buff({
       haste: 0.2,
       trigger: BuffTrigger.EXTERNAL,
-      doesNotStackWith: [BuffId.HEROISM, BuffId.BLOODLUST]
+      doesNotStackWith: [BuffId.HEROISM, BuffId.BLOODLUST],
+      summaryIcon: true
     }),
 
     [BuffId.QUAGS_EYE]: buff({
       hasteRating: 320,
-      trigger: BuffTrigger.CAST_END
+      trigger: BuffTrigger.CAST_END,
+      summaryIcon: true
     }),
 
     [BuffId.RETRIBUTION_AURA]: buff({
@@ -114,10 +127,13 @@ interface IBuffLookup {
 }
 
 export interface IBuffDetails {
+  id: BuffId;
   haste: number;
   hasteRating: number;
   trigger: BuffTrigger;
   doesNotStackWith: BuffId[];
+  summaryIcon: boolean;
+  detailsIcon: boolean;
   dynamic?: (baseData: IBuffDetails, settings: Settings) => Partial<IBuffDetails>
 }
 

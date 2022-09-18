@@ -4,6 +4,7 @@ import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { IAbilityData } from 'src/app/logs/interfaces';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { HasteUtils } from 'src/app/report/models/haste';
+import { IBuffDetails } from 'src/app/logs/models/buff-data';
 
 export class CastDetails {
   spellId: SpellId; // the main ID for the spell (i.e. the max rank spell ID)
@@ -19,6 +20,7 @@ export class CastDetails {
   allTargets: number[] = [];
   hitType: HitType;
   instances: DamageInstance[] = [];
+  buffs: IBuffDetails[] = [];
   totalDamage = 0;
   totalAbsorbed = 0;
   totalResisted = 0;
@@ -54,6 +56,9 @@ export class CastDetails {
   gcd = 0;
   haste = 0;
 
+  private _summaryBuffs: IBuffDetails[];
+  private _detailBuffs: IBuffDetails[];
+
   constructor(params: ICastDetailsParams) {
     this.castId = params.castId;
     this.spellId = params.spellId;
@@ -66,6 +71,7 @@ export class CastDetails {
     this.castEnd = params.castEnd;
     this.castTimeMs = params.castEnd - params.castStart;
 
+    this.buffs = params.buffs || [];
     this.spellPower = params.spellPower;
     this.haste = params.haste;
     this.gcd = params.gcd;
@@ -134,6 +140,22 @@ export class CastDetails {
     return this.instances[this.instances.length - 1].timestamp;
   }
 
+  get summaryBuffs() {
+    if (this._summaryBuffs === undefined) {
+      this._summaryBuffs = this.buffs.filter((buff) => buff.summaryIcon);
+    }
+
+    return this._summaryBuffs;
+  }
+
+  get detailBuffs() {
+    if (this._detailBuffs === undefined) {
+      this._detailBuffs = this.buffs.filter((buff) => buff.detailsIcon);
+    }
+
+    return this._detailBuffs;
+  }
+
   private setHitType() {
     if (this.instances.length > 0) {
       const types = new Set(this.instances.map((i) => i.hitType));
@@ -167,4 +189,5 @@ interface ICastDetailsParams {
   spellPower: number;
   haste: number;
   gcd: number;
+  buffs?: IBuffDetails[];
 }

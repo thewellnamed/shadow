@@ -84,6 +84,12 @@
   ::ng-deep.mat-expansion-panel-header-description > span {
     margin-right: 0.75em;
 
+    &.buffs > .buff > span.icon {
+      display: inline-block;
+      margin-top: 4px;
+      margin-right: 2px;
+    }
+
     &.damage {
       min-width: 110px;
     }
@@ -115,7 +121,7 @@
     flex-flow: row wrap;
 
     > div {
-      padding: 0.25em 0.5em;
+      padding: 0 0.5em;
     }
 
     &.toggle-haste .haste {
@@ -127,9 +133,14 @@
     }
   }
 
-  .instances {
-    margin-top: 2em;
+  .instances, .buff-details {
+    margin-top: 0.5em;
     padding: 0.5em;
+  }
+
+  .buff-details > .buff > span.icon {
+    display: inline-block;
+    margin-right: 2px;
   }
 
   .instance {
@@ -227,6 +238,10 @@
 
       &.cooldown {
         min-width: 40px;
+      }
+
+      &.buffs > .buff > span.icon {
+        display: none;
       }
 
       span.damage-label {

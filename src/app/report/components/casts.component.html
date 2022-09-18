@@ -50,6 +50,11 @@
         </mat-panel-title>
 
         <mat-panel-description *ngIf="isDamage(cast)">
+          <span class="buffs">
+            <span class="buff" *ngFor="let buff of cast.summaryBuffs">
+              <span class="icon" [ngClass]="buffClass(buff)"></span>
+            </span>
+          </span>
           <span class="downtime" *ngIf="spellId && isDot(cast)">
             <span class="downtime-label">Downtime: </span>
             <span [ngClass]="highlight.dotDowntime(cast)">{{ format(cast.dotDowntime) }}</span>
@@ -109,6 +114,13 @@
             <span class="table-accent">{{ format(cast.timeOffCooldown, 1, 's') }}</span>
           </div>
           <div *ngIf="cast.truncated">Truncated: <span [ngClass]="highlight.hits(cast)">true</span></div>
+        </div>
+
+        <div class="buff-details" *ngIf="cast.detailBuffs.length > 0">
+          Buffs: <br/>
+          <span class="buff" *ngFor="let buff of cast.detailBuffs">
+            <span class="icon" [ngClass]="buffClass(buff)"></span>
+          </span>
         </div>
 
         <div class="instances" *ngIf="cast.instances.length > 0">

@@ -115,6 +115,7 @@ export class EventAnalyzer {
         targetInstance: currentCast.targetInstance,
         castStart: startingCast?.timestamp || currentCast.timestamp,
         castEnd: currentCast.timestamp,
+        buffs: this.buffs.map((b) => b.data),
         spellPower: currentCast.spellPower,
         haste: activeStats!.totalHaste - 1,
         gcd: spellData.gcd ? activeStats!.gcd : 0
