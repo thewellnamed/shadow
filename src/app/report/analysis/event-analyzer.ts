@@ -64,6 +64,7 @@ export class EventAnalyzer {
   public createCasts(): CastDetails[] {
     let event: IEventData,
       currentCast: ICastData,
+      castBuffs: IBuffEvent[]|null = null,
       activeStats: IHasteStats|null = null,
       startingCast: ICastData|null = null;
 
@@ -85,6 +86,7 @@ export class EventAnalyzer {
         case 'begincast':
           startingCast = event as ICastData;
           activeStats = HasteUtils.calc(this.baseStats, this.buffs);
+          castBuffs = this.buffs.slice();
           continue;
       }
 
@@ -97,11 +99,13 @@ export class EventAnalyzer {
       if (startingCast && currentCast.ability.guid !== startingCast.ability.guid) {
         startingCast = null;
         activeStats = null;
+        castBuffs = null;
       }
 
       // if we didn't get stats at begincast, get them now
       if (!activeStats) {
         activeStats = HasteUtils.calc(this.baseStats, this.buffs);
+        castBuffs = this.buffs.slice();
       }
 
       const castId = mapSpellId(currentCast.ability.guid);
@@ -115,7 +119,7 @@ export class EventAnalyzer {
         targetInstance: currentCast.targetInstance,
         castStart: startingCast?.timestamp || currentCast.timestamp,
         castEnd: currentCast.timestamp,
-        buffs: this.buffs.map((b) => b.data),
+        buffs: castBuffs?.map((b) => b.data) || [],
         spellPower: currentCast.spellPower,
         haste: activeStats!.totalHaste - 1,
         gcd: spellData.gcd ? activeStats!.gcd : 0
