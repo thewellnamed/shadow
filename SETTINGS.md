@@ -4,7 +4,7 @@ After pulling up a report for a specific encounter, there is now a gear icon at 
 to the spellpower/haste toggle. Clicking the gear will take you to a screen where you can edit settings used in the
 analysis of the encounter:
 
-![Configuration Settings Screen](./docs/images/settings-screen.png)
+![Configuration Settings Screen](https://raw.githubusercontent.com/thewellnamed/shadow/main/docs/images/settings-screen.png)
 
 The purpose of this new screen is two-fold. First, there are some data that just don't exist in the log file, for
 example whether or not boomkins in your raid have improved moonkin form, or whether your shaman has placed a wrath
