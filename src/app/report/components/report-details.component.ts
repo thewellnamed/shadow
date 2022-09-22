@@ -5,9 +5,7 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { Actor } from 'src/app/logs/models/actor';
-import { IEncounterEvents, LogsService } from 'src/app/logs/logs.service';
-import { LogSummary } from 'src/app/logs/models/log-summary';
+import { LogsService } from 'src/app/logs/logs.service';
 import { IStatsSearch, PlayerAnalysis } from 'src/app/report/models/player-analysis';
 import { ParamsService, ParamType } from 'src/app/params.service';
 import { ITabDefinition, TabDefinitions } from 'src/app/report/components/tabs';
@@ -17,8 +15,6 @@ import { IStatField } from 'src/app/report/summary/fields/base.fields';
 import { EventService, IEvent } from 'src/app/event.service';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { CastDetails } from 'src/app/report/models/cast-details';
-import { CombatantInfo } from 'src/app/logs/models/combatant-info';
-import { Settings } from 'src/app/settings';
 import { SettingsService } from 'src/app/settings.service';
 
 @Component({
@@ -32,11 +28,7 @@ export class ReportDetailsComponent implements OnInit {
   encounterId: number;
   playerId: string;
 
-  log: LogSummary;
   analysis: PlayerAnalysis;
-  actor: Actor;
-  actorInfo: CombatantInfo;
-  settings: Settings;
   highlight: StatHighlights;
   activeTab = 0;
   form: UntypedFormGroup;
@@ -56,42 +48,45 @@ export class ReportDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+
     this.route.paramMap.pipe(
       withLatestFrom(this.route.parent!.paramMap),
       switchMap(([params, parentParams]) => {
         this.logId = parentParams.get('logId') as string;
         this.playerId = params.get('player') as string;
-
-        if (params.has('encounterId')) {
-          this.encounterId = parseInt(params.get('encounterId') as string, 10);
-        }
-
         this.loading = true;
         this.changeDetectorRef.detectChanges();
 
-        return this.logs.getSummary(this.logId);
-      }),
-      switchMap((log: LogSummary) => {
-        this.log = log;
-        this.actor = this.log.getActorByRouteId(this.playerId) as Actor;
-        this.settings = this.settingsSvc.get(this.playerId);
+        if (params.has('encounterId')) {
+          this.encounterId = parseInt(params.get('encounterId') as string, 10);
+          const analysis = PlayerAnalysis.getCached(this.logId, this.encounterId, this.playerId);
 
-        if (this.encounterId) {
-          return this.logs.getPlayerInfo(log, this.actor, this.encounterId);
-        } else {
-          return of(null)
-        }
-      }),
-      switchMap((actorInfo: CombatantInfo|null) => {
-        if (actorInfo) {
-          this.actorInfo = actorInfo;
+          if (analysis) {
+            return of(analysis);
+          } else {
+            return this.logs.createAnalysis(this.logId, this.playerId, this.encounterId);
+          }
         }
 
-        return this.fetchData();
+        return of(null);
       })
-    ).subscribe((data) => {
-      if (data) {
-        this.analyze(data);
+    ).subscribe((analysis: PlayerAnalysis|null) => {
+      if (analysis) {
+        this.analysis = analysis;
+        this.analysis.refresh(this.settingsSvc.get(this.playerId));
+        this.highlight = new StatHighlights(this.analysis);
+
+        this.targets = this.analysis.targetIds
+          .map((id) => ({id, name: this.analysis.log.getActorName(id)}))
+          .filter((t) => (t.name?.length || 0) > 0)
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (this.targets.length === 1) {
+          this.setTarget(this.targets[0].id);
+        } else if (this.target.value && !this.analysis.targetIds.includes(this.target.value)) {
+          this.setTarget(0);
+        }
+
         this.initializeTabs();
       }
 
@@ -184,32 +179,6 @@ export class ReportDetailsComponent implements OnInit {
       targetId: this.target.value || undefined,
       hitCount: this.hitCount
     };
-  }
-
-  private fetchData() {
-    if (this.encounterId > 0) {
-      return this.logs.getEvents(this.log, this.actor, this.encounterId);
-    } else {
-      return of(null);
-    }
-  }
-
-  private analyze(events: IEncounterEvents) {
-    if (events) {
-      this.analysis = new PlayerAnalysis(this.log, this.encounterId, this.actor, this.actorInfo, this.settings, events);
-      this.highlight = new StatHighlights(this.analysis);
-
-      this.targets = this.analysis.targetIds
-        .map((id) => ({ id , name: this.log.getActorName(id) }))
-        .filter((t) => (t.name?.length || 0) > 0)
-        .sort((a, b) => a.name.localeCompare(b.name));
-
-      if (this.targets.length === 1) {
-        this.setTarget(this.targets[0].id);
-      } else if (this.target.value && !this.analysis.targetIds.includes(this.target.value)) {
-        this.setTarget(0);
-      }
-    }
   }
 
   private setTarget(targetId: number) {

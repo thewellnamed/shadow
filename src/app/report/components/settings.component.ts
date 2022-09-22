@@ -9,9 +9,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ISettings, Settings } from 'src/app/settings';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { LogSummary } from 'src/app/logs/models/log-summary';
-import { Actor } from 'src/app/logs/models/actor';
-import { CombatantInfo } from 'src/app/logs/models/combatant-info';
 import { LogsService } from 'src/app/logs/logs.service';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 @Component({
   selector: 'report-settings',
@@ -24,10 +23,9 @@ export class SettingsComponent implements OnInit {
   logId: string;
   encounterId: number;
   playerId: string;
-  playerInfo: CombatantInfo|null;
-  actor: Actor;
+
+  analysis: PlayerAnalysis;
   logHasteRating: number|null;
-  settings: Settings;
   form: FormGroup<ISettingsForm>;
 
   constructor(private logs: LogsService,
@@ -42,38 +40,31 @@ export class SettingsComponent implements OnInit {
       switchMap(([params, parentParams]) => {
         this.logId = parentParams.get('logId') as string;
         this.playerId = params.get('player') as string;
+        this.encounterId = parseInt(params.get('encounterId') as string, 10);
 
-        if (params.has('encounterId')) {
-          this.encounterId = parseInt(params.get('encounterId') as string, 10);
-        }
+        const analysis = PlayerAnalysis.getCached(this.logId, this.encounterId, this.playerId);
 
-        return this.logs.getSummary(this.logId);
-      }),
-      switchMap((log: LogSummary) => {
-        this.log = log;
-        this.actor = this.log.getActorByRouteId(this.playerId) as Actor;
-
-        if (this.encounterId) {
-          return this.logs.getPlayerInfo(log, this.actor, this.encounterId);
+        if (analysis) {
+          return of(analysis);
         } else {
-          return of(null)
+          return this.logs.createAnalysis(this.logId, this.playerId, this.encounterId);
         }
       })
-    ).subscribe((playerInfo: CombatantInfo|null) => {
-      this.playerInfo = playerInfo;
-      this.settings = this.settingsSvc.get(this.playerId);
-      this.logHasteRating = playerInfo?.stats?.hasteRating || this.settings.hasteRating || null;
+    ).subscribe((analysis: PlayerAnalysis) => {
+      this.analysis = analysis;
+      this.analysis.refresh(this.settingsSvc.get(this.playerId));
+      this.logHasteRating = analysis.actorInfo?.stats?.hasteRating || analysis.settings.hasteRating || null;
 
       this.form = new FormGroup<ISettingsForm>({
         hasteRating: new FormControl(this.logHasteRating),
-        improvedMindBlast: new FormControl(this.settings.improvedMindBlast, { nonNullable: true }),
-        improvedMoonkinAura: new FormControl(this.settings.improvedMoonkinAura, { nonNullable: true }),
-        improvedRetAura: new FormControl(this.settings.improvedRetAura, { nonNullable: true }),
-        wrathOfAir: new FormControl(this.settings.wrathOfAir, { nonNullable: true }),
+        improvedMindBlast: new FormControl(analysis.settings.improvedMindBlast, { nonNullable: true }),
+        improvedMoonkinAura: new FormControl(analysis.settings.improvedMoonkinAura, { nonNullable: true }),
+        improvedRetAura: new FormControl(analysis.settings.improvedRetAura, { nonNullable: true }),
+        wrathOfAir: new FormControl(analysis.settings.wrathOfAir, { nonNullable: true }),
         moonkinAura: new FormControl(this.auraState(BuffId.MOONKIN_AURA), { nonNullable: true })
       });
 
-      if (playerInfo?.initFromLog) {
+      if (this.analysis.actorInfo?.initFromLog) {
         this.form.controls.hasteRating.disable();
         this.form.controls.moonkinAura.disable();
       }
@@ -93,7 +84,7 @@ export class SettingsComponent implements OnInit {
     // form.value excludes disabled controls. That's annoying.
     settings.hasteRating = this.form.controls.hasteRating.value;
 
-    if (!this.playerInfo?.initFromLog) {
+    if (!this.analysis.actorInfo?.initFromLog) {
       if (this.form.controls.moonkinAura.value) {
         settings.auras.push(BuffId.MOONKIN_AURA);
       }
@@ -111,11 +102,11 @@ export class SettingsComponent implements OnInit {
 
 
   private auraState(id: BuffId) {
-    if (this.playerInfo?.initFromLog) {
-      return this.playerInfo.haveAura(id);
+    if (this.analysis.actorInfo?.initFromLog) {
+      return this.analysis.actorInfo.haveAura(id);
     }
 
-    return this.settings.haveAura(id);
+    return this.analysis.settings.haveAura(id);
   }
 }
 

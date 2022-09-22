@@ -18,6 +18,7 @@ import { EventPreprocessor } from 'src/app/report/analysis/event-preprocessor';
 export class PlayerAnalysis {
   public log: LogSummary;
   public encounter: EncounterSummary;
+  public playerId: string;
   public actor: Actor;
   public actorInfo: CombatantInfo;
   public settings: Settings;
@@ -25,29 +26,38 @@ export class PlayerAnalysis {
   public report: Report;
   public totalGcds: number;
 
-  private _applyWrathOfAir: boolean;
+  private _rawStats: ActorStats;
+  private _rawEvents: IEncounterEvents;
+  private _applyWrathOfAir: boolean|undefined;
 
-  constructor(log: LogSummary, encounterId: number, actor: Actor, actorInfo: CombatantInfo, settings: Settings, events: IEncounterEvents) {
+  private static _cache: {[key: string]: PlayerAnalysis} = {};
+  public static getCached(logId: string, encounterId: number, playerId: string) {
+    return PlayerAnalysis._cache[PlayerAnalysis.cacheKey(logId, playerId, encounterId)];
+  }
+
+  public static cacheKey(logId: string, playerId: string, encounterId: number) {
+    return `${logId}:${encounterId}:${playerId}`;
+  }
+
+  constructor(log: LogSummary, encounterId: number, playerId: string, actorInfo: CombatantInfo, settings: Settings, events: IEncounterEvents) {
     this.log = log;
     this.encounter = log.getEncounter(encounterId) as EncounterSummary;
-    this.actor = actor;
-    this.actorInfo = Object.assign({}, actorInfo);
+    this.playerId = playerId;
+    this.actor = log.getActorByRouteId(playerId) as Actor;
     this.settings = settings;
+    this.actorInfo = actorInfo;
 
-    // pre-process events
-    this.events = new EventPreprocessor(this, events).run();
+    this._rawStats = actorInfo.stats;
+    this._rawEvents = events;
 
-    // apply haste rating from settings if missing from log
-    if (this.actorInfo.stats?.hasteRating === undefined && settings.hasteRating) {
-      this.actorInfo.stats = ActorStats.inferred(settings.hasteRating);
+    this.analyze();
+  }
+
+  refresh(settings: Settings) {
+    if (!this.settings.equals(settings)) {
+      this.settings = settings;
+      this.analyze();
     }
-
-    // analyze events and generate casts report
-    const casts = new EventAnalyzer(this).createCasts();
-    this.report = new CastsAnalyzer(this, casts).run();
-
-    // find total possible GCDs in encounter
-    this.totalGcds = new GcdAnalyzer(this).totalGcds;
   }
 
   get targetIds(): number[] {
@@ -106,6 +116,29 @@ export class PlayerAnalysis {
       this._applyWrathOfAir = shamans.length > 0;
     }
     return this._applyWrathOfAir;
+  }
+
+  private analyze() {
+    this._applyWrathOfAir = undefined;
+
+    // pre-process events
+    this.actorInfo.stats = Object.assign({}, this._rawStats);
+    this.events = new EventPreprocessor(this, this._rawEvents).run();
+
+    // apply haste rating from settings if missing from log
+    if (this.actorInfo.stats?.hasteRating === undefined && this.settings.hasteRating) {
+      this.actorInfo.stats = ActorStats.inferred(this.settings.hasteRating);
+    }
+
+    // analyze events and generate casts report
+    const casts = new EventAnalyzer(this).createCasts();
+    this.report = new CastsAnalyzer(this, casts).run();
+
+    // find total possible GCDs in encounter
+    this.totalGcds = new GcdAnalyzer(this).totalGcds;
+
+    // Cache result
+    PlayerAnalysis._cache[PlayerAnalysis.cacheKey(this.log.id, this.playerId, this.encounter.id)] = this;
   }
 }
 

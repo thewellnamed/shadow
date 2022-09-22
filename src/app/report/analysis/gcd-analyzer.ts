@@ -44,7 +44,7 @@ export class GcdAnalyzer {
       switch (event.type) {
         case 'applybuff':
         case 'refreshbuff':
-          this.applyBuff(event, Buff.data[event.ability.guid]);
+          this.applyBuff(event, Buff.get(event.ability, this.analysis.settings));
           break;
 
         case 'removebuff':

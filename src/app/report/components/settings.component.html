@@ -39,8 +39,8 @@
     <h4>Auras</h4>
     <div class="aura-checkboxes">
       <mat-checkbox color="primary" class="aura" formControlName="moonkinAura">Moonkin/Ret Aura</mat-checkbox>
-      <p class="mat-hint table-accent" *ngIf="playerInfo?.initFromLog">Auras set from log.</p>
-      <p class="mat-hint table-accent" *ngIf="!playerInfo?.initFromLog">Data missing from log. Enable to assume haste aura present pre-fight.</p>
+      <p class="mat-hint table-accent" *ngIf="analysis.actorInfo?.initFromLog">Auras set from log.</p>
+      <p class="mat-hint table-accent" *ngIf="!analysis.actorInfo?.initFromLog">Data missing from log. Enable to assume haste aura present pre-fight.</p>
     </div>
 
     <div class="slide-toggle">

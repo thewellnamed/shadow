@@ -10,9 +10,11 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { PSEUDO_SPELL_BASE } from 'src/app/logs/models/spell-id.enum';
 import { Spell } from 'src/app/logs/models/spell-data';
+import { ICombatantData } from 'src/app/logs/interfaces';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { SettingsService } from 'src/app/settings.service';
 
 import * as wcl from 'src/app/logs/interfaces';
-import { ICombatantData } from 'src/app/logs/interfaces';
 
 @Injectable()
 export class LogsService {
@@ -39,7 +41,33 @@ export class LogsService {
   private eventCache: { [id: string]: IEncounterEvents} = {};
   private playerCache: { [id: string]: any} = {};
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private settingsSvc: SettingsService) {}
+
+  /**
+   * Fetch all data to create an analysis for a given player in a given encounter, in a given log
+   * @param {string} logId
+   * @param {string} playerId
+   * @param {number} encounterId
+   * @return {PlayerAnalysis}
+   */
+  createAnalysis(logId: string, playerId: string, encounterId: number) {
+    let log: LogSummary;
+    let actorInfo: CombatantInfo;
+
+    return this.getSummary(logId).pipe(
+      switchMap((summary: LogSummary) => {
+        log = summary;
+        return this.getPlayerInfo(log, log.getActorByRouteId(playerId) as Actor, encounterId);
+      }),
+      switchMap((combatant: CombatantInfo) => {
+        actorInfo = combatant;
+        return this.getEvents(log, log.getActorByRouteId(playerId) as Actor, encounterId);
+      }),
+      switchMap((events: IEncounterEvents) => {
+        return of(new PlayerAnalysis(log, encounterId, playerId, actorInfo, this.settingsSvc.get(playerId), events));
+      })
+    );
+  }
 
   /**
    * Extract WCL report ID from a string,
@@ -94,7 +122,7 @@ export class LogsService {
   getPlayerInfo(log: LogSummary, player: Actor, encounterId: number): Observable<CombatantInfo> {
     const cacheId = `${log.id}:${encounterId}:${player.id}`;
     if (this.playerCache.hasOwnProperty(cacheId)) {
-      return of(this.playerCache[cacheId]);
+      return of(new CombatantInfo(this.playerCache[cacheId]));
     }
 
     const encounter = log.getEncounter(encounterId) as EncounterSummary;
@@ -106,9 +134,12 @@ export class LogsService {
     const url = this.apiUrl(`report/events/summary/${log.id}`);
     return this.http.get<{ events: ICombatantData[]}>(url, { params }).pipe(
       map((response) => {
-        const info = new CombatantInfo(response.events.length > 0 ? response.events[0] : undefined);
-        this.playerCache[cacheId] = info;
-        return info;
+        const data = response.events.length > 0 ? response.events[0] : undefined;
+        if (data) {
+          this.playerCache[cacheId] = data;
+        }
+
+        return new CombatantInfo(data);
       }),
       catchError((response: HttpErrorResponse) => {
         return throwError(`Error fetching player info: ${response.error.error}`);

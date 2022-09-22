@@ -19,6 +19,16 @@ export class Settings {
     }
   }
 
+  equals(other: Settings) {
+    return this.hasteRating === other.hasteRating &&
+      this.improvedMindBlast === other.improvedMindBlast &&
+      this.improvedMoonkinAura === other.improvedMoonkinAura &&
+      this.improvedRetAura === other.improvedRetAura &&
+      this.wrathOfAir === other.wrathOfAir &&
+      this.auras.length === other.auras.length &&
+      this.auras.every((id) => other.auras.includes(id));
+  }
+
   haveAura(id: BuffId) {
     return this.auras?.some((a) => a === id) || false;
   }
