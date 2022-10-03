@@ -30,6 +30,11 @@ export class Buff {
   }
 
   public static data: IBuffLookup = {
+    [BuffId.ARGENT_VALOR]: buff({
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
     [BuffId.BERSERKING]: buff({
       haste: 0.2,
       trigger: BuffTrigger.ON_USE,
@@ -65,6 +70,17 @@ export class Buff {
       summaryIcon: true
     }),
 
+    [BuffId.DYING_CURSE]: buff({
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
+    }),
+
+    [BuffId.EMBRACE_SPIDER]: buff({
+      hasteRating: 505,
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
+    }),
+
     [BuffId.GREATER_DRUMS_OF_BATTLE]: buff({
       hasteRating: 80,
       trigger: BuffTrigger.EXTERNAL,
@@ -80,6 +96,11 @@ export class Buff {
     [BuffId.FOCUS]: buff({
       hasteRating: 320,
       trigger: BuffTrigger.CAST_END,
+      summaryIcon: true
+    }),
+
+    [BuffId.FORGE_EMBER]: buff({
+      trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
@@ -163,6 +184,17 @@ export class Buff {
 
     [BuffId.SUNDIAL]: buff({
       trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
+    }),
+
+    [BuffId.TOME_ARCANE_PHENOMENA]: buff({
+      hasteRating: 256,
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
+    [BuffId.TWILIGHT_SERPENT]: buff({
+      trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
