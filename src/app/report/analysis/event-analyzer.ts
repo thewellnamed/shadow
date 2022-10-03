@@ -339,7 +339,7 @@ export class EventAnalyzer {
     let nextCast: ICastData|null;
     let nextDamage: IDamageData|null;
     let maxDamageTimestamp = spellData.maxDuration > 0 ?
-      cast.castEnd + (spellData.maxDuration * 1000) + (spellData.maxDamageInstances * EventAnalyzer.EVENT_LEEWAY) :
+      cast.castEnd + (spellData.maxDuration * 1000) + (spellData.maxDamageInstances * EventAnalyzer.EVENT_LEEWAY * 3) :
       this.analysis.encounter.end;
 
     const damageEvents = this.damageBySpell[cast.spellId] || [];

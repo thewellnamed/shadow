@@ -4,7 +4,7 @@ import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { Spell } from 'src/app/logs/models/spell-data';
 
 export class HasteUtils {
-  public static RATING_FACTOR = 15.77;
+  public static RATING_FACTOR = 32.79; // level 80
 
   // Get haste values, combining base rating from gear (summary data)
   // and values from a set of current buffs
