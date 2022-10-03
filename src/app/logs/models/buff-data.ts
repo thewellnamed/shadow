@@ -178,7 +178,12 @@ export class Buff {
     }),
 
     [BuffId.SHADOWY_INSIGHT]: buff({
-      trigger: BuffTrigger.EXTERNAL,
+      trigger: BuffTrigger.EXTERNAL
+    }),
+
+    [BuffId.SPEED_POTION]: buff({
+      hasteRating: 500,
+      trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
@@ -199,6 +204,11 @@ export class Buff {
     }),
 
     [BuffId.WAR_PRISONER]: buff({
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
+    [BuffId.WILD_MAGIC]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
