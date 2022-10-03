@@ -96,8 +96,19 @@ export class Buff {
       summaryIcon: true
     }),
 
+    [BuffId.HYPERSPEED_ACCELERATION]: buff({
+      hasteRating: 340,
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
     [BuffId.ICON_CRESCENT]: buff({
       trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
+    [BuffId.LIGHTWEAVE]: buff({
+      trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
@@ -138,6 +149,11 @@ export class Buff {
       dynamic: (baseData, settings) => ({
         haste: settings.improvedRetAura ? 0.03 : 0
       })
+    }),
+
+    [BuffId.SHADOWY_INSIGHT]: buff({
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
     }),
 
     [BuffId.WRATH_OF_AIR]: buff({

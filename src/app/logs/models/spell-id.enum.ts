@@ -35,10 +35,6 @@ export enum SpellId {
   GOBLIN_SAPPER = 13241,
   SUPER_SAPPER = 30486,
 
-  // Misc spells
-  NETHERWEAVE_NET = 31367,
-  THORNLING = 22792,
-
   // Pseudo spell IDs (map to WCL negative values)
   MELEE = PSEUDO_SPELL_BASE + 32
 }

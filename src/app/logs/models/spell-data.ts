@@ -135,10 +135,6 @@ export class Spell {
       gcd: false
     }),
 
-    [SpellId.GOBLIN_LAND_MINE]: data({
-      damageType: DamageType.NONE,
-    }),
-
     [SpellId.GOBLIN_SAPPER]: data({
       damageType: DamageType.AOE,
       maxDamageInstances: 20,
@@ -198,11 +194,6 @@ export class Spell {
       statsByTick: true
     }),
 
-    [SpellId.NETHERWEAVE_NET]: data({
-      damageType: DamageType.NONE,
-      cooldown: 60
-    }),
-
     [SpellId.PAIN]: data({
       rankIds: {
         [25367]: 9,
@@ -234,10 +225,6 @@ export class Spell {
       damageType: DamageType.AOE,
       maxDamageInstances: 20,
       gcd: false
-    }),
-
-    [SpellId.THORNLING]: data({
-      damageType: DamageType.NONE,
     }),
 
     [SpellId.VAMPIRIC_EMBRACE]: data({
