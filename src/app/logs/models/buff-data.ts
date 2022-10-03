@@ -107,6 +107,11 @@ export class Buff {
       summaryIcon: true
     }),
 
+    [BuffId.INNER_FOCUS]: buff({
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true
+    }),
+
     [BuffId.LIGHTWEAVE]: buff({
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
@@ -153,6 +158,16 @@ export class Buff {
 
     [BuffId.SHADOWY_INSIGHT]: buff({
       trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
+    }),
+
+    [BuffId.SUNDIAL]: buff({
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
+    }),
+
+    [BuffId.WAR_PRISONER]: buff({
+      trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
