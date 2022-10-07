@@ -138,6 +138,12 @@ export class EventPreprocessor {
         read: false
       }));
 
+    // for auras discovered from the summary, bonus stats are applied to the ActorStats
+    // but we'll process those through our normal buff processing loop, so we want to remove them
+    for (const event of buffs) {
+      this.updateActorStats(event);
+    }
+
     // append in-combat events...
     buffs.push(... this.inputEvents.buffs.slice());
 
@@ -173,13 +179,8 @@ export class EventPreprocessor {
         read: false
       });
 
-      // if the inferred buff modifies haste rating, WCL typically has the extra rating applied to the
-      // combatant info, so we need to remove it there.
-      const baseRating = this.analysis.actorInfo?.stats?.hasteRating || 0;
-      const buffData = Buff.data[event.ability.guid];
-      if (buffData.hasteRating > 0 && baseRating > buffData.hasteRating) {
-        this.analysis.actorInfo!.stats!.hasteRating -= buffData.hasteRating;
-      }
+      // missing buffs might also be reflected in ActorStats, so update them.
+      this.updateActorStats(event);
     }
 
     // if wrath of air is enabled, and a shaman is found in the raid, then apply wrath of air buff
@@ -195,5 +196,14 @@ export class EventPreprocessor {
     }
 
     return buffs;
+  }
+
+  private updateActorStats(event: IBuffData) {
+    const baseRating = this.analysis.actorInfo?.stats?.hasteRating || 0;
+    const buffData = Buff.data[event.ability.guid];
+
+    if (buffData.hasteRating > 0 && baseRating > buffData.hasteRating) {
+      this.analysis.actorInfo!.stats!.hasteRating -= buffData.hasteRating;
+    }
   }
 }
