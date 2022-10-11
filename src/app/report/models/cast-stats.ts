@@ -281,6 +281,12 @@ export class CastStats {
       this.latencyCount++;
     }
 
+    // check haste calc error
+    if (HasteUtils.canInferHaste(cast, spellData)) {
+      this._totalHasteError += HasteUtils.getHasteError(cast, spellData);
+      this._hasteErrorCastCount++;
+    }
+
     // stats below are specific to damage spells...
     if (spellData.damageType === DamageType.NONE) {
       return;
@@ -349,22 +355,6 @@ export class CastStats {
     if (this.addDotDowntimeStats(cast)) {
       this._dotDowntimeStats.castCount++;
       this._dotDowntimeStats.totalDowntime += cast.dotDowntime as number;
-    }
-
-    // check haste calc error
-    if (cast.castTimeMs > 500 || (spellData.damageType === DamageType.CHANNEL && cast.instances.length > 0)) {
-      let actualCastTime: number, baseCastTime: number;
-      if (spellData.damageType === DamageType.CHANNEL) {
-        actualCastTime = cast.instances[0].timestamp - cast.castEnd;
-        baseCastTime = (spellData.maxDuration / spellData.maxTicks) * 1000;
-      } else {
-        actualCastTime = cast.castTimeMs;
-        baseCastTime = spellData.baseCastTime * 1000;
-      }
-
-      const expectedCastTime = HasteUtils.apply(baseCastTime, cast.haste);
-      this._totalHasteError += (expectedCastTime - actualCastTime) / expectedCastTime;
-      this._hasteErrorCastCount++;
     }
 
     this.recalculate = true;

@@ -22,7 +22,7 @@ export class Buff {
     detailsIcon: true
   };
 
-  public static get(ability: IAbilityData, settings: Settings) {
+  public static get(ability: IAbilityData, settings: Settings): IBuffDetails {
     const baseData = Buff.data[ability.guid];
     const dynamic = baseData.dynamic ? baseData.dynamic.call(null, baseData, settings) : {};
 

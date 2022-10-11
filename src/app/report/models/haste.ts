@@ -1,7 +1,8 @@
 import { ActorStats } from 'src/app/logs/models/actor-stats';
 import { IBuffEvent } from 'src/app/logs/models/buff-data';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
-import { Spell } from 'src/app/logs/models/spell-data';
+import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
+import { CastDetails } from 'src/app/report/models/cast-details';
 
 export class HasteUtils {
   public static RATING_FACTOR = 32.79; // level 80
@@ -74,6 +75,56 @@ export class HasteUtils {
     }
 
     return true;
+  }
+
+  // Can haste percent be inferred from log-data about this cast?
+  // Requires either a spell with a cast time, or a spell that benefits from haste and has at least one tick.
+  public static canInferHaste(cast: CastDetails, spellData: ISpellData) {
+    if (cast.castTimeMs > 500) {
+      return true;
+    }
+
+    if (spellData.damageType === DamageType.CHANNEL && cast.instances.length > 0) {
+      return true;
+    }
+
+    if (spellData.damageType === DamageType.DOT && spellData.dotHaste && cast.instances.length > 1) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Determine difference between actual haste of cast from log data and the expected haste
+  // from buffs found on player at cast time.
+  public static getHasteError(cast: CastDetails, spellData: ISpellData): number {
+    let actualDelta: number, baseDelta: number;
+
+    switch (spellData.damageType) {
+      case DamageType.CHANNEL:
+        actualDelta = cast.instances[0].timestamp - cast.castEnd;
+        baseDelta = spellData.maxDuration / spellData.maxTicks;
+        break;
+
+      // @ts-ignore allow fall-through
+      case DamageType.DOT:
+        // not using castEnd just to avoid dealing with the instant damage component of DP
+        if (cast.castTimeMs < 500) {
+          actualDelta = cast.instances[cast.instances.length - 1].timestamp -
+            cast.instances[cast.instances.length - 2].timestamp;
+          baseDelta = spellData.baseTickTime;
+          break;
+        }
+        // else intentionally fall through
+
+      default:
+        actualDelta = cast.castTimeMs;
+        baseDelta = spellData.baseCastTime;
+        break;
+    }
+
+    const expectedDelta = HasteUtils.apply(baseDelta * 1000, cast.haste);
+    return (expectedDelta - actualDelta) / expectedDelta;
   }
 
   // `buff` should yield priority to `other` if other has a larger effect or is first (in event of tie)

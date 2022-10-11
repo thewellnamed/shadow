@@ -5,7 +5,7 @@ export class Settings {
   public improvedMindBlast = 5;
   public improvedMoonkinAura = true;
   public improvedRetAura = true;
-  public wrathOfAir = false;
+  public wrathOfAir = true;
   public auras: number[] = [];
 
   constructor(settings?: ISettings) {

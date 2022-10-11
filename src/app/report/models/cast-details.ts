@@ -4,7 +4,8 @@ import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { IAbilityData } from 'src/app/logs/interfaces';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { HasteUtils } from 'src/app/report/models/haste';
-import { IBuffDetails } from 'src/app/logs/models/buff-data';
+import { IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
+import { BuffId } from 'src/app/logs/models/buff-id.enum';
 
 export class CastDetails {
   spellId: SpellId; // the main ID for the spell (i.e. the max rank spell ID)
@@ -154,6 +155,23 @@ export class CastDetails {
     }
 
     return this._detailBuffs;
+  }
+
+  hasBuff(id: BuffId) {
+    return this.buffs.some((b) => b.id === id);
+  }
+
+  addBuff(buff: IBuffDetails) {
+    this.buffs.push(buff);
+  }
+
+  removeBuff(id: BuffId) {
+    const index = this.buffs.findIndex((b) => b.id === id);
+    if (index < 0) {
+      return;
+    }
+
+    this.buffs.splice(index, 1);
   }
 
   private setHitType() {
