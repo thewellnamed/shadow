@@ -16,12 +16,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { CastsComponent } from 'src/app/report/components/casts.component';
 import { ReportDetailsComponent } from 'src/app/report/components/report-details.component';
 import { ReportWrapperComponent } from 'src/app/report/report-wrapper.component';
 import { SettingsComponent } from 'src/app/report/components/settings.component';
+import { SettingsHintComponent } from 'src/app/report/components/settings-hint.component';
 import { SummaryComponent } from 'src/app/report/components/summary.component';
 
 @NgModule({
@@ -30,6 +32,7 @@ import { SummaryComponent } from 'src/app/report/components/summary.component';
     ReportDetailsComponent,
     ReportWrapperComponent,
     SettingsComponent,
+    SettingsHintComponent,
     SummaryComponent
   ],
   imports: [
@@ -47,6 +50,7 @@ import { SummaryComponent } from 'src/app/report/components/summary.component';
     MatProgressSpinnerModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatSnackBarModule,
     MatTabsModule,
     MatTooltipModule,
     ReactiveFormsModule

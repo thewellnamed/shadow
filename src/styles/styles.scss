@@ -25,6 +25,7 @@ $theme: mat.define-dark-theme((
 @include mat.progress-spinner-theme($theme);
 @include mat.select-theme($theme);
 @include mat.slide-toggle-theme($theme);
+@include mat.snack-bar-theme($theme);
 @include mat.tabs-theme($theme);
 @include mat.toolbar-theme($theme);
 
@@ -136,6 +137,11 @@ form mat-form-field {
 
 a {
   color: mat.get-color-from-palette(mat.$indigo-palette, 200);
+}
+
+.snackbar {
+  background-color: mat.get-color-from-palette(mat.$dark-theme-background-palette, 'app-bar');
+  color: mat.get-color-from-palette(mat.$indigo-palette, 100);
 }
 
 //

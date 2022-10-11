@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AppRoutingModule } from 'src/app/app-routing.module';
@@ -42,6 +43,7 @@ import { SettingsService } from 'src/app/settings.service';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatSnackBarModule,
     MatTooltipModule,
     ReactiveFormsModule,
     ReportModule

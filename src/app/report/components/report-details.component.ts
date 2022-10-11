@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -16,6 +17,7 @@ import { EventService, IEvent } from 'src/app/event.service';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { SettingsService } from 'src/app/settings.service';
+import { SettingsHintComponent } from 'src/app/report/components/settings-hint.component';
 
 @Component({
   selector: 'report-details',
@@ -23,7 +25,7 @@ import { SettingsService } from 'src/app/settings.service';
   styleUrls: ['./report-details.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReportDetailsComponent implements OnInit {
+export class ReportDetailsComponent implements OnInit, OnDestroy {
   logId: string;
   encounterId: number;
   playerId: string;
@@ -37,13 +39,17 @@ export class ReportDetailsComponent implements OnInit {
   loading = true;
   tabs: ITab[];
 
+  private snackBarRef: MatSnackBarRef<SettingsHintComponent>;
+
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private location: Location,
+              private router: Router,
               private route: ActivatedRoute,
               private logs: LogsService,
               private eventSvc: EventService,
               private settingsSvc: SettingsService,
-              private params: ParamsService) {
+              private params: ParamsService,
+              private snackBar: MatSnackBar) {
   }
 
   ngOnInit(): void {
@@ -92,7 +98,22 @@ export class ReportDetailsComponent implements OnInit {
 
       this.loading = false;
       this.changeDetectorRef.detectChanges();
+
+      const hasteError = this.analysis?.report?.stats?.avgHasteError || 0;
+      if (Math.abs(hasteError) > .015) {
+        this.snackBarRef = this.snackBar.openFromComponent(SettingsHintComponent, {
+          data: {
+            hasteError,
+            openSettings: () => this.openSettings()
+          },
+          panelClass: 'snackbar'
+        });
+      }
     });
+  }
+
+  ngOnDestroy() {
+    this.snackBarRef?.dismiss();
   }
 
   onTabChange(event: { index: number }) {
@@ -120,6 +141,12 @@ export class ReportDetailsComponent implements OnInit {
     } else {
       this.params.set(ParamType.TICKS, this.hitCount);
     }
+  }
+
+  openSettings() {
+    this.router.navigate(['settings'], {
+      relativeTo: this.route
+    });
   }
 
   get target() {

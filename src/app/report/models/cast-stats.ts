@@ -1,6 +1,7 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { DamageType, Spell } from 'src/app/logs/models/spell-data';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { HasteUtils } from 'src/app/report/models/haste';
 
 export class CastStats {
   targetId: number|undefined;
@@ -21,6 +22,9 @@ export class CastStats {
   protected _totalWeightedSpellpower = 0;
   protected _totalNextCastLatency = 0;
   protected _totalWeightedHaste = 0;
+  protected _totalHasteError = 0;
+  protected _avgHasteError = 0;
+  protected _hasteErrorCastCount = 0;
 
   private _casts: CastDetails[] = [];
   private _sortedCasts?: CastDetails[];
@@ -35,6 +39,7 @@ export class CastStats {
   private _avgSpellpower = 0;
   private _critRate = 0;
   private _avgNextCastLatency: number|undefined = undefined;
+
   private _targetStats: IStatsMap = {};
 
   private _channelStats: IChannelStats = {
@@ -147,6 +152,22 @@ export class CastStats {
     }
 
     return this._avgHaste;
+  }
+
+  get avgHasteError() {
+    if (this.recalculate) {
+      this.updateStats();
+    }
+
+    return this._avgHasteError;
+  }
+
+  get hasteErrorCastCount() {
+    if (this.recalculate) {
+      this.updateStats();
+    }
+
+    return this._hasteErrorCastCount;
   }
 
   get avgNextCastLatency() {
@@ -330,6 +351,22 @@ export class CastStats {
       this._dotDowntimeStats.totalDowntime += cast.dotDowntime as number;
     }
 
+    // check haste calc error
+    if (cast.castTimeMs > 500 || (spellData.damageType === DamageType.CHANNEL && cast.instances.length > 0)) {
+      let actualCastTime: number, baseCastTime: number;
+      if (spellData.damageType === DamageType.CHANNEL) {
+        actualCastTime = cast.instances[0].timestamp - cast.castEnd;
+        baseCastTime = (spellData.maxDuration / spellData.maxDamageInstances) * 1000;
+      } else {
+        actualCastTime = cast.castTimeMs;
+        baseCastTime = spellData.baseCastTime * 1000;
+      }
+
+      const expectedCastTime = HasteUtils.apply(baseCastTime, cast.haste);
+      this._totalHasteError += (expectedCastTime - actualCastTime) / expectedCastTime;
+      this._hasteErrorCastCount++;
+    }
+
     this.recalculate = true;
   }
 
@@ -372,6 +409,8 @@ export class CastStats {
       this._totalWeightedSpellpower += next._totalWeightedSpellpower;
       this._totalWeightedHaste += next._totalWeightedHaste;
       this._totalNextCastLatency += next._totalNextCastLatency;
+      this._totalHasteError += next._totalHasteError;
+      this._hasteErrorCastCount += next._hasteErrorCastCount;
 
       if (this.minTimestamp === 0 || next.minTimestamp < this.minTimestamp) {
         this.minTimestamp = next.minTimestamp;
@@ -431,6 +470,7 @@ export class CastStats {
     this._avgSpellpower = this._totalWeightedSpellpower / (this.totalDamage || this.castCount);
     this._avgNextCastLatency = this._totalNextCastLatency / this.latencyCount;
     this._avgHaste = this._totalWeightedHaste / this.gcds;
+    this._avgHasteError = this._totalHasteError / this._hasteErrorCastCount;
     this._critRate = this.totalDamageInstances > 0 ? this.totalCrits / this.totalDamageInstances : 0;
 
     if (this.hasChannelStats) {
