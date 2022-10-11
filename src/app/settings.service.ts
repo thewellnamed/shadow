@@ -17,7 +17,19 @@ export class SettingsService {
     localStorage.setItem(this.key(playerName), JSON.stringify(settings));
   }
 
+  public showHint(playerName: string, encounterId: number): boolean {
+    return sessionStorage.getItem(this.hintKey(playerName, encounterId)) !== 'true';
+  }
+
+  public dismissHint(playerName: string, encounterId: number) {
+    sessionStorage.setItem(this.hintKey(playerName, encounterId), 'true');
+  }
+
   private key(playerName: string) {
     return `settings_${playerName.toLocaleLowerCase()}`;
+  }
+
+  private hintKey(playerName: string, encounterId: number) {
+    return `${this.key(playerName)}_${encounterId}_hint`;
   }
 }

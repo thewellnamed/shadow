@@ -98,17 +98,7 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
 
       this.loading = false;
       this.changeDetectorRef.detectChanges();
-
-      const hasteError = this.analysis?.report?.stats?.avgHasteError || 0;
-      if (Math.abs(hasteError) > .015) {
-        this.snackBarRef = this.snackBar.openFromComponent(SettingsHintComponent, {
-          data: {
-            hasteError,
-            openSettings: () => this.openSettings()
-          },
-          panelClass: 'snackbar'
-        });
-      }
+      this.checkHasteError();
     });
   }
 
@@ -147,6 +137,11 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
     this.router.navigate(['settings'], {
       relativeTo: this.route
     });
+  }
+
+  closeSnackbar() {
+    this.settingsSvc.dismissHint(this.playerId, this.encounterId);
+    this.snackBarRef?.dismiss();
   }
 
   get target() {
@@ -217,6 +212,20 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
 
     if (this.target.value !== targetId) {
       this.target.setValue(targetId);
+    }
+  }
+
+  private checkHasteError() {
+    const hasteError = this.analysis?.report?.stats?.avgHasteError || 0;
+    if (Math.abs(hasteError) > .015 && this.settingsSvc.showHint(this.playerId, this.encounterId)) {
+      this.snackBarRef = this.snackBar.openFromComponent(SettingsHintComponent, {
+        data: {
+          hasteError,
+          close: () => this.closeSnackbar(),
+          openSettings: () => this.openSettings()
+        },
+        panelClass: 'snackbar'
+      });
     }
   }
 }

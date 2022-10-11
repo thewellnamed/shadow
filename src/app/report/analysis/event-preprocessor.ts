@@ -74,7 +74,7 @@ export class EventPreprocessor {
 
       do {
         const damageSpell = Spell.fromDamageId(instance.ability.guid);
-        if (damageSpell?.mainId === castSpell.mainId && matchTarget(this.analysis, nextCast, instance, true)) {
+        if (damageSpell?.mainId === castSpell.mainId && matchTarget(this.analysis, nextCast, castSpell, instance, true)) {
           match = true;
           break;
         }
@@ -108,7 +108,7 @@ export class EventPreprocessor {
     if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData?.damageType)) {
       // First find the earliest tick we want to associate to our inferred cast,
       // then infer the cast time based on how frequently the spell ticks
-      const timeToTick = (spellData.maxDuration / spellData.maxDamageInstances) * 1000,
+      const timeToTick = (spellData.maxDuration / spellData.maxTicks) * 1000,
         earliestPossible = damage.timestamp - (spellData.maxDuration * 1000);
 
       const earliestInstance = this.damage.find((d) =>
@@ -181,18 +181,6 @@ export class EventPreprocessor {
 
       // missing buffs might also be reflected in ActorStats, so update them.
       this.updateActorStats(event);
-    }
-
-    // if wrath of air is enabled, and a shaman is found in the raid, then apply wrath of air buff
-    if (this.analysis.applyWrathOfAir) {
-      buffs.unshift({
-        type: 'applybuff',
-        timestamp: this.analysis.encounter.start,
-        targetID: this.analysis.actor.id,
-        targetInstance: 0,
-        ability: { name: 'Wrath of Air', guid: BuffId.WRATH_OF_AIR },
-        read: false
-      })
     }
 
     return buffs;

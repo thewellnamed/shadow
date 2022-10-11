@@ -11,13 +11,13 @@ export class SettingsHintComponent {
   public missingHaste: string;
   public description: string;
 
-  private ref: MatSnackBarRef<SettingsHintComponent>;
+  private close: () => void;
   private callback: () => void;
 
-  constructor (@Inject(MAT_SNACK_BAR_DATA) data: ISettingsHintData,
-               ref: MatSnackBarRef<SettingsHintComponent>) {
-    this.ref = ref;
+  constructor (@Inject(MAT_SNACK_BAR_DATA) data: ISettingsHintData) {
     this.callback = data.openSettings;
+    this.close = data.close;
+
     this.missingHaste = format(Math.abs(data.hasteError * 100), 1, '%');
     this.description = data.hasteError < 0 ? 'Excess' : 'Missing';
   }
@@ -29,11 +29,12 @@ export class SettingsHintComponent {
 
   dismiss(event: Event) {
     event.preventDefault();
-    this.ref.dismiss();
+    this.close();
   }
 }
 
 export interface ISettingsHintData {
   hasteError: number;
   openSettings: () => void;
+  close: () => void;
 }

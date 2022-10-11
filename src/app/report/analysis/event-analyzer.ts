@@ -12,6 +12,7 @@ import { LogSummary } from 'src/app/logs/models/log-summary';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 import { matchTarget } from 'src/app/report/analysis/utils';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { BuffId } from 'src/app/logs/models/buff-id.enum';
 
 export class EventAnalyzer {
   public static EVENT_LEEWAY = 100; // in milliseconds. Allow damage to occur just slightly later than "should" be
@@ -64,7 +65,7 @@ export class EventAnalyzer {
   public createCasts(): CastDetails[] {
     let event: IEventData,
       currentCast: ICastData,
-      castBuffs: IBuffEvent[]|null = null,
+      castBuffs: IBuffEvent[] = [],
       activeStats: IHasteStats|null = null,
       startingCast: ICastData|null = null;
 
@@ -99,7 +100,7 @@ export class EventAnalyzer {
       if (startingCast && currentCast.ability.guid !== startingCast.ability.guid) {
         startingCast = null;
         activeStats = null;
-        castBuffs = null;
+        castBuffs = [];
       }
 
       // if we didn't get stats at begincast, get them now
@@ -119,7 +120,7 @@ export class EventAnalyzer {
         targetInstance: currentCast.targetInstance,
         castStart: startingCast?.timestamp || currentCast.timestamp,
         castEnd: currentCast.timestamp,
-        buffs: castBuffs?.map((b) => b.data) || [],
+        buffs: castBuffs.map((b) => b.data),
         spellPower: currentCast.spellPower,
         haste: activeStats!.totalHaste - 1,
         gcd: spellData.gcd ? activeStats!.gcd : 0
@@ -137,7 +138,7 @@ export class EventAnalyzer {
         if (spellData.damageType === DamageType.DIRECT) {
           this.setDamage(details, spellData);
         } else {
-          this.setMultiInstanceDamage(details, spellData);
+          this.setMultiInstanceDamage(details);
 
           // check for lost ticks to enemy death
           this.setTruncationByDeath(details, spellData);
@@ -332,14 +333,15 @@ export class EventAnalyzer {
       }
   }
 
-  private setMultiInstanceDamage(cast: CastDetails, spellData: ISpellData) {
+  private setMultiInstanceDamage(cast: CastDetails) {
+    const spellData = Spell.dataBySpellId[cast.spellId]; // use base data for duration since haste can have errors
     let i = 0;
     let instances: DamageInstance[] = [];
     let instancesById: {[id: number]: number} = {};
     let nextCast: ICastData|null;
     let nextDamage: IDamageData|null;
     let maxDamageTimestamp = spellData.maxDuration > 0 ?
-      cast.castEnd + (spellData.maxDuration * 1000) + (spellData.maxDamageInstances * EventAnalyzer.EVENT_LEEWAY * 3) :
+      cast.castEnd + (spellData.maxDuration * 1000) + (spellData.maxDamageInstances * EventAnalyzer.EVENT_LEEWAY) :
       this.analysis.encounter.end;
 
     const damageEvents = this.damageBySpell[cast.spellId] || [];
@@ -360,7 +362,7 @@ export class EventAnalyzer {
 
     do {
       nextCast = this.events.length > i ? (this.events[i] as ICastData) : null;
-      if (nextCast === null || this.castIsReplacement(cast, nextCast, damageEvents)) {
+      if (nextCast === null || this.castIsReplacement(cast, spellData, nextCast, damageEvents)) {
         if (nextCast) {
           maxDamageTimestamp = nextCast.timestamp;
         }
@@ -421,9 +423,9 @@ export class EventAnalyzer {
     const targetDeathTimestamp = this.deaths[key] || this.analysis.encounter.end;
     const checkTruncation = [DamageType.CHANNEL, DamageType.DOT].includes(spellData.damageType);
 
-    if (checkTruncation && cast.hits < spellData.maxDamageInstances && targetDeathTimestamp) {
+    if (checkTruncation && cast.hits < spellData.maxTicks && targetDeathTimestamp) {
       const lastTick = cast.lastDamageTimestamp || cast.castEnd;
-      const nextTickBy = lastTick + ((spellData.maxDuration / spellData.maxDamageInstances) * 1000);
+      const nextTickBy = lastTick + ((spellData.maxDuration / spellData.maxTicks) * 1000);
 
       if (targetDeathTimestamp < nextTickBy + EventAnalyzer.EVENT_LEEWAY) {
         cast.truncated = true;
@@ -436,7 +438,7 @@ export class EventAnalyzer {
   // -- on the same kind of mob (targetID)
   // -- on the same instance of that mob (e.g. in WCL "Spellbinder 3" is a different instance from "Spellbinder 2"
   // -- and the cast was not resisted (requires finding an associated damage instance)
-  private castIsReplacement(cast: CastDetails, next: ICastData, events: IDamageData[]) {
+  private castIsReplacement(cast: CastDetails, spellData: ISpellData, next: ICastData, events: IDamageData[]) {
     // check for matching target
     if (next.type !== 'cast' || Spell.baseData(next.ability.guid).mainId !== cast.spellId ||
       next.targetID !== cast.targetId || next.targetInstance !== cast.targetInstance) {
@@ -445,7 +447,7 @@ export class EventAnalyzer {
 
     // check for resist/immune
     const failed = events.find((e) =>
-      this.failed(cast.spellId, e) && matchTarget(this.analysis, next, e) &&
+      this.failed(cast.spellId, e) && matchTarget(this.analysis, next, spellData, e) &&
         e.timestamp > next.timestamp - 50 && e.timestamp < next.timestamp + 50
     );
     if (failed) {
@@ -479,7 +481,7 @@ export class EventAnalyzer {
                       next: IDamageData,
                       maxTimestamp: number,
                       allowUnknown = false) {
-    if (next.read || !matchTarget(this.analysis, cast, next, allowUnknown)) {
+    if (next.read || !matchTarget(this.analysis, cast, spellData, next, allowUnknown)) {
       return false;
     }
 

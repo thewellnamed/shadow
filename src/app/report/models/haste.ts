@@ -59,8 +59,8 @@ export class HasteUtils {
     return (hasteFromRating - 1) * 100 * HasteUtils.RATING_FACTOR;
   }
 
-  // handle buffs that don't stack. Will return true if this buff is the largest of the set of non-stacking,
-  // else false
+  // handle buffs that don't stack.
+  // Will return true if this buff is the largest of the set of non-stacking, else false
   public static includeBuff(buff: IBuffEvent, buffs: IBuffEvent[]) {
     if (buff.data.doesNotStackWith.length === 0) {
       return true;
@@ -68,12 +68,25 @@ export class HasteUtils {
 
     for (const otherId of buff.data.doesNotStackWith) {
       const otherBuff = buffs.find((b) => b.id === otherId);
-      if (otherBuff && otherBuff.data.haste > buff.data.haste) {
+      if (otherBuff && HasteUtils.yieldPriority(buff, otherBuff, buffs)) {
         return false;
       }
     }
 
     return true;
+  }
+
+  // `buff` should yield priority to `other` if other has a larger effect or is first (in event of tie)
+  private static yieldPriority(buff: IBuffEvent, other: IBuffEvent, buffs: IBuffEvent[]): boolean {
+    if (other.data.haste > buff.data.haste) {
+      return true;
+    }
+
+    if (other.data.haste === buff.data.haste) {
+      return buffs.findIndex((b) => b.id === other.id) < buffs.findIndex((b) => b.id === buff.id);
+    }
+
+    return false;
   }
 }
 

@@ -71,7 +71,7 @@ export class CastDetails {
     this.castEnd = params.castEnd;
     this.castTimeMs = params.castEnd - params.castStart;
 
-    this.buffs = params.buffs || [];
+    this.buffs = params.buffs;
     this.spellPower = params.spellPower;
     this.haste = params.haste;
     this.gcd = params.gcd;
@@ -189,5 +189,5 @@ interface ICastDetailsParams {
   spellPower: number;
   haste: number;
   gcd: number;
-  buffs?: IBuffDetails[];
+  buffs: IBuffDetails[];
 }

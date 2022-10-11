@@ -1,9 +1,19 @@
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { ICastData, IDamageData } from 'src/app/logs/interfaces';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { ISpellData } from 'src/app/logs/models/spell-data';
 
-export function matchTarget(analysis: PlayerAnalysis, source: CastDetails|ICastData, dest: IDamageData, allowUnknown = false) {
+export function matchTarget(analysis: PlayerAnalysis,
+                            source: CastDetails|ICastData,
+                            spellData: ISpellData,
+                            dest: IDamageData,
+                            allowUnknown = false) {
   const sourceId = source instanceof CastDetails ? source.targetId : source.targetID;
+
+  // multi-target channeled spells should skip this check (targetID is set on cast, but the damage hits are different)
+  if (spellData.multiTarget) {
+    return true;
+  }
 
   // must match instance if one exists
   if (source.targetInstance && source.targetInstance !== dest.targetInstance) {

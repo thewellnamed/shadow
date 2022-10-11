@@ -21,10 +21,13 @@ export class Spell {
     baseCastTime: 0,
     maxDamageInstances: 0,
     maxDuration: 0,
+    maxTicks: 0,
+    baseTickTime: 0,
     cooldown: 0,
     gcd: true,
     dotHaste: false,
-    statsByTick: false
+    statsByTick: false,
+    multiTarget: false,
   };
 
   public static baseData(id: SpellId) {
@@ -96,6 +99,8 @@ export class Spell {
       dotHaste: true,
       maxDamageInstances: 9, // +1 for improved devouring plague
       maxDuration: 24,
+      maxTicks: 8,
+      baseTickTime: 3,
       maxInstancesPerDamageId: {
         [SpellId.IMPROVED_DEVOURING_PLAGUE]: 1,
         [SpellId.DEVOURING_PLAGUE]: 8
@@ -191,7 +196,22 @@ export class Spell {
       damageType: DamageType.CHANNEL,
       maxDamageInstances: 3,
       maxDuration: 3,
+      maxTicks: 3,
+      baseTickTime: 1,
       statsByTick: true
+    }),
+
+    [SpellId.MIND_SEAR]: data({
+      rankIds: {
+        [48045]: 1
+      },
+      damageIds: [SpellId.MIND_SEAR_TICK],
+      damageType: DamageType.CHANNEL,
+      maxDamageInstances: 0,
+      maxDuration: 5,
+      maxTicks: 5,
+      baseTickTime: 1,
+      multiTarget: true,
     }),
 
     [SpellId.PAIN]: data({
@@ -201,6 +221,7 @@ export class Spell {
         [48124]: 11
       },
       damageType: DamageType.DOT,
+      baseTickTime: 3,
       dotHaste: false
     }),
 
@@ -241,7 +262,9 @@ export class Spell {
       dotHaste: true,
       baseCastTime: 1.5,
       maxDamageInstances: 5,
-      maxDuration: 15
+      maxDuration: 15,
+      maxTicks: 5,
+      baseTickTime: 3
     })
   }
 
@@ -269,10 +292,13 @@ export interface ISpellData {
   baseCastTime: number;
   maxDamageInstances: number;
   maxDuration: number;
+  baseTickTime: number;
+  maxTicks: number;
   cooldown: number;
   gcd: boolean;
   dotHaste: boolean;
   statsByTick: boolean;
+  multiTarget: boolean;
   maxInstancesPerDamageId?: {[id: number]: number};
   dynamic?: (baseData: ISpellData, settings: ISettings) => Partial<ISpellData>
 }

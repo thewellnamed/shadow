@@ -44,7 +44,10 @@ export class CastsAnalyzer {
           prevCastData = this.findPreviousCast(current, i, (c) => {
             // ignore dots that didn't resist, but also didn't tick with enough time to have done so
             // happens because of weird immunities/phase transitions, e.g. on Leotheras
-            const minTimeToTick = spellData.maxDuration / spellData.maxDamageInstances;
+            const minTimeToTick = spellData.maxDuration > 0 ?
+              spellData.maxDuration / spellData.maxTicks :
+              spellData.baseTickTime;
+
             return c.hitType !== HitType.NONE || (current.castStart - c.castEnd < minTimeToTick);
           });
 

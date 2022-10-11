@@ -158,8 +158,12 @@ export class StatEvaluator {
   }
 
   missingTicks(cast: CastDetails, spellData: ISpellData) {
-    const hitPercent = cast.hits / spellData.maxDamageInstances;
+    // doesn't apply to mind sear (or channeled aoe in general)
+    if (spellData.maxDamageInstances === 0) {
+      return false;
+    }
 
+    const hitPercent = cast.hits / spellData.maxDamageInstances;
     return spellData.damageType === DamageType.DOT &&
       !cast.failed &&
       cast.hits < spellData.maxDamageInstances &&

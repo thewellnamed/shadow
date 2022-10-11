@@ -356,7 +356,7 @@ export class CastStats {
       let actualCastTime: number, baseCastTime: number;
       if (spellData.damageType === DamageType.CHANNEL) {
         actualCastTime = cast.instances[0].timestamp - cast.castEnd;
-        baseCastTime = (spellData.maxDuration / spellData.maxDamageInstances) * 1000;
+        baseCastTime = (spellData.maxDuration / spellData.maxTicks) * 1000;
       } else {
         actualCastTime = cast.castTimeMs;
         baseCastTime = spellData.baseCastTime * 1000;
