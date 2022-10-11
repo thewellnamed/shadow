@@ -73,8 +73,8 @@ export class LogSummary {
     return this.actors.find((a) => a.id === id && a.friendly === friendly);
   }
 
-  getActorByName(name: string) {
-    return this.actors.find((a) => a.name === name);
+  getActorByName(name: string, friendly = true) {
+    return this.actors.find((a) => a.name === name&& a.friendly == friendly);
   }
 
   getActorByRouteId(routeId: string) {

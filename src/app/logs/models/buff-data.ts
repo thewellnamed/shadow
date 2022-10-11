@@ -41,6 +41,12 @@ export class Buff {
       summaryIcon: true
     }),
 
+    [BuffId.BLACK_MAGIC]: buff({
+      hasteRating: 250,
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
+    }),
+
     [BuffId.BLOODLUST]: buff({
       haste: 0.3,
       trigger: BuffTrigger.EXTERNAL,

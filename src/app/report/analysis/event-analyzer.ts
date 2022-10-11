@@ -12,7 +12,6 @@ import { LogSummary } from 'src/app/logs/models/log-summary';
 import { mapSpellId, SpellId } from 'src/app/logs/models/spell-id.enum';
 import { matchTarget } from 'src/app/report/analysis/utils';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
 
 export class EventAnalyzer {
   public static EVENT_LEEWAY = 100; // in milliseconds. Allow damage to occur just slightly later than "should" be

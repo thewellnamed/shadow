@@ -218,7 +218,7 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
   private checkHasteError() {
     const hasteError = this.analysis?.report?.stats?.avgHasteError || 0;
     // eslint-disable-next-line no-console
-    console.log(`avg haste error: ${hasteError}`);
+    console.log(`Avg Haste Error: ${Math.round(hasteError*10000)/100}%`);
 
     if (Math.abs(hasteError) > .015 && this.settingsSvc.showHint(this.playerId, this.encounterId)) {
       this.snackBarRef = this.snackBar.openFromComponent(SettingsHintComponent, {
