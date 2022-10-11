@@ -45,8 +45,7 @@ Specify whether to add 3% haste when Retribution Aura is found on the player. De
 
 ### Wrath of Air Totem
 
-Unfortunately WCL can't track the presence or absence of this aura, almost _at all_. If you know that you had
-the totem throughout an encounter, you can enable this flag to automatically apply the 5% haste buff to the player.
-Note that because WCL doesn't track the totem, the analyzer won't know if you move out of range, so this can create some
-inaccuracy in reporting, but hopefully less than would exist if you have the buff and it's not included.
-Defaults to off.
+Unfortunately WCL can't track the presence or absence of this aura, almost _at all_. If you enable this settings,
+and there is a shaman in your raid, then the analyzer will attempt to determine which casts should have the +5% haste buff,
+by comparing your actual logged cast times and tick intervals to the expected haste given your buffs. If a large enough gap exists
+between your actual and expected, wrath of air will be applied as a buff. Defaults to on.
