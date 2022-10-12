@@ -109,7 +109,7 @@ export class HasteUtils {
       // @ts-ignore allow fall-through
       case DamageType.DOT:
         // not using castEnd just to avoid dealing with the instant damage component of DP
-        if (cast.castTimeMs < 500) {
+        if (cast.instances.length > 1) {
           actualDelta = cast.instances[cast.instances.length - 1].timestamp -
             cast.instances[cast.instances.length - 2].timestamp;
           baseDelta = spellData.baseTickTime;

@@ -16,7 +16,6 @@ export enum SpellId {
   MIND_BLAST = 48127,
   MIND_FLAY = 48156,
   MIND_SEAR = 53023,
-  MIND_SEAR_TICK = 53022,
   PAIN = 48125,
   SHADOW_FIEND = 34433,
   SHIELD = 48066,
@@ -28,6 +27,7 @@ export enum SpellId {
   // Related damage IDs
   IMPROVED_DEVOURING_PLAGUE = 63675,
   MIND_FLAY_TICK = 58381,
+  MIND_SEAR_TICK = 53022,
 
   // Engineering
   ADAMANTITE_GRENDADE = 30217,

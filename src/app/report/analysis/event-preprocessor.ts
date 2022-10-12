@@ -7,7 +7,6 @@ import { IBuffData, IDamageData } from 'src/app/logs/interfaces';
 import { EventAnalyzer } from 'src/app/report/analysis/event-analyzer';
 import { matchTarget } from 'src/app/report/analysis/utils';
 import { Buff } from 'src/app/logs/models/buff-data';
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
 
 import * as wcl from 'src/app/logs/interfaces';
 
@@ -63,7 +62,7 @@ export class EventPreprocessor {
     for (let i = instancesToCheck; i >= 0; i--) {
       const instance = this.damage[i];
 
-      if (instance.ability.guid < 0) {
+      if (instance.ability.guid < 0 || !Spell.dataBySpellId.hasOwnProperty(instance.ability.guid)) {
         instancesToCheck++;
         continue;
       }
