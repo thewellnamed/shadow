@@ -27,7 +27,7 @@ export class LogSummary {
     this.encounters = data.fights
       .filter((fight) => {
         // only boss fights with a duration
-        return (fight.boss > 0 || fight.originalBoss > 0) && fight.end_time > (fight.start_time + 5000);
+        return (fight.boss > 0 || fight.originalBoss > 0 || fight.name.endsWith('Dummy')) && fight.end_time > (fight.start_time + 5000);
       })
       .map((fight) => new EncounterSummary(fight));
 
