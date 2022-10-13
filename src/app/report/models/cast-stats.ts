@@ -275,7 +275,6 @@ export class CastStats {
     }
 
     // exclude early MF clips from average latency
-    // todo -- might need to revisit this for overall latency
     if (cast.nextCastLatency !== undefined && !cast.clippedEarly) {
       this._totalNextCastLatency += cast.nextCastLatency;
       this.latencyCount++;
@@ -349,7 +348,7 @@ export class CastStats {
         this._clipStats.expectedTicks += cast.truncated ? cast.instances.length : spellData.maxDamageInstances;
       }
 
-      if (cast.clippedPreviousCast) {
+      if (cast.clippedPreviousCast && !cast.clippedForBonus) {
         this._clipStats.clipCount++;
         this._clipStats.clippedTicks += cast.clippedTicks;
       }

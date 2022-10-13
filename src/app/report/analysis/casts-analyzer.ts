@@ -12,6 +12,9 @@ export class CastsAnalyzer {
   private static MAX_ACTIVE_DOWNTIME = 10000; // ignore cooldown/dot downtime for gaps over 10s
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
 
+  private static BONUS_HASTE_THRESHOLD = 0.2;
+  private static BONUS_DPS_THRESHOLD = 0.4;
+
   private analysis: PlayerAnalysis;
   private casts: CastDetails[];
 
@@ -77,7 +80,7 @@ export class CastsAnalyzer {
             return c.hitType !== HitType.NONE || (current.castStart - c.castEnd < minTimeToTick);
           });
 
-          this.setDotDetails(current, spellData, prevCastData);
+          this.setDotDetails(current, spellData, prevCastData, i);
           break;
 
         case DamageType.CHANNEL:
@@ -104,7 +107,7 @@ export class CastsAnalyzer {
     }
   }
 
-  private setDotDetails(current: CastDetails, spellData: ISpellData, prevData: IPreviousCast) {
+  private setDotDetails(current: CastDetails, spellData: ISpellData, prevData: IPreviousCast, castIndex: number) {
     if (!prevData?.onTarget) {
       return;
     }
@@ -120,7 +123,42 @@ export class CastsAnalyzer {
     if (prev.hits < spellData.maxDamageInstances && current.castEnd <= expectedDuration) {
       current.clippedPreviousCast = true;
       current.clippedTicks = spellData.maxDamageInstances - prev.hits;
+
+      if (this.successfulSnapshot(current, prev, castIndex)) {
+        current.clippedForBonus = true;
+      }
     }
+  }
+
+  private successfulSnapshot(cast: CastDetails, previous: CastDetails, castIndex: number) {
+    // compare DPS of current to previous. If larger than BONUS_DPS_THRESHOLD, return true
+    const currentDps = cast.dotDps;
+    const previousDps = previous.dotDps;
+
+    if (previousDps > 0 && ((currentDps - previousDps)/previousDps) > CastsAnalyzer.BONUS_DPS_THRESHOLD) {
+      return true;
+    }
+
+    // if there's no more casts, than we obviously shouldn't have clipped
+    if (castIndex === this.casts.length - 1) {
+      return false;
+    }
+
+    // check if we're snapshotting the end of a big haste buff
+    const prevData = Spell.get(previous.spellId, this.analysis.settings, previous.haste);
+    const normalEndOfPrevious = previous.castEnd + (prevData.maxDuration * 1000);
+    let next: CastDetails;
+
+    do {
+      next = this.casts[++castIndex];
+      if (cast.haste - next.haste > CastsAnalyzer.BONUS_HASTE_THRESHOLD) {
+        // eslint-disable-next-line no-console
+        console.log(`${Math.round((next.castEnd - this.analysis.encounter.start)/100)/10} ${next.name} ${cast.haste} ${next.haste}`);
+        return true;
+      }
+    } while (next.castEnd <= normalEndOfPrevious && castIndex < this.casts.length - 1)
+
+    return false;
   }
 
   private setChannelDetails(current: CastDetails, spellData: ISpellData, index: number) {

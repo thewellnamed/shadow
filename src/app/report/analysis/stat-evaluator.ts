@@ -6,7 +6,8 @@ import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 export enum Status {
   NORMAL,
   NOTICE,
-  WARNING
+  WARNING,
+  SUCCESS
 }
 
 export class StatEvaluator {
@@ -93,11 +94,15 @@ export class StatEvaluator {
     const spellData = Spell.get(cast.spellId, this.analysis.settings, cast.haste);
 
     if (cast.resisted) {
-      return Status.NORMAL;
+      return Status.NOTICE;
     }
 
     if (cast.immune) {
       return Status.NOTICE;
+    }
+
+    if (cast.clippedForBonus) {
+      return Status.SUCCESS;
     }
 
     if (cast.clippedPreviousCast) {
@@ -138,6 +143,10 @@ export class StatEvaluator {
   }
 
   dotClip(cast: CastDetails) {
+    if (cast.clippedForBonus) {
+      return Status.SUCCESS;
+    }
+
     return cast.clippedPreviousCast ? Status.WARNING : Status.NORMAL;
   }
 

@@ -33,6 +33,9 @@ export class CastDetails {
   clippedPreviousCast = false;
   clippedTicks = 0;
 
+  // for DoTs, if clippedPreviousCast === true, was the clip beneficial (e.g. snapshot a large buff)
+  clippedForBonus = false;
+
   // latency between casts.
   // for channeled spells, delta from the last damage tick (effective end of channel) until next cast (of any spell)
   // for all else, based on cast start/end
@@ -127,6 +130,24 @@ export class CastDetails {
 
   get crit() {
     return this.hitType === HitType.CRIT || this.hitType === HitType.CRIT_PARTIAL_RESIST;
+  }
+
+  get avgHit() {
+    if (this.instances.length === 0) {
+      return 0;
+    }
+
+    return this.totalDamage / this.instances.length;
+  }
+
+  get dotDps() {
+    const damageEnd = this.lastDamageTimestamp;
+    if (damageEnd === undefined) {
+      return 0;
+    }
+
+    const duration = Math.max(damageEnd - this.castEnd, 1000);
+    return this.totalDamage / (duration / 1000);
   }
 
   hasSameTarget(other: CastDetails) {

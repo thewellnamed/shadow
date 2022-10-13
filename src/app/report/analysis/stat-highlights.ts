@@ -16,13 +16,15 @@ export class StatHighlights {
   public static readonly statusHighlights = {
     [Status.NORMAL]: 'normal',
     [Status.NOTICE]: 'notice',
-    [Status.WARNING]: 'warning'
+    [Status.WARNING]: 'warning',
+    [Status.SUCCESS]: 'success'
   };
 
   public static readonly textHighlights = {
     [Status.NORMAL]: 'table-accent',
     [Status.NOTICE]: 'text-notice',
-    [Status.WARNING]: 'text-warning'
+    [Status.WARNING]: 'text-warning',
+    [Status.SUCCESS]: 'text-success'
   };
 
   /**
