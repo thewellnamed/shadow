@@ -13,7 +13,7 @@ export class CastsAnalyzer {
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
 
   private static BONUS_HASTE_THRESHOLD = 0.2;
-  private static BONUS_DPS_THRESHOLD = 0.4;
+  private static BONUS_DPS_THRESHOLD = 0.5;
 
   private analysis: PlayerAnalysis;
   private casts: CastDetails[];
@@ -146,17 +146,23 @@ export class CastsAnalyzer {
 
     // check if we're snapshotting the end of a big haste buff
     const prevData = Spell.get(previous.spellId, this.analysis.settings, previous.haste);
-    const normalEndOfPrevious = previous.castEnd + (prevData.maxDuration * 1000);
-    let next: CastDetails;
+    if (prevData.maxDamageInstances - previous.instances.length < 3) {
+      const window = previous.castEnd + (prevData.maxDuration * 1000);
+      let next: CastDetails;
 
-    do {
-      next = this.casts[++castIndex];
-      if (cast.haste - next.haste > CastsAnalyzer.BONUS_HASTE_THRESHOLD) {
-        // eslint-disable-next-line no-console
-        console.log(`${Math.round((next.castEnd - this.analysis.encounter.start)/100)/10} ${next.name} ${cast.haste} ${next.haste}`);
-        return true;
-      }
-    } while (next.castEnd <= normalEndOfPrevious && castIndex < this.casts.length - 1)
+      do {
+        next = this.casts[++castIndex];
+        if (cast.haste - next.haste > CastsAnalyzer.BONUS_HASTE_THRESHOLD) {
+          // eslint-disable-next-line no-console
+          console.log(`snapshot haste difference ending at ${Math.round((window - this.analysis.encounter.start)/100)/10} ${cast.haste} ${next.haste} ${cast.haste - next.haste}`);
+          // eslint-disable-next-line no-console
+          console.log(`${Math.round((next.castEnd - this.analysis.encounter.start)/100)/10} ${next.name}`);
+          // eslint-disable-next-line no-console
+          console.log(next);
+          return true;
+        }
+      } while (next.castEnd <= window && castIndex < this.casts.length - 1)
+    }
 
     return false;
   }
