@@ -283,8 +283,11 @@ export class CastStats {
 
     // check haste calc error
     if (HasteUtils.canInferHaste(cast, spellData)) {
-      this._totalHasteError += HasteUtils.getHasteError(cast, spellData);
-      this._hasteErrorCastCount++;
+      const error = HasteUtils.getHasteError(cast, spellData);
+      if (Math.abs(error) < HasteUtils.ERROR_THRESHOLD) {
+        this._totalHasteError += error;
+        this._hasteErrorCastCount++;
+      }
     }
 
     // stats below are specific to damage spells...
