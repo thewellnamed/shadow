@@ -2,6 +2,7 @@ import { IEncounterData } from 'src/app/logs/interfaces';
 
 export class EncounterSummary {
   id: number;
+  name: string;
   start: number;
   end: number;
   durationSeconds: number;
@@ -10,6 +11,7 @@ export class EncounterSummary {
 
   constructor(data: IEncounterData) {
     this.id = data.id;
+    this.name = data.name;
     this.start = data.start_time;
     this.end = data.end_time;
     this.durationSeconds = Math.round((data.end_time - data.start_time) / 1000);

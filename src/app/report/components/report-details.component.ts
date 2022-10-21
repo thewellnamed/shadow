@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { switchMap, withLatestFrom } from 'rxjs/operators';
@@ -49,7 +50,8 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
               private eventSvc: EventService,
               private settingsSvc: SettingsService,
               private params: ParamsService,
-              private snackBar: MatSnackBar) {
+              private snackBar: MatSnackBar,
+              private title: Title) {
   }
 
   ngOnInit(): void {
@@ -93,7 +95,10 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
           this.setTarget(0);
         }
 
+        this.title.setTitle(this.analysis.title);
         this.initializeTabs();
+      } else if (this.playerId) {
+        this.title.setTitle(this.playerId);
       }
 
       this.loading = false;

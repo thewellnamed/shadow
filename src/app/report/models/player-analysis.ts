@@ -60,6 +60,10 @@ export class PlayerAnalysis {
     }
   }
 
+  get title() {
+    return `${this.actor.name} - ${this.encounter.description}`
+  }
+
   get targetIds(): number[] {
     return this.report?.targetIds || [];
   }
