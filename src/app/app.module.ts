@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -51,7 +52,8 @@ import { SettingsService } from 'src/app/settings.service';
   providers: [
     EventService,
     ParamsService,
-    SettingsService
+    SettingsService,
+    Title
   ],
   bootstrap: [AppComponent]
 })

@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 import { Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 
 import { LogsService } from 'src/app/logs/logs.service';
 import { LogSummary } from 'src/app/logs/models/log-summary';
@@ -23,7 +24,8 @@ export class HomeComponent implements OnInit {
   private logId?: string;
 
   constructor(private logs: LogsService,
-              private router: Router) {
+              private router: Router,
+              private title: Title) {
     this.form = new UntypedFormGroup({
       log: new UntypedFormControl(null, this.validateLogId),
       encounter: new UntypedFormControl({ value: null, disabled: true }),
@@ -32,6 +34,7 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.title.setTitle('WOTLK Shadow Analyzer');
     this.player.valueChanges.subscribe(() => {
       this.filterEncounters();
     })

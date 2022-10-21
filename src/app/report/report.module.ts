@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -54,6 +55,9 @@ import { SummaryComponent } from 'src/app/report/components/summary.component';
     MatTabsModule,
     MatTooltipModule,
     ReactiveFormsModule
+  ],
+  providers: [
+    Title
   ]
 })
 export class ReportModule { }
