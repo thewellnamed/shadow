@@ -225,13 +225,20 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
       this.snackBarRef.dismiss();
     }
 
+    const hasteRating = this.analysis?.actorInfo?.stats?.hasteRating;
     const hasteError = this.analysis?.report?.stats?.avgHasteError || 0;
     const castCount = this.analysis?.report?.stats?.hasteErrorCastCount || 0;
 
     // eslint-disable-next-line no-console
-    console.log(`Avg Haste Error: ${Math.round(hasteError*10000)/100}%; Cast Count: ${castCount}`);
+    console.log(`Avg Haste Error: ${Math.round(hasteError * 10000)/100}%; Cast Count: ${castCount}`);
 
-    if (castCount > 10 && Math.abs(hasteError) > .03 && this.settingsSvc.showHint(this.playerId, this.encounterId)) {
+    if (hasteRating === undefined || (castCount > 10 && Math.abs(hasteError) > .03)) {
+      this.openSnackbar(hasteRating === undefined ? undefined : hasteError);
+    }
+  }
+
+  private openSnackbar(hasteError?: number) {
+    if (this.settingsSvc.showHint(this.playerId, this.encounterId)) {
       this.snackBarRef = this.snackBar.openFromComponent(SettingsHintComponent, {
         data: {
           hasteError,
