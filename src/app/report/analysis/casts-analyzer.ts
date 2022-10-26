@@ -11,6 +11,10 @@ export class CastsAnalyzer {
   private static MAX_LATENCY = 1000; // ignore latency for gaps large enough to represent intentional movement
   private static MAX_ACTIVE_DOWNTIME = 10000; // ignore cooldown/dot downtime for gaps over 10s
   private static EARLY_CLIP_THRESHOLD = 0.67; // clipped MF 67% of the way to the next tick
+  private static EARLY_CLIP_LEEWAY = 50; // if a tick is missing and the next cast is late enough the tick
+                                         // *should* have occurred, but it didn't, then count it as an early clip
+                                         // if the next cast is within this threshold after the expected tick
+                                         // trying to account for variance in server processing times?
 
   private analysis: PlayerAnalysis;
   private casts: CastDetails[];
@@ -146,10 +150,10 @@ export class CastsAnalyzer {
       const delta = this.casts[index + 1].castStart - castEnd;
 
       // if we clipped very close to the next expected tick, flag the cast.
-      if (delta < timeToTick) {
-        const progressToTick = delta/timeToTick;
-        current.clippedEarly = (progressToTick >= CastsAnalyzer.EARLY_CLIP_THRESHOLD);
+      if (delta < timeToTick + CastsAnalyzer.EARLY_CLIP_LEEWAY) {
+        const progressToTick = Math.min(delta/timeToTick, 1);
 
+        current.clippedEarly = (progressToTick >= CastsAnalyzer.EARLY_CLIP_THRESHOLD);
         if (current.clippedEarly) {
           current.earlyClipLostDamageFactor = progressToTick;
         }
