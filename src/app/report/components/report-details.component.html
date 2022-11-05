@@ -15,6 +15,17 @@
     </mat-form-field>
   </form>
 
+  <mat-card class="downranked" *ngIf="showDownrankWarning">
+    <mat-card-content>
+      <h4 class="text-warning">Detected Downranked Spells:</h4>
+      <ul>
+        <li *ngFor="let spell of downranked">
+          {{spell.name}} (Rank {{spell.rank}} of {{spell.max}})
+        </li>
+      </ul>
+    </mat-card-content>
+  </mat-card>
+
   <mat-tab-group [selectedIndex]="activeTab" (selectedTabChange)="onTabChange($event)">
     <mat-tab *ngFor="let tab of tabs">
       <ng-template mat-tab-label>

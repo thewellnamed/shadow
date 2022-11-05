@@ -11,6 +11,8 @@ export class CastDetails {
   spellId: SpellId; // the main ID for the spell (i.e. the max rank spell ID)
   castId: SpellId; // the actual spell ID in the log
   name: string;
+  rank: number|undefined;
+  downranked: boolean;
   castStart: number;
   castEnd: number;
   castTimeMs: number; // in ms, from start/end events
@@ -66,6 +68,8 @@ export class CastDetails {
   constructor(params: ICastDetailsParams) {
     this.castId = params.castId;
     this.spellId = params.spellId;
+    this.rank = params.rank;
+    this.downranked = params.downranked;
     this.name = params.ability.name;
 
     this.sourceId = params.sourceId;
@@ -218,6 +222,8 @@ export class CastDetails {
 
 interface ICastDetailsParams {
   castId: SpellId;
+  rank: number|undefined;
+  downranked: boolean;
   spellId: SpellId;
   ability: IAbilityData;
   sourceId: number,

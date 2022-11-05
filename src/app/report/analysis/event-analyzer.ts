@@ -113,6 +113,8 @@ export class EventAnalyzer {
       const details = new CastDetails({
         castId,
         spellId: spellData.mainId,
+        rank: Spell.rank(castId, spellData),
+        downranked: castId !== spellData.mainId,
         ability: currentCast.ability,
         sourceId: currentCast.sourceID,
         targetId: currentCast.targetID,

@@ -19,6 +19,7 @@ import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { CastDetails } from 'src/app/report/models/cast-details';
 import { SettingsService } from 'src/app/settings.service';
 import { SettingsHintComponent } from 'src/app/report/components/settings-hint.component';
+import { Spell } from 'src/app/logs/models/spell-data';
 
 @Component({
   selector: 'report-details',
@@ -36,8 +37,10 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
   activeTab = 0;
   form: UntypedFormGroup;
   targets: { id: number; name: string }[];
+  downranked: IDownrankedSpell[];
   hitCount = -1;
   loading = true;
+  showDownrankWarning = false;
   tabs: ITab[];
 
   private snackBarRef: MatSnackBarRef<SettingsHintComponent>;
@@ -97,6 +100,7 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
 
         this.title.setTitle(this.analysis.title);
         this.initializeTabs();
+        this.checkDownranking();
       } else if (this.playerId) {
         this.title.setTitle(this.playerId);
       }
@@ -190,6 +194,33 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
     this.eventSvc.subscribe<number>('hitCount', (e) => this.onHitCountChange(e));
   }
 
+  private checkDownranking() {
+    const downranked: {[id: number]: IDownrankedSpell} = this.analysis.report.casts.reduce((downranked, cast) => {
+      if (cast.downranked) {
+        const castRank = cast.rank as number;
+        if (downranked.hasOwnProperty(cast.spellId)) {
+          const existing = downranked[cast.spellId];
+          if (existing.rank < castRank) {
+            existing.rank = castRank;
+          }
+        } else {
+          downranked[cast.spellId] = {
+            name: cast.name,
+            rank: castRank,
+            max: Spell.baseData(cast.spellId).maxRank as number
+          };
+        }
+      }
+
+      return downranked;
+    }, {} as {[id: number]: IDownrankedSpell});
+
+    this.downranked = Object
+      .values(downranked)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    this.showDownrankWarning = this.downranked.length > 0;
+  }
+
   private updateActiveTab() {
     const tab = this.tabs[this.activeTab];
     const options = this.statOptions(tab.spellId);
@@ -225,13 +256,20 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
       this.snackBarRef.dismiss();
     }
 
+    const hasteRating = this.analysis?.actorInfo?.stats?.hasteRating;
     const hasteError = this.analysis?.report?.stats?.avgHasteError || 0;
     const castCount = this.analysis?.report?.stats?.hasteErrorCastCount || 0;
 
     // eslint-disable-next-line no-console
-    console.log(`Avg Haste Error: ${Math.round(hasteError*10000)/100}%; Cast Count: ${castCount}`);
+    console.log(`Avg Haste Error: ${Math.round(hasteError * 10000)/100}%; Cast Count: ${castCount}`);
 
-    if (castCount > 10 && Math.abs(hasteError) > .03 && this.settingsSvc.showHint(this.playerId, this.encounterId)) {
+    if (hasteRating === undefined || (castCount > 10 && Math.abs(hasteError) > .03)) {
+      this.openSnackbar(hasteRating === undefined ? undefined : hasteError);
+    }
+  }
+
+  private openSnackbar(hasteError?: number) {
+    if (this.settingsSvc.showHint(this.playerId, this.encounterId)) {
       this.snackBarRef = this.snackBar.openFromComponent(SettingsHintComponent, {
         data: {
           hasteError,
@@ -249,4 +287,10 @@ interface ITab extends ITabDefinition {
   stats: IStatField[];
   casts: CastDetails[];
   hitCounts: number[];
+}
+
+interface IDownrankedSpell {
+  name: string;
+  rank: number;
+  max: number;
 }

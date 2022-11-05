@@ -23,6 +23,20 @@
   ::ng-deep.mat-tab-label-active {
     opacity: 1;
   }
+
+  .downranked {
+    margin: 0 auto 15px auto;
+    max-width: 70%;
+
+    h4 {
+      font-size: 1.2em;
+      margin-bottom: 8px;
+    }
+
+    li {
+      margin: 2px 0;
+    }
+  }
 }
 
 .loading {
@@ -39,6 +53,10 @@
       .label {
         display: none;
       }
+    }
+
+    .downranked {
+      max-width: 100%;
     }
   }
 }

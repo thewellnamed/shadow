@@ -18,8 +18,10 @@ export class SettingsHintComponent {
     this.callback = data.openSettings;
     this.close = data.close;
 
-    this.missingHaste = format(Math.abs(data.hasteError * 100), 1, '%');
-    this.description = data.hasteError < 0 ? 'Excess' : 'Missing';
+    if (data.hasteError) {
+      this.missingHaste = format(Math.abs(data.hasteError * 100), 1, '%');
+      this.description = data.hasteError < 0 ? 'Excess' : 'Missing';
+    }
   }
 
   openSettings(event: Event) {
@@ -34,7 +36,7 @@ export class SettingsHintComponent {
 }
 
 export interface ISettingsHintData {
-  hasteError: number;
+  hasteError: number|undefined;
   openSettings: () => void;
   close: () => void;
 }
