@@ -4,7 +4,7 @@ import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 import { HasteUtils } from 'src/app/report/models/haste';
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
+import { AuraId } from 'src/app/logs/models/aura-id.enum';
 import { Buff, IBuffDetails } from 'src/app/logs/models/buff-data';
 
 export class CastsAnalyzer {
@@ -30,8 +30,8 @@ export class CastsAnalyzer {
 
     if (checkWrathOfAir) {
       wrathOfAirBuff = Object.assign(
-        { id: BuffId.WRATH_OF_AIR, name: 'Wrath of Air' },
-        Buff.data[BuffId.WRATH_OF_AIR]
+        { id: AuraId.WRATH_OF_AIR, name: 'Wrath of Air' },
+        Buff.data[AuraId.WRATH_OF_AIR]
       );
     }
 

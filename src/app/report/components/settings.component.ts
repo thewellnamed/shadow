@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { of } from 'rxjs';
 
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
+import { AuraId } from 'src/app/logs/models/aura-id.enum';
 import { ParamsService } from 'src/app/params.service';
 import { SettingsService } from 'src/app/settings.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,7 +19,6 @@ import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
   encapsulation: ViewEncapsulation.None
 })
 export class SettingsComponent implements OnInit {
-  log: LogSummary;
   logId: string;
   encounterId: number;
   playerId: string;
@@ -61,7 +60,7 @@ export class SettingsComponent implements OnInit {
         improvedMoonkinAura: new FormControl(analysis.settings.improvedMoonkinAura, { nonNullable: true }),
         improvedRetAura: new FormControl(analysis.settings.improvedRetAura, { nonNullable: true }),
         wrathOfAir: new FormControl(analysis.settings.wrathOfAir, { nonNullable: true }),
-        moonkinAura: new FormControl(this.auraState(BuffId.MOONKIN_AURA), { nonNullable: true })
+        moonkinAura: new FormControl(this.auraState(AuraId.MOONKIN_AURA), { nonNullable: true })
       });
 
       if (this.analysis.actorInfo?.initFromLog) {
@@ -86,7 +85,7 @@ export class SettingsComponent implements OnInit {
 
     if (!this.analysis.actorInfo?.initFromLog) {
       if (this.form.controls.moonkinAura.value) {
-        settings.auras.push(BuffId.MOONKIN_AURA);
+        settings.auras.push(AuraId.MOONKIN_AURA);
       }
     }
 
@@ -101,7 +100,7 @@ export class SettingsComponent implements OnInit {
   }
 
 
-  private auraState(id: BuffId) {
+  private auraState(id: AuraId) {
     if (this.analysis.actorInfo?.initFromLog) {
       return this.analysis.actorInfo.haveAura(id);
     }

@@ -1,13 +1,14 @@
 import { ICombatantAura, ICombatantData, ICombatantItem } from 'src/app/logs/interfaces';
 import { ISpellData } from 'src/app/logs/models/spell-data';
 import { ActorStats } from 'src/app/logs/models/actor-stats';
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
+import { AuraId } from 'src/app/logs/models/aura-id.enum';
 
 export class CombatantInfo {
   stats: ActorStats;
   gear: ICombatantItem[];
   auras: ICombatantAura[];
   bonuses: IBonusStats = {};
+  faction: CombatantFaction;
   initFromLog = false;
 
   constructor(info?: ICombatantData) {
@@ -16,10 +17,11 @@ export class CombatantInfo {
     this.stats = new ActorStats(info);
 
     this.bonuses = this.evaluateBonuses();
+    this.faction = info?.faction || CombatantFaction.HORDE;
     this.initFromLog = typeof info !== 'undefined';
   }
 
-  haveAura(id: BuffId) {
+  haveAura(id: AuraId) {
     return this.auras.some((aura) => aura.ability === id);
   }
 
@@ -27,6 +29,11 @@ export class CombatantInfo {
   private evaluateBonuses() {
     return {};
   }
+}
+
+export enum CombatantFaction {
+  HORDE,
+  ALLIANCE
 }
 
 export interface IBonusStats {

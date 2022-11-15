@@ -1,0 +1,21 @@
+<section class="export" *ngIf="!!exportData">
+  <div class="header">
+    <h3>Sim Export</h3>
+  </div>
+
+  <div class="controls">
+    <button mat-flat-button color="primary" class="copy-button" (click)="copy($event)" [ngClass]="{ done: copied }">
+      Copy to Clipboard
+      <mat-icon  fontIcon="done"></mat-icon>
+    </button>
+    <button mat-flat-button (click)="close($event)">Close</button>
+  </div>
+
+  <mat-form-field appearance="outline">
+    <textarea matInput rows="30" #json>{{ exportJson }}</textarea>
+    <p class="mat-hint table-accent">
+      Import the above as JSON into <a target="_blank" href="https://wowsims.github.io/wotlk/shadow_priest/">the spriest sim</a>.
+    </p>
+
+  </mat-form-field>
+</section>

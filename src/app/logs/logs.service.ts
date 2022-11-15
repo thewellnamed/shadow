@@ -10,7 +10,7 @@ import { EncounterSummary } from 'src/app/logs/models/encounter-summary';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { PSEUDO_SPELL_BASE } from 'src/app/logs/models/spell-id.enum';
 import { Spell } from 'src/app/logs/models/spell-data';
-import { ICombatantData } from 'src/app/logs/interfaces';
+import { ICombatantData, IDebuffData } from 'src/app/logs/interfaces';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 import { SettingsService } from 'src/app/settings.service';
 
@@ -39,6 +39,7 @@ export class LogsService {
 
   private summaryCache: { [id: string]: LogSummary} = {};
   private eventCache: { [id: string]: IEncounterEvents} = {};
+  private bossDebuffCache: { [id: string]: any} = {};
   private playerCache: { [id: string]: any} = {};
 
   constructor(private http: HttpClient, private settingsSvc: SettingsService) {}
@@ -145,6 +146,24 @@ export class LogsService {
         return throwError(`Error fetching player info: ${response.error.error}`);
       })
     );
+  }
+
+  getEnemyDebuffs(log: LogSummary, encounterId: number): Observable<IDebuffData[]> {
+    const cacheId = `${log.id}:${encounterId}`;
+    if (this.bossDebuffCache.hasOwnProperty(cacheId)) {
+      return of(this.bossDebuffCache[cacheId]);
+    }
+
+    const url = this.apiUrl(`report/events/debuffs/${log.id}`);
+    const encounter = log.getEncounter(encounterId) as EncounterSummary;
+    const params = this.makeParams(encounter, { hostility: 1 });
+
+    return this.http.get<{ events: IDebuffData[] }>(url, { params }).pipe(
+      map((response) => response.events),
+      catchError((response: HttpErrorResponse) => {
+        return throwError(`Error fetching boss debuffs: ${response.error.error}`);
+      })
+    )
   }
 
   /**
