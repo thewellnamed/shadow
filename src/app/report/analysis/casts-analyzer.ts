@@ -114,16 +114,16 @@ export class CastsAnalyzer {
     }
 
     const prev = prevData.onTarget;
+    const prevSpellData = Spell.get(prev.spellId, this.analysis.settings, prev.haste);
 
     if (prev.lastDamageTimestamp && (current.castEnd - prev.lastDamageTimestamp <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME)) {
       current.dotDowntime = Math.max((current.castEnd - prev.lastDamageTimestamp) / 1000, 0);
     }
 
-    const expectedDuration = prev.castEnd + (spellData.maxDuration * 1000);
-
-    if (prev.hits < spellData.maxDamageInstances && current.castEnd <= expectedDuration) {
+    const expectedEnd = prev.castEnd + (prevSpellData.maxDuration * 1000) + CastsAnalyzer.EARLY_CLIP_LEEWAY;
+    if (prev.instances.length < spellData.maxDamageInstances && current.castEnd <= expectedEnd) {
       current.clippedPreviousCast = true;
-      current.clippedTicks = spellData.maxDamageInstances - prev.hits;
+      current.clippedTicks = spellData.maxDamageInstances - prev.instances.length;
     }
   }
 
