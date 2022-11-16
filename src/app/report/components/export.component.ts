@@ -249,7 +249,7 @@ export class ExportComponent implements OnInit {
     const lust = this.analysis.events.buffs.find((b) => b.ability.guid === lustId);
     if (lust) {
       cooldowns.push({
-        id: { spellId: lustId, tag: -1 },
+        id: { spellId: AuraId.BLOODLUST, tag: -1 },
         timings: [Math.round((lust.timestamp - this.analysis.encounter.start)/1000)]
       });
     }
