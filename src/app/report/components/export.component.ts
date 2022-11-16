@@ -243,13 +243,13 @@ export class ExportComponent implements OnInit {
   }
 
   cooldowns() {
-    const cooldowns: { id: { spellId: number }, timings: number[]}[] = [];
+    const cooldowns: { id: { spellId: number, tag?: number }, timings: number[]}[] = [];
 
     const lustId = this.analysis.actorInfo.faction == CombatantFaction.ALLIANCE ? AuraId.HEROISM : AuraId.BLOODLUST;
     const lust = this.analysis.events.buffs.find((b) => b.ability.guid === lustId);
     if (lust) {
       cooldowns.push({
-        id: { spellId: lustId },
+        id: { spellId: lustId, tag: -1 },
         timings: [Math.round((lust.timestamp - this.analysis.encounter.start)/1000)]
       });
     }
