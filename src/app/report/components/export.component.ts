@@ -91,6 +91,7 @@ export class ExportComponent implements OnInit {
         elementalOath: this.haveClass('Shaman-Elemental'),
         wrathOfAirTotem: this.analysis.applyWrathOfAir,
         sanctifiedRetribution: this.haveClass('Paladin-Retribution'),
+        arcaneEmpowerment: this.haveClass('Mage'),
         manaSpringTotem: 'TristateEffectImproved',
         bloodlust: this.haveBuff(AuraId.BLOODLUST) || this.haveBuff(AuraId.HEROISM)
       },
@@ -102,7 +103,9 @@ export class ExportComponent implements OnInit {
         heartOfTheCrusader: this.haveClass('Paladin-Retribution'),
         shadowMastery: this.haveDebuff(AuraId.SHADOW_MASTERY)
       },
-      partyBuffs: {},
+      partyBuffs: {
+        heroicPresence: this.auraState(AuraId.HEROIC_PRESENCE)
+      },
       player: {
         name: 'Player',
         race: `Race${this.playerRace}`,
@@ -130,7 +133,7 @@ export class ExportComponent implements OnInit {
         },
         profession1: professions[0],
         profession2: professions.length > 1 ? professions[1] : undefined,
-        cooldowns: {},
+        cooldowns: this.cooldowns(),
         healingModel: {},
         shadowPriest: {
           rotation: {
@@ -237,6 +240,32 @@ export class ExportComponent implements OnInit {
     }
 
     return professions;
+  }
+
+  cooldowns() {
+    const cooldowns: { id: { spellId: number }, timings: number[]}[] = [];
+
+    const lustId = this.analysis.actorInfo.faction == CombatantFaction.ALLIANCE ? AuraId.HEROISM : AuraId.BLOODLUST;
+    const lust = this.analysis.events.buffs.find((b) => b.ability.guid === lustId);
+    if (lust) {
+      cooldowns.push({
+        id: { spellId: lustId },
+        timings: [Math.round((lust.timestamp - this.analysis.encounter.start)/1000)]
+      });
+    }
+
+    const fiend = this.analysis.report.casts.find((c) => c.spellId === SpellId.SHADOW_FIEND);
+    if (fiend) {
+      cooldowns.push({
+        id: { spellId: SpellId.SHADOW_FIEND },
+        timings: [Math.round((fiend.castStart - this.analysis.encounter.start)/1000)]
+      });
+    }
+
+    if (cooldowns.length > 0) {
+      return { cooldowns };
+    }
+    return {};
   }
 
   haveBuff(id: AuraId, event?: string) {
