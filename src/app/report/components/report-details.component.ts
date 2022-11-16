@@ -92,9 +92,7 @@ export class ReportDetailsComponent implements OnInit, OnDestroy {
           .filter((t) => (t.name?.length || 0) > 0)
           .sort((a, b) => a.name.localeCompare(b.name));
 
-        if (this.targets.length === 1) {
-          this.setTarget(this.targets[0].id);
-        } else if (this.target.value && !this.analysis.targetIds.includes(this.target.value)) {
+        if (this.target.value && !this.analysis.targetIds.includes(this.target.value)) {
           this.setTarget(0);
         }
 

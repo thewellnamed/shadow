@@ -1,4 +1,4 @@
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
+import { AuraId } from 'src/app/logs/models/aura-id.enum';
 
 export class Settings {
   public hasteRating: number|null = null;
@@ -29,7 +29,7 @@ export class Settings {
       this.auras.every((id) => other.auras.includes(id));
   }
 
-  haveAura(id: BuffId) {
+  haveAura(id: AuraId) {
     return this.auras?.some((a) => a === id) || false;
   }
 }

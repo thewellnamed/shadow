@@ -5,7 +5,7 @@ import { IAbilityData } from 'src/app/logs/interfaces';
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { HasteUtils } from 'src/app/report/models/haste';
 import { IBuffDetails, IBuffEvent } from 'src/app/logs/models/buff-data';
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
+import { AuraId } from 'src/app/logs/models/aura-id.enum';
 
 export class CastDetails {
   spellId: SpellId; // the main ID for the spell (i.e. the max rank spell ID)
@@ -182,7 +182,7 @@ export class CastDetails {
     return this._detailBuffs;
   }
 
-  hasBuff(id: BuffId) {
+  hasBuff(id: AuraId) {
     return this.buffs.some((b) => b.id === id);
   }
 
@@ -190,7 +190,7 @@ export class CastDetails {
     this.buffs.push(buff);
   }
 
-  removeBuff(id: BuffId) {
+  removeBuff(id: AuraId) {
     const index = this.buffs.findIndex((b) => b.id === id);
     if (index < 0) {
       return;

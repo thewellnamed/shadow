@@ -21,8 +21,8 @@ export class StatEvaluator {
   public static thresholds: IStatThresholds = {
     dotDowntime: {
       levels: {
-        [Status.WARNING]: 5,
-        [Status.NOTICE]: 3
+        [Status.WARNING]: 3,
+        [Status.NOTICE]: 2
       }
     },
 
@@ -78,8 +78,8 @@ export class StatEvaluator {
     // Clipped MF DPS
     clippedEarlyDps: {
       levels: {
-        [Status.WARNING]: 10,
-        [Status.NOTICE]: 5.0
+        [Status.WARNING]: 50,
+        [Status.NOTICE]: 20
       }
     }
   };

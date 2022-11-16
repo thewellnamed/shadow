@@ -5,6 +5,7 @@ export class Actor {
   name: string;
   anon: boolean;
   type: string;
+  icon: string;
   pet: boolean;
   owner: number|undefined;
   friendly: boolean;
@@ -16,6 +17,7 @@ export class Actor {
     this.anon = anon;
     this.name = data.name;
     this.type = data.type;
+    this.icon = data.icon;
     this.pet = data.petOwner !== undefined;
     this.owner = data.petOwner;
     this.friendly = friendly;

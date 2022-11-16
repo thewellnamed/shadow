@@ -1,4 +1,4 @@
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
+import { AuraId } from 'src/app/logs/models/aura-id.enum';
 import { IAbilityData, IBuffData } from 'src/app/logs/interfaces';
 import { Settings } from 'src/app/settings';
 
@@ -30,196 +30,196 @@ export class Buff {
   }
 
   public static data: IBuffLookup = {
-    [BuffId.ARGENT_VALOR]: buff({
+    [AuraId.ARGENT_VALOR]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.BERSERKING]: buff({
+    [AuraId.BERSERKING]: buff({
       haste: 0.2,
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.BLACK_MAGIC]: buff({
+    [AuraId.BLACK_MAGIC]: buff({
       hasteRating: 250,
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.BLOODLUST]: buff({
+    [AuraId.BLOODLUST]: buff({
       haste: 0.3,
       trigger: BuffTrigger.EXTERNAL,
-      doesNotStackWith: [BuffId.POWER_INFUSION],
+      doesNotStackWith: [AuraId.POWER_INFUSION],
       summaryIcon: true
     }),
 
-    [BuffId.BREATH_HASTE]: buff({
+    [AuraId.BREATH_HASTE]: buff({
       haste: 0.25,
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.DARK_IRON_PIPE]: buff({
+    [AuraId.DARK_IRON_PIPE]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.DESTRUCTION]: buff({
+    [AuraId.DESTRUCTION]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.DRUMS_OF_BATTLE]: buff({
+    [AuraId.DRUMS_OF_BATTLE]: buff({
       hasteRating: 80,
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.DYING_CURSE]: buff({
+    [AuraId.DYING_CURSE]: buff({
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.EMBRACE_SPIDER]: buff({
+    [AuraId.EMBRACE_SPIDER]: buff({
       hasteRating: 505,
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.GREATER_DRUMS_OF_BATTLE]: buff({
+    [AuraId.GREATER_DRUMS_OF_BATTLE]: buff({
       hasteRating: 80,
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.FEL_INFUSION]: buff({
+    [AuraId.FEL_INFUSION]: buff({
       hasteRating: 175,
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.FOCUS]: buff({
+    [AuraId.FOCUS]: buff({
       hasteRating: 320,
       trigger: BuffTrigger.CAST_END,
       summaryIcon: true
     }),
 
-    [BuffId.FORGE_EMBER]: buff({
+    [AuraId.FORGE_EMBER]: buff({
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.HASTE]: buff({
+    [AuraId.HASTE]: buff({
       hasteRating: 400,
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.HEROISM]: buff({
+    [AuraId.HEROISM]: buff({
       haste: 0.3,
       trigger: BuffTrigger.EXTERNAL,
-      doesNotStackWith: [BuffId.POWER_INFUSION],
+      doesNotStackWith: [AuraId.POWER_INFUSION],
       summaryIcon: true
     }),
 
-    [BuffId.HYPERSPEED_ACCELERATION]: buff({
+    [AuraId.HYPERSPEED_ACCELERATION]: buff({
       hasteRating: 340,
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.ICON_CRESCENT]: buff({
+    [AuraId.ICON_CRESCENT]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.INNER_FOCUS]: buff({
+    [AuraId.INNER_FOCUS]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.LIGHTWEAVE]: buff({
+    [AuraId.LIGHTWEAVE]: buff({
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.LIMITLESS_POWER]: buff({
+    [AuraId.LIMITLESS_POWER]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.MOONKIN_AURA]: buff({
+    [AuraId.MOONKIN_AURA]: buff({
       trigger: BuffTrigger.EXTERNAL,
-      doesNotStackWith: [BuffId.RETRIBUTION_AURA],
+      doesNotStackWith: [AuraId.RETRIBUTION_AURA],
       dynamic: (baseData, settings) => ({
         haste: settings.improvedMoonkinAura ? 0.03 : 0
       })
     }),
 
-    [BuffId.MOJO_MADNESS]: buff({
+    [AuraId.MOJO_MADNESS]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.POWER_INFUSION]: buff({
+    [AuraId.POWER_INFUSION]: buff({
       haste: 0.2,
       trigger: BuffTrigger.EXTERNAL,
-      doesNotStackWith: [BuffId.HEROISM, BuffId.BLOODLUST],
+      doesNotStackWith: [AuraId.HEROISM, AuraId.BLOODLUST],
       summaryIcon: true
     }),
 
-    [BuffId.QUAGS_EYE]: buff({
+    [AuraId.QUAGS_EYE]: buff({
       hasteRating: 320,
       trigger: BuffTrigger.CAST_END,
       summaryIcon: true
     }),
 
-    [BuffId.RETRIBUTION_AURA]: buff({
+    [AuraId.RETRIBUTION_AURA]: buff({
       trigger: BuffTrigger.EXTERNAL,
-      doesNotStackWith: [BuffId.MOONKIN_AURA],
+      doesNotStackWith: [AuraId.MOONKIN_AURA],
       dynamic: (baseData, settings) => ({
         haste: settings.improvedRetAura ? 0.03 : 0
       })
     }),
 
-    [BuffId.SHADOWY_INSIGHT]: buff({
+    [AuraId.SHADOWY_INSIGHT]: buff({
       trigger: BuffTrigger.EXTERNAL
     }),
 
-    [BuffId.SPEED_POTION]: buff({
+    [AuraId.SPEED_POTION]: buff({
       hasteRating: 500,
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.SUNDIAL]: buff({
+    [AuraId.SUNDIAL]: buff({
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
-    [BuffId.TOME_ARCANE_PHENOMENA]: buff({
+    [AuraId.TOME_ARCANE_PHENOMENA]: buff({
       hasteRating: 256,
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.TWILIGHT_SERPENT]: buff({
+    [AuraId.TWILIGHT_SERPENT]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.WAR_PRISONER]: buff({
+    [AuraId.WAR_PRISONER]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.WILD_MAGIC]: buff({
+    [AuraId.WILD_MAGIC]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
 
-    [BuffId.WRATH_OF_AIR]: buff({
+    [AuraId.WRATH_OF_AIR]: buff({
       haste: 0.05,
       trigger: BuffTrigger.EXTERNAL
     })
@@ -231,19 +231,19 @@ interface IBuffLookup {
 }
 
 export interface IBuffDetails {
-  id: BuffId;
+  id: AuraId;
   name: string;
   haste: number;
   hasteRating: number;
   trigger: BuffTrigger;
-  doesNotStackWith: BuffId[];
+  doesNotStackWith: AuraId[];
   summaryIcon: boolean;
   detailsIcon: boolean;
   dynamic?: (baseData: IBuffDetails, settings: Settings) => Partial<IBuffDetails>
 }
 
 export interface IBuffEvent {
-  id: BuffId,
+  id: AuraId,
   data: IBuffDetails,
   event: IBuffData
 }

@@ -4,7 +4,7 @@ import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 import { HasteUtils } from 'src/app/report/models/haste';
-import { BuffId } from 'src/app/logs/models/buff-id.enum';
+import { AuraId } from 'src/app/logs/models/aura-id.enum';
 import { Buff, IBuffDetails } from 'src/app/logs/models/buff-data';
 
 export class CastsAnalyzer {
@@ -33,8 +33,8 @@ export class CastsAnalyzer {
 
     if (checkWrathOfAir) {
       wrathOfAirBuff = Object.assign(
-        { id: BuffId.WRATH_OF_AIR, name: 'Wrath of Air' },
-        Buff.data[BuffId.WRATH_OF_AIR]
+        { id: AuraId.WRATH_OF_AIR, name: 'Wrath of Air' },
+        Buff.data[AuraId.WRATH_OF_AIR]
       );
     }
 
@@ -117,16 +117,16 @@ export class CastsAnalyzer {
     }
 
     const prev = prevData.onTarget;
+    const prevSpellData = Spell.get(prev.spellId, this.analysis.settings, prev.haste);
 
     if (prev.lastDamageTimestamp && (current.castEnd - prev.lastDamageTimestamp <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME)) {
       current.dotDowntime = Math.max((current.castEnd - prev.lastDamageTimestamp) / 1000, 0);
     }
 
-    const expectedDuration = prev.castEnd + (spellData.maxDuration * 1000);
-
-    if (prev.hits < spellData.maxDamageInstances && current.castEnd <= expectedDuration) {
+    const expectedEnd = prev.castEnd + (prevSpellData.maxDuration * 1000) + CastsAnalyzer.EARLY_CLIP_LEEWAY;
+    if (prev.instances.length < spellData.maxDamageInstances && current.castEnd <= expectedEnd) {
       current.clippedPreviousCast = true;
-      current.clippedTicks = spellData.maxDamageInstances - prev.hits;
+      current.clippedTicks = spellData.maxDamageInstances - prev.instances.length;
 
       if (this.successfulSnapshot(current, prev, castIndex)) {
         current.clippedForBonus = true;
