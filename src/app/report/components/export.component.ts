@@ -120,6 +120,7 @@ export class ExportComponent implements OnInit {
         buffs: {
           blessingOfKings: this.auraState(AuraId.BLESSING_OF_KINGS),
           blessingOfWisdom: 'TristateEffectImproved',
+          powerInfusions: this.countPowerInfusions(),
           vampiricTouch: true
         },
         talentsString: '05032031--325023051223010323151301351',
@@ -242,6 +243,14 @@ export class ExportComponent implements OnInit {
     return professions;
   }
 
+  countPowerInfusions() {
+    const count = this.analysis.events.buffs
+      .filter((b) => b.ability.guid === AuraId.POWER_INFUSION && b.type === 'applybuff')
+      .length;
+
+    return (count > 0) ? count : undefined;
+  }
+
   cooldowns() {
     const cooldowns: { id: { spellId: number, tag?: number }, timings: number[]}[] = [];
 
@@ -259,6 +268,16 @@ export class ExportComponent implements OnInit {
       cooldowns.push({
         id: { spellId: SpellId.SHADOW_FIEND },
         timings: [Math.round((fiend.castStart - this.analysis.encounter.start)/1000)]
+      });
+    }
+
+    const infusions = this.analysis.events.buffs
+      .filter((b) => b.ability.guid === AuraId.POWER_INFUSION && b.type === 'applybuff');
+
+    if (infusions.length > 0) {
+      cooldowns.push({
+        id: { spellId: AuraId.POWER_INFUSION, tag: -1},
+        timings: infusions.map((b) => Math.round((b.timestamp - this.analysis.encounter.start)/1000))
       });
     }
 
