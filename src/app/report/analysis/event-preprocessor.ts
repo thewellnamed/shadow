@@ -19,6 +19,8 @@ export class EventPreprocessor {
   private damage: wcl.IDamageData[];
   private buffs: wcl.IBuffData[];
 
+  private static readonly INFER_CASTS_EVENT_COUNT = 5;
+
   constructor(analysis: PlayerAnalysis, events: IEncounterEvents) {
     this.analysis = analysis;
     this.actor = analysis.actor;
@@ -51,8 +53,11 @@ export class EventPreprocessor {
   // if one is not found.
   private inferMissingCasts() {
     const casts = this.inputEvents.casts.slice();
-    let instancesToCheck = this.damage.length >= 3 ? 2 : this.damage.length - 1;
     const spellIdsInferred: number[] = [];
+
+    let instancesToCheck = this.damage.length >= EventPreprocessor.INFER_CASTS_EVENT_COUNT ?
+      EventPreprocessor.INFER_CASTS_EVENT_COUNT - 1 :
+      this.damage.length - 1;
 
     // find first damage cast so we can borrow its spellpower if we find a missing cast
     const firstDamageCast = casts.find((c) =>
@@ -107,8 +112,15 @@ export class EventPreprocessor {
     if ([DamageType.DOT, DamageType.CHANNEL].includes(spellData?.damageType)) {
       // First find the earliest tick we want to associate to our inferred cast,
       // then infer the cast time based on how frequently the spell ticks
-      const timeToTick = (spellData.maxDuration / spellData.maxTicks) * 1000,
+      let timeToTick: number, earliestPossible: number;
+
+      if (spellData.maxDuration) {
+        timeToTick = (spellData.maxDuration / spellData.maxTicks) * 1000;
         earliestPossible = damage.timestamp - (spellData.maxDuration * 1000);
+      } else {
+        timeToTick = spellData.baseTickTime * 1000;
+        earliestPossible = damage.timestamp - timeToTick;
+      }
 
       const earliestInstance = this.damage.find((d) =>
         d.ability.guid === damage.ability.guid &&
