@@ -75,6 +75,12 @@ export class Buff {
       summaryIcon: true
     }),
 
+    [AuraId.DEVIOUS_MIND]: buff({
+      trigger: BuffTrigger.CAST_END,
+      summaryIcon: true,
+      hasteRating: 240
+    }),
+
     [AuraId.DRUMS_OF_BATTLE]: buff({
       hasteRating: 80,
       trigger: BuffTrigger.EXTERNAL,
