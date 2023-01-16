@@ -224,6 +224,13 @@ export class Buff {
       summaryIcon: true
     }),
 
+    [AuraId.STARLIGHT]: buff({
+      trigger: BuffTrigger.EXTERNAL,
+      debuff: true,
+      haste: 0.5,
+      summaryIcon: true
+    }),
+
     [AuraId.SUNDIAL]: buff({
       trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
