@@ -59,22 +59,6 @@ export class Buff {
       summaryIcon: true
     }),
 
-    [AuraId.BREATH_HASTE]: buff({
-      haste: 0.25,
-      trigger: BuffTrigger.EXTERNAL,
-      summaryIcon: true
-    }),
-
-    [AuraId.DARK_IRON_PIPE]: buff({
-      trigger: BuffTrigger.ON_USE,
-      summaryIcon: true
-    }),
-
-    [AuraId.DESTRUCTION]: buff({
-      trigger: BuffTrigger.ON_USE,
-      summaryIcon: true
-    }),
-
     [AuraId.DEVIOUS_MIND]: buff({
       trigger: BuffTrigger.CAST_END,
       summaryIcon: true,
@@ -104,15 +88,8 @@ export class Buff {
       summaryIcon: true
     }),
 
-    [AuraId.FEL_INFUSION]: buff({
-      hasteRating: 175,
-      trigger: BuffTrigger.ON_USE,
-      summaryIcon: true
-    }),
-
-    [AuraId.FOCUS]: buff({
-      hasteRating: 320,
-      trigger: BuffTrigger.CAST_END,
+    [AuraId.FLAME_OF_THE_HEAVENS]: buff({
+      trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
@@ -140,11 +117,6 @@ export class Buff {
       summaryIcon: true
     }),
 
-    [AuraId.ICON_CRESCENT]: buff({
-      trigger: BuffTrigger.ON_USE,
-      summaryIcon: true
-    }),
-
     [AuraId.INNER_FOCUS]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
@@ -155,7 +127,7 @@ export class Buff {
       summaryIcon: true
     }),
 
-    [AuraId.LIMITLESS_POWER]: buff({
+    [AuraId.LIVING_FLAME]: buff({
       trigger: BuffTrigger.ON_USE,
       summaryIcon: true
     }),
@@ -168,8 +140,8 @@ export class Buff {
       })
     }),
 
-    [AuraId.MOJO_MADNESS]: buff({
-      trigger: BuffTrigger.ON_USE,
+    [AuraId.PANDORAS_PLEA]: buff({
+      trigger: BuffTrigger.EXTERNAL,
       summaryIcon: true
     }),
 
@@ -177,12 +149,6 @@ export class Buff {
       haste: 0.2,
       trigger: BuffTrigger.EXTERNAL,
       doesNotStackWith: [AuraId.HEROISM, AuraId.BLOODLUST],
-      summaryIcon: true
-    }),
-
-    [AuraId.QUAGS_EYE]: buff({
-      hasteRating: 320,
-      trigger: BuffTrigger.CAST_END,
       summaryIcon: true
     }),
 
@@ -197,6 +163,12 @@ export class Buff {
     [AuraId.RUNE_OF_POWER]: buff({
       trigger: BuffTrigger.EXTERNAL,
       debuff: true,
+      summaryIcon: true
+    }),
+
+    [AuraId.SCALE_OF_FATES]: buff({
+      trigger: BuffTrigger.ON_USE,
+      hasteRating: 457,
       summaryIcon: true
     }),
 
