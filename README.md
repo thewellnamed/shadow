@@ -35,6 +35,18 @@ Special thanks to Passion for his organizing efforts, Linelo for him theorycraft
 
 
 ### Changelog
+
+- January 16th, 2023
+  - Initial Phase 2 (Ulduar) support
+    - Added new trinkets and T8 4pc buff tracking
+    - Added support for tracking important encounter debuffs, e.g. Rune of Power
+    - Improved inference of untracked haste buffs, including Starlight on Hodir. Inference is imperfect and a bit of a work in progress.
+
+
+- November 16th, 2022
+  - Added Sim export option for an encounter. Creates a JSON configuration for WowSims which includes most relevant debuff/buff settings for the fight.
+
+
 - September 17th, 2022
   - Improved buff tracking and added display of active buff icons for each spell in the timeline.
   - Added settings screen for configuration (For details, see [Configuration Settings](SETTINGS.md))
