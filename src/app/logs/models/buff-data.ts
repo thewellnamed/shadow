@@ -19,7 +19,8 @@ export class Buff {
     trigger: BuffTrigger.EXTERNAL,
     doesNotStackWith: [],
     summaryIcon: false,
-    detailsIcon: true
+    detailsIcon: true,
+    debuff: false
   };
 
   public static get(ability: IAbilityData, settings: Settings): IBuffDetails {
@@ -27,6 +28,10 @@ export class Buff {
     const dynamic = baseData.dynamic ? baseData.dynamic.call(null, baseData, settings) : {};
 
     return Object.assign({ id: ability.guid, name: ability.name }, baseData, dynamic);
+  }
+
+  public static isDebuff(id: AuraId) {
+    return Buff.data[id]?.debuff;
   }
 
   public static data: IBuffLookup = {
@@ -183,8 +188,21 @@ export class Buff {
       })
     }),
 
+    [AuraId.RUNE_OF_POWER]: buff({
+      trigger: BuffTrigger.EXTERNAL,
+      debuff: true,
+      summaryIcon: true
+    }),
+
     [AuraId.SHADOWY_INSIGHT]: buff({
       trigger: BuffTrigger.EXTERNAL
+    }),
+
+    [AuraId.SLAG_IMBUED]: buff({
+      trigger: BuffTrigger.EXTERNAL,
+      haste: 1,
+      debuff: true,
+      summaryIcon: true
     }),
 
     [AuraId.SPEED_POTION]: buff({
@@ -233,6 +251,7 @@ interface IBuffLookup {
 export interface IBuffDetails {
   id: AuraId;
   name: string;
+  debuff: boolean;
   haste: number;
   hasteRating: number;
   trigger: BuffTrigger;

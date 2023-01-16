@@ -42,6 +42,7 @@ export class EventPreprocessor {
 
     return {
       buffs: this.buffs,
+      debuffs: this.inputEvents.debuffs,
       casts: this.casts,
       damage: this.damage,
       deaths: this.inputEvents.deaths
@@ -155,8 +156,11 @@ export class EventPreprocessor {
       this.updateActorStats(event);
     }
 
-    // append in-combat events...
+    // append in-combat events
+    // note: treating buffs and debuffs similarly, we only care about debuffs that actuall "buff" the player...
     buffs.push(... this.inputEvents.buffs.slice());
+    buffs.push(... this.inputEvents.debuffs.slice());
+    buffs.sort((a, b) => a.timestamp - b.timestamp);
 
     const active: {[id: number]: IBuffData} = {};
     const missing: IBuffData[] = [];

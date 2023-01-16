@@ -76,10 +76,13 @@ export class EventAnalyzer {
       switch (event.type) {
         case 'applybuff':
         case 'refreshbuff':
+        case 'applydebuff':
+        case 'refreshdebuff':
           this.applyBuff(event as IBuffData, Buff.get(event.ability, this.analysis.settings));
           continue;
 
         case 'removebuff':
+        case 'removedebuff':
           this.removeBuff(event as IBuffData);
           continue;
 

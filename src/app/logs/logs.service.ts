@@ -35,7 +35,14 @@ export class LogsService {
     )
     .filter((spellId) => spellId < PSEUDO_SPELL_BASE);
 
-  public static TRACKED_BUFFS = Object.keys(Buff.data).map((k) => parseInt(k));
+  public static TRACKED_BUFFS = Object.keys(Buff.data)
+    .map((k) => parseInt(k))
+    .filter((auraId) => !Buff.isDebuff(auraId));
+
+  public static TRACKED_DEBUFFS = Object.keys(Buff.data)
+    .map((k) => parseInt(k))
+    .filter((auraId) => Buff.isDebuff(auraId));
+
 
   private summaryCache: { [id: string]: LogSummary} = {};
   private eventCache: { [id: string]: IEncounterEvents} = {};
@@ -196,16 +203,19 @@ export class LogsService {
         this.requestEvents<wcl.IBuffData>(log.id, 'buffs', this.makeParams(encounter, {
           filter: `target.name="${actor.name}" AND ability.id IN (${LogsService.TRACKED_BUFFS.join(',')})`
         })),
+        this.requestEvents<wcl.IBuffData>(log.id, 'debuffs', this.makeParams(encounter, {
+          filter: `target.name="${actor.name}" AND ability.id IN (${LogsService.TRACKED_DEBUFFS.join(',')}) AND type IN ("applydebuff", "removedebuff")`
+        })),
       ])
       .pipe(
-        map(([casts, damage, deaths, buffs]) => {
+        map(([casts, damage, deaths, buffs, debuffs]) => {
           const deathLookup = deaths.reduce((lookup, death) => {
             const key = `${death.targetID}:${death.targetInstance}`;
             lookup[key] = death.timestamp;
             return lookup;
           }, {} as IDeathLookup);
 
-          const data: IEncounterEvents = { buffs, casts, damage, deaths: deathLookup };
+          const data: IEncounterEvents = { buffs, debuffs, casts, damage, deaths: deathLookup };
           this.eventCache[cacheId] = data;
           return data;
         }),
@@ -270,6 +280,7 @@ export interface IDeathLookup {
 
 export interface IEncounterEvents {
   buffs: wcl.IBuffData[];
+  debuffs: wcl.IBuffData[];
   casts: wcl.ICastData[];
   damage: wcl.IDamageData[];
   deaths: IDeathLookup;
