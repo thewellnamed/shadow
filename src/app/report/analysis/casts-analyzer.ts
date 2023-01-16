@@ -4,7 +4,6 @@ import { DamageType, ISpellData, Spell } from 'src/app/logs/models/spell-data';
 import { HitType } from 'src/app/logs/models/hit-type.enum';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 import { HasteUtils } from 'src/app/report/models/haste';
-import { AuraId } from 'src/app/logs/models/aura-id.enum';
 import { Buff, IBuffDetails } from 'src/app/logs/models/buff-data';
 
 export class CastsAnalyzer {
@@ -18,6 +17,7 @@ export class CastsAnalyzer {
 
   private analysis: PlayerAnalysis;
   private casts: CastDetails[];
+  private inferred: { [auraId: number]: IBuffDetails };
 
   constructor(analysis: PlayerAnalysis, casts: CastDetails[]) {
     this.analysis = analysis;
@@ -25,31 +25,17 @@ export class CastsAnalyzer {
   }
 
   public run(): Report {
-    const checkWrathOfAir = this.analysis.applyWrathOfAir;
-    let wrathOfAirBuff: IBuffDetails, wrathOfAirActive = false;
+    const inferrableBuffs = Buff.inferrable(this.analysis),
+      doInference = inferrableBuffs.length > 0;
 
-    if (checkWrathOfAir) {
-      wrathOfAirBuff = Object.assign(
-        { id: AuraId.WRATH_OF_AIR, name: 'Wrath of Air' },
-        Buff.data[AuraId.WRATH_OF_AIR]
-      );
-    }
-
+    this.inferred = {};
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
         spellData = Spell.get(current.spellId, this.analysis.settings, current.haste);
       let prevCastData;
 
-      // infer wrath of air totem presence or absence, if enabled
-      // can only be done on spells with a cast time or where haste can be inferred from time-to-tick for hasted DoTs
-      if (checkWrathOfAir && HasteUtils.canInferHaste(current, spellData)) {
-        wrathOfAirActive = this.checkWrathOfAir(current, spellData, wrathOfAirBuff!, wrathOfAirActive);
-      }
-
-      // if wrath of air is active, add it to this cast.
-      if (wrathOfAirActive) {
-        current.addBuff(wrathOfAirBuff!);
-        current.haste = ((1 + current.haste) * (1 + wrathOfAirBuff!.haste)) - 1;
+      if (doInference && HasteUtils.canInferHaste(current, spellData)) {
+        this.updateInferredBuffs(current, spellData, inferrableBuffs);
       }
 
       // set delay to next cast
@@ -161,44 +147,53 @@ export class CastsAnalyzer {
     }
   }
 
-  // add wrath of air to buff list for cast if it appears to be missing.
-  private checkWrathOfAir(cast: CastDetails, spellData: ISpellData, buff: IBuffDetails, active: boolean) {
-    const error = HasteUtils.getHasteError(cast, spellData);
+  private updateInferredBuffs(cast: CastDetails, spellData: ISpellData, inferrable: IBuffDetails[]) {
+    let error = HasteUtils.getHasteError(cast, spellData);
 
-    if (error > 0.035) {
-      if (!active) {
-        // add to analysis buff list for GCD analyzer, if not already active
-        // find the first buff that occurs at or after the cast, and add the buff just before it
+    for (const buff of inferrable) {
+      const active = this.inferred.hasOwnProperty(buff.id);
+
+      // if error on cast is below the threshold to remove the buff,
+      // then remove the buff and continue checking other buffs
+      if (active && error < buff.inferenceThresholds!.remove) {
+        // add pseudo-event. Used for GCD Usage analysis.
         const insertionIndex = this.analysis.events.buffs.findIndex((b) => b.timestamp >= cast.castStart);
         this.analysis.events.buffs.splice(insertionIndex, 0, {
-          type: 'applybuff',
-          ability: {guid: buff.id, name: buff.name},
+          type: 'removebuff',
+          ability: { guid: buff.id, name: buff.name },
           targetID: this.analysis.actor.id,
           targetInstance: 0,
           timestamp: cast.castStart - 1,
           read: false
         });
+
+        delete this.inferred[buff.id];
+        continue;
       }
 
-      return true;
+      // if the buff is previously active or the error on this cast is above the threshold to add it,
+      // then
+      if (active || error > buff.inferenceThresholds!.add) {
+        cast.addBuff(buff);
+        cast.haste = ((1 + cast.haste) * (1 + buff.haste)) - 1;
+        error = HasteUtils.getHasteError(cast, spellData);
+
+        if (!active) {
+          // add pseudo-event. Used for GCD Usage analysis.
+          const insertionIndex = this.analysis.events.buffs.findIndex((b) => b.timestamp >= cast.castStart);
+          this.analysis.events.buffs.splice(insertionIndex, 0, {
+            type: 'applybuff',
+            ability: { guid: buff.id, name: buff.name },
+            targetID: this.analysis.actor.id,
+            targetInstance: 0,
+            timestamp: cast.castStart - 1,
+            read: false
+          });
+
+          this.inferred[buff.id] = buff;
+        }
+      }
     }
-
-    else if (active && error < 0.025) {
-      // remove from buff list for GCD analyzer
-      const insertionIndex = this.analysis.events.buffs.findIndex((b) => b.timestamp >= cast.castStart);
-      this.analysis.events.buffs.splice(insertionIndex, 0, {
-        type: 'removebuff',
-        ability: { guid: buff.id, name: buff.name },
-        targetID: this.analysis.actor.id,
-        targetInstance: 0,
-        timestamp: cast.castStart - 1,
-        read: false
-      });
-
-      return false;
-    }
-
-    return active;
   }
 
   // find the last time this spell was cast on the same target

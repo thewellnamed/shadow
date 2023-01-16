@@ -1,6 +1,7 @@
 import { AuraId } from 'src/app/logs/models/aura-id.enum';
 import { IAbilityData, IBuffData } from 'src/app/logs/interfaces';
 import { Settings } from 'src/app/settings';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export enum BuffTrigger {
   CAST_END,
@@ -20,18 +21,37 @@ export class Buff {
     doesNotStackWith: [],
     summaryIcon: false,
     detailsIcon: true,
-    debuff: false
+    debuff: false,
+    infer: false
   };
 
   public static get(ability: IAbilityData, settings: Settings): IBuffDetails {
     const baseData = Buff.data[ability.guid];
     const dynamic = baseData.dynamic ? baseData.dynamic.call(null, baseData, settings) : {};
 
-    return Object.assign({ id: ability.guid, name: ability.name }, baseData, dynamic);
+    return Object.assign({}, baseData, dynamic, { id: ability.guid, name: ability.name });
   }
 
   public static isDebuff(id: AuraId) {
     return Buff.data[id]?.debuff;
+  }
+
+  public static inferrable(analysis: PlayerAnalysis) {
+    return Object.keys(Buff.data)
+      .map((k) => parseInt(k))
+      .filter((auraId) => {
+        const data = Buff.data[auraId];
+        if (typeof data.infer === "boolean") {
+          return data.infer;
+        } else {
+          return data.infer.call(null, analysis);
+        }
+      })
+      .map((auraId) => {
+        const data = Buff.data[auraId];
+        return Object.assign({ id: auraId }, data);
+      })
+      .sort((a, b) => b.haste - a.haste);
   }
 
   public static data: IBuffLookup = {
@@ -197,10 +217,16 @@ export class Buff {
     }),
 
     [AuraId.STARLIGHT]: buff({
+      name: 'Starlight',
       trigger: BuffTrigger.EXTERNAL,
       debuff: true,
       haste: 0.5,
-      summaryIcon: true
+      summaryIcon: true,
+      infer: (analysis) => analysis.encounter.boss === 751, // Hodir
+      inferenceThresholds: {
+        add: 0.4,
+        remove: 0.3
+      }
     }),
 
     [AuraId.SUNDIAL]: buff({
@@ -231,7 +257,13 @@ export class Buff {
 
     [AuraId.WRATH_OF_AIR]: buff({
       haste: 0.05,
-      trigger: BuffTrigger.EXTERNAL
+      trigger: BuffTrigger.EXTERNAL,
+      infer: (analysis) => analysis.applyWrathOfAir,
+      name: 'Wrath of Air', // name used when inferring
+      inferenceThresholds: {
+        add: .035,
+        remove: .025
+      }
     })
   }
 }
@@ -250,6 +282,8 @@ export interface IBuffDetails {
   doesNotStackWith: AuraId[];
   summaryIcon: boolean;
   detailsIcon: boolean;
+  infer: boolean | ((analysis: PlayerAnalysis) => boolean);
+  inferenceThresholds?: { add: number, remove: number };
   dynamic?: (baseData: IBuffDetails, settings: Settings) => Partial<IBuffDetails>
 }
 

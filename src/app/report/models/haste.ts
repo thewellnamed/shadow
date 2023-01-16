@@ -126,7 +126,7 @@ export class HasteUtils {
     }
 
     const expectedDelta = HasteUtils.apply(baseDelta * 1000, cast.haste);
-    return (expectedDelta - actualDelta) / expectedDelta;
+    return (expectedDelta - actualDelta) / actualDelta;
   }
 
   // `buff` should yield priority to `other` if other has a larger effect or is first (in event of tie)
