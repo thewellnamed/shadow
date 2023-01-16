@@ -204,6 +204,13 @@ export class Buff {
       trigger: BuffTrigger.EXTERNAL
     }),
 
+    [AuraId.SHADOW_CRASH]: buff({
+      trigger: BuffTrigger.EXTERNAL,
+      debuff: true,
+      haste: 1,
+      summaryIcon: true
+    }),
+
     [AuraId.SLAG_IMBUED]: buff({
       trigger: BuffTrigger.EXTERNAL,
       haste: 1,
