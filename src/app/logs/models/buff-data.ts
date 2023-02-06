@@ -79,6 +79,10 @@ export class Buff {
       summaryIcon: true
     }),
 
+    [AuraId.DEMONIC_PACT]: buff({
+      detailsIcon: false
+    }),
+
     [AuraId.DEVIOUS_MIND]: buff({
       trigger: BuffTrigger.CAST_END,
       summaryIcon: true,

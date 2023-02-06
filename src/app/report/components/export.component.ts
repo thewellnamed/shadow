@@ -83,7 +83,7 @@ export class ExportComponent implements OnInit {
         abominationsMight: this.haveClass('DeathKnight'),
         leaderOfThePack: this.auraState(AuraId.LEADER_OF_THE_PACK, 'TristateEffectImproved'),
         totemOfWrath: this.haveClass('Shaman-Elemental'),
-        demonicPact: this.haveClass('Warlock-Demonology') ? 3000 : undefined,
+        demonicPact: this.haveBuff(AuraId.DEMONIC_PACT) ? 4000 : undefined,
         moonkinAura: this.auraState(
           AuraId.MOONKIN_AURA,
           settings.improvedMoonkinAura ? 'TristateEffectImproved' : 'TristateEffectRegular'

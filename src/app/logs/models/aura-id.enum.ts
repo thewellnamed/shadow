@@ -43,6 +43,7 @@ export enum AuraId {
   WAR_PRISONER = 60480,
   WILD_MAGIC = 53909,
   WRATH_OF_AIR = 3738,
+  DEMONIC_PACT = 48090,
 
   // Enemy debuffs
   EARTH_AND_MOON = 60433,
