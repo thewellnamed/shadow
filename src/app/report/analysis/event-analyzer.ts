@@ -95,6 +95,8 @@ export class EventAnalyzer {
 
       // after fall-through we are processing only a cast and no other event type
       currentCast = event as ICastData;
+      const castId = mapSpellId(currentCast.ability.guid);
+      const baseSpellData = Spell.dataBySpellId[castId];
 
       // if the completed cast isn't the one we started, remove starting info
       // note that starting cast events don't have the target info but we shouldn't need to match it
@@ -105,13 +107,18 @@ export class EventAnalyzer {
         castBuffs = [];
       }
 
-      // if we didn't get stats at begincast, get them now
-      if (!activeStats) {
+      // Evaluate stats for cast
+      // - For direct spells with a cast time, we care about haste at cast start
+      // - But for hasted dots, it's status at cast completion that determine tick intervals,
+      //   even though stats at cast start determined the cast time
+      //
+      // We care more about the tick intervals than the cast time, so for this case
+      // we should track the stats at cast end
+      if (!activeStats || baseSpellData.dotHaste) {
         activeStats = HasteUtils.calc(this.baseStats, this.buffs);
         castBuffs = this.buffs.slice();
       }
 
-      const castId = mapSpellId(currentCast.ability.guid);
       const spellData = Spell.get(castId, this.analysis.settings, activeStats.totalHaste - 1);
       const details = new CastDetails({
         castId,
