@@ -43,13 +43,18 @@ export class GcdAnalyzer {
 
       switch (event.type) {
         case 'applybuff':
-        case 'refreshbuff':
-          this.applyBuff(event, Buff.get(event.ability, this.analysis.settings));
+        case 'applybuffstack':
+          this.applyBuff(event, Buff.get(event, this.analysis.settings));
           break;
 
         case 'removebuff':
+        case 'removebuffstack':
           this.removeBuff(event);
           break;
+
+        default:
+          buffIndex++;
+          continue;
       }
 
       const newStats = HasteUtils.calc(this.baseStats, this.buffs);
@@ -72,9 +77,11 @@ export class GcdAnalyzer {
   }
 
   private applyBuff(event: IBuffData, data: IBuffDetails) {
-    const existing = this.buffs.find((b) => b.id === event.ability.guid);
-    if (existing) {
-      existing.event = event;
+    const buff = { id: event.ability.guid, data, event };
+    const index = this.buffs.findIndex((b) => b.id === event.ability.guid);
+
+    if (index >= 0) {
+      this.buffs.splice(index, 1, buff);
     } else {
       this.buffs.push({ id: event.ability.guid, data, event });
     }
@@ -83,7 +90,15 @@ export class GcdAnalyzer {
   private removeBuff(event: IBuffData) {
     const index = this.buffs.findIndex((b) => b.id === event.ability.guid);
     if (index >= 0) {
-      this.buffs.splice(index, 1);
+      switch(event.type) {
+        case 'removebuff':
+          this.buffs.splice(index, 1);
+          break;
+
+        case 'removebuffstack':
+          this.buffs[index].event = event;
+          this.buffs[index].data = Buff.get(event, this.analysis.settings);
+      }
     }
   }
 }

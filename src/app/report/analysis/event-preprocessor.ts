@@ -170,14 +170,24 @@ export class EventPreprocessor {
     for (const event of buffs) {
       switch (event.type) {
         case 'applybuff':
-        case 'refreshbuff':
           active[event.ability.guid] = event;
           continue;
 
+        case 'applybuffstack':
+        case 'refreshbuff':
+          // if we're refreshing a buff we don't know about, add an application event
+          // and manage stacks. Assume that a stackable buff is at max stacks if we get a refresh
+          // if it weren't, we'd get `applybuffstack` instead.
+          if (!active.hasOwnProperty(event.ability.guid) && !this.foundMissing(event, missing)) {
+            missing.push(event);
+          }
+          continue;
+
         case 'removebuff':
+        case 'removebuffstack':
           if (active.hasOwnProperty(event.ability.guid)) {
             delete active[event.ability.guid];
-          } else {
+          } else if (!this.foundMissing(event, missing)) {
             missing.push(event);
           }
           continue;
@@ -185,12 +195,14 @@ export class EventPreprocessor {
     }
 
     for (const event of missing) {
+      const baseData = Buff.data[event.ability.guid]
       buffs.unshift({
         type: 'applybuff',
         timestamp: this.analysis.encounter.start - 1,
         targetID: event.targetID,
         targetInstance: event.targetInstance,
         ability: event.ability,
+        stack: (event.stack === undefined ? baseData?.maxStack : event.stack - 1),
         read: false
       });
 
@@ -208,5 +220,9 @@ export class EventPreprocessor {
     if (buffData.hasteRating > 0 && baseRating > buffData.hasteRating) {
       this.analysis.actorInfo!.stats!.hasteRating -= buffData.hasteRating;
     }
+  }
+
+  private foundMissing(event: IBuffData, missing: IBuffData[]) {
+    return missing.some((e) => e.ability.guid === event.ability.guid);
   }
 }

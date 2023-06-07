@@ -75,14 +75,14 @@ export class EventAnalyzer {
 
       switch (event.type) {
         case 'applybuff':
-        case 'refreshbuff':
+        case 'applybuffstack':
         case 'applydebuff':
-        case 'refreshdebuff':
-          this.applyBuff(event as IBuffData, Buff.get(event.ability, this.analysis.settings));
+          this.applyBuff(event as IBuffData, Buff.get(event, this.analysis.settings));
           continue;
 
         case 'removebuff':
         case 'removedebuff':
+        case 'removebuffstack':
           this.removeBuff(event as IBuffData);
           continue;
 
@@ -90,6 +90,10 @@ export class EventAnalyzer {
           startingCast = event as ICastData;
           activeStats = HasteUtils.calc(this.baseStats, this.buffs);
           castBuffs = this.buffs.slice();
+          continue;
+
+        case 'refreshbuff':
+        case 'refreshdebuff':
           continue;
       }
 
@@ -181,12 +185,17 @@ export class EventAnalyzer {
 
       switch (event.type) {
         case 'applybuff':
-        case 'refreshbuff':
-          this.applyBuff(event as IBuffData, Buff.get(event.ability, this.analysis.settings));
+        case 'applybuffstack':
+          this.applyBuff(event as IBuffData, Buff.get(event, this.analysis.settings));
           continue;
 
         case 'removebuff':
+        case 'removebuffstack':
           this.removeBuff(event as IBuffData);
+          continue;
+
+        case 'refreshbuff':
+        case 'refreshdebuff':
           continue;
 
         case 'begincast':
@@ -238,16 +247,30 @@ export class EventAnalyzer {
     }
 
     const events: IEventData[] = [];
-    let buffIndex = 0, nextBuff = this.buffData[buffIndex],
+    let foundBuffAtCastEnd = false,
+      buffIndex = 0, nextBuff = this.buffData[buffIndex],
       castIndex = 0, lastCast: ICastData|undefined = undefined, nextCast = this.castData[castIndex];
 
     do {
-      if (nextBuff && (!nextCast || this.buffHasPriority(nextBuff, nextCast, lastCast))) {
+      if (nextBuff && (!nextCast || this.buffHasPriority(nextBuff, nextCast, lastCast, foundBuffAtCastEnd))) {
         events.push(nextBuff);
+
+        // bit of a hack
+        // when there are multiple events at the same timestamp, try to avoid applying buffs triggered by casts
+        // to too many spells...
+        if (nextCast &&
+          nextBuff.timestamp === nextCast.timestamp &&
+          Buff.data[nextBuff.ability.guid]?.trigger === BuffTrigger.CAST_END) {
+          foundBuffAtCastEnd = true;
+        } else {
+          foundBuffAtCastEnd = false;
+        }
+
         nextBuff = this.buffData[++buffIndex];
       } else if (nextCast) {
         events.push(nextCast);
         lastCast = nextCast;
+        foundBuffAtCastEnd = false;
         nextCast = this.castData[++castIndex];
       }
     } while (nextBuff || nextCast);
@@ -256,7 +279,7 @@ export class EventAnalyzer {
   }
 
   // should buff be applied before this cast?
-  private buffHasPriority(buff: IBuffData, nextCast: ICastData, lastCast?: ICastData) {
+  private buffHasPriority(buff: IBuffData, nextCast: ICastData, lastCast?: ICastData, previousCastEndBuff = false) {
     const data = Buff.data[buff.ability.guid];
     switch (data?.trigger) {
       case BuffTrigger.CAST_END:
@@ -264,8 +287,9 @@ export class EventAnalyzer {
         // and is happening at the same time as nextCast,
         // then the buff applies to this cast only if the last cast shares the same timestamp
         // because of spell queueing
-        return (buff.timestamp < nextCast.timestamp) ||
-          (buff.timestamp === nextCast.timestamp && lastCast?.timestamp === buff.timestamp);
+        return !previousCastEndBuff &&
+          ((buff.timestamp < nextCast.timestamp) ||
+          (buff.timestamp === nextCast.timestamp && lastCast?.timestamp === buff.timestamp));
 
       case BuffTrigger.ON_USE:
         // On use abilities are generally off-CD and can be started at the same timestamp as the cast
@@ -294,9 +318,11 @@ export class EventAnalyzer {
   }
 
   private applyBuff(event: IBuffData, data: IBuffDetails) {
-    const existing = this.buffs.find((b) => b.id === event.ability.guid);
-    if (existing) {
-      existing.event = event;
+    const buff = { id: event.ability.guid, data, event };
+    const index = this.buffs.findIndex((b) => b.id === event.ability.guid);
+
+    if (index >= 0) {
+      this.buffs.splice(index, 1, buff);
     } else {
       this.buffs.push({ id: event.ability.guid, data, event });
     }
@@ -305,7 +331,15 @@ export class EventAnalyzer {
   private removeBuff(event: IBuffData) {
     const index = this.buffs.findIndex((b) => b.id === event.ability.guid);
     if (index >= 0) {
-      this.buffs.splice(index, 1);
+      switch(event.type) {
+        case 'removebuff':
+          this.buffs.splice(index, 1);
+          break;
+
+        case 'removebuffstack':
+          this.buffs[index].event = event;
+          this.buffs[index].data = Buff.get(event, this.analysis.settings);
+      }
     }
   }
 

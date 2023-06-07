@@ -46,6 +46,7 @@ export enum AuraId {
   DEMONIC_PACT = 48090,
   ABYSSAL_RUNE = 67669,
   SHARD_CRYSTAL_HEART = 67683,
+  DRAGON_SOUL = 60486,
 
   // Enemy debuffs
   EARTH_AND_MOON = 60433,
