@@ -268,6 +268,17 @@ export class Buff {
         add: .035,
         remove: .025
       }
+    }),
+
+    [AuraId.ABYSSAL_RUNE]: buff({
+      trigger: BuffTrigger.EXTERNAL,
+      summaryIcon: true
+    }),
+
+    [AuraId.SHARD_CRYSTAL_HEART]: buff({
+      trigger: BuffTrigger.ON_USE,
+      summaryIcon: true,
+      hasteRating: 512
     })
   }
 }

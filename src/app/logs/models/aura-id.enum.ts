@@ -44,6 +44,8 @@ export enum AuraId {
   WILD_MAGIC = 53909,
   WRATH_OF_AIR = 3738,
   DEMONIC_PACT = 48090,
+  ABYSSAL_RUNE = 67669,
+  SHARD_CRYSTAL_HEART = 67683,
 
   // Enemy debuffs
   EARTH_AND_MOON = 60433,
