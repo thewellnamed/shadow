@@ -90,7 +90,7 @@ export class StatEvaluator {
    */
   overall(cast: CastDetails): Status {
     // note: conditions are in order of priority for determining severity
-    const spellData = Spell.get(cast.spellId, this.analysis.settings, cast.haste);
+    const spellData = Spell.get(cast.spellId, this.analysis, cast.haste);
 
     if (cast.resisted) {
       return Status.NORMAL;
@@ -124,7 +124,7 @@ export class StatEvaluator {
   }
 
   hits(cast: CastDetails): Status {
-    const spellData = Spell.get(cast.spellId, this.analysis.settings, cast.haste);
+    const spellData = Spell.get(cast.spellId, this.analysis, cast.haste);
 
     if (cast.clippedEarly) {
       return Status.WARNING;

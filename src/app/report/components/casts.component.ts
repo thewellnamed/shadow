@@ -160,7 +160,7 @@ export class CastsComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   hits(cast: CastDetails) {
-    const spellData = Spell.baseData(cast.spellId);
+    const spellData = Spell.get(cast.spellId, this.analysis);
     let hits = cast.hits.toString();
 
     if (this.maxHits(cast)) {

@@ -31,7 +31,7 @@ export class CastsAnalyzer {
     this.inferred = {};
     for (let i = 0; i < this.casts.length; i++) {
       const current = this.casts[i],
-        spellData = Spell.get(current.spellId, this.analysis.settings, current.haste);
+        spellData = Spell.get(current.spellId, this.analysis, current.haste);
       let prevCastData;
 
       if (doInference && HasteUtils.canInferHaste(current, spellData)) {
@@ -100,7 +100,7 @@ export class CastsAnalyzer {
     }
 
     const prev = prevData.onTarget;
-    const prevSpellData = Spell.get(prev.spellId, this.analysis.settings, prev.haste);
+    const prevSpellData = Spell.get(prev.spellId, this.analysis, prev.haste);
 
     if (prev.lastDamageTimestamp && (current.castEnd - prev.lastDamageTimestamp <= CastsAnalyzer.MAX_ACTIVE_DOWNTIME)) {
       current.dotDowntime = Math.max((current.castEnd - prev.lastDamageTimestamp) / 1000, 0);

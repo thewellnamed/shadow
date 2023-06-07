@@ -1,6 +1,8 @@
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { HasteUtils } from 'src/app/report/models/haste';
 import { ISettings, Settings } from 'src/app/settings';
+import { CombatantInfo } from 'src/app/logs/models/combatant-info';
+import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export enum DamageType {
   NONE,
@@ -34,12 +36,17 @@ export class Spell {
     return Spell.dataBySpellId[id];
   }
 
-  public static get(id: SpellId, settings: Settings, currentHaste?: number): ISpellData {
-    const baseData = Spell.dataBySpellId[id];
+  public static get(id: SpellId, analysis: PlayerAnalysis, currentHaste?: number): ISpellData {
+    let baseData = Spell.dataBySpellId[id];
 
     // apply overrides for dynamic data
-    const dynamic = baseData.dynamic ? baseData.dynamic.call(null, baseData, settings) : {};
-    const data = Object.assign({}, Spell.dataBySpellId[id], dynamic);
+    const dynamic = baseData.dynamic ? baseData.dynamic.call(null, baseData, analysis.settings) : {};
+    let data = Object.assign({}, Spell.dataBySpellId[id], dynamic);
+
+    // apply gear bonuses from combatant info
+    if (analysis.actorInfo?.bonuses?.hasOwnProperty(baseData.mainId)) {
+      data = Object.assign(data, analysis.actorInfo!.bonuses[baseData.mainId]);
+    }
 
     // apply haste adjustments if haste specified.
     if (currentHaste !== undefined && data.damageType === DamageType.DOT && data.dotHaste) {

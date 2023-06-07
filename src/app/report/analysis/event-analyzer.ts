@@ -119,7 +119,7 @@ export class EventAnalyzer {
         castBuffs = this.buffs.slice();
       }
 
-      const spellData = Spell.get(castId, this.analysis.settings, activeStats.totalHaste - 1);
+      const spellData = Spell.get(castId, this.analysis, activeStats.totalHaste - 1);
       const details = new CastDetails({
         castId,
         spellId: spellData.mainId,
