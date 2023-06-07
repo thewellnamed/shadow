@@ -164,7 +164,8 @@ export class CastsAnalyzer {
           targetID: this.analysis.actor.id,
           targetInstance: 0,
           timestamp: cast.castStart - 1,
-          read: false
+          read: false,
+          merged: false
         });
 
         delete this.inferred[buff.id];
@@ -187,7 +188,8 @@ export class CastsAnalyzer {
             targetID: this.analysis.actor.id,
             targetInstance: 0,
             timestamp: cast.castStart - 1,
-            read: false
+            read: false,
+            merged: false
           });
 
           this.inferred[buff.id] = buff;

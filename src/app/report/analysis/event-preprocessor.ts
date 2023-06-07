@@ -98,6 +98,7 @@ export class EventPreprocessor {
           hitPoints: 100,
           maxHitPoints: 100,
           read: false,
+          merged: false,
           spellPower: firstDamageCast?.spellPower || 0 // we really have no idea, but it should be close to this
         });
         spellIdsInferred.push(instance.ability.guid);
@@ -147,7 +148,8 @@ export class EventPreprocessor {
         targetID: this.analysis.actor.id,
         targetInstance: 0,
         ability: { guid: aura.ability, name: aura.name },
-        read: false
+        read: false,
+        merged: false
       }));
 
     // for auras discovered from the summary, bonus stats are applied to the ActorStats
@@ -175,7 +177,7 @@ export class EventPreprocessor {
 
         case 'applybuffstack':
         case 'refreshbuff':
-          // if we're refreshing a buff we don't know about, add an application event
+          // if we're applying or refreshing a buff we don't know about, add an application event
           // and manage stacks. Assume that a stackable buff is at max stacks if we get a refresh
           // if it weren't, we'd get `applybuffstack` instead.
           if (!active.hasOwnProperty(event.ability.guid) && !this.foundMissing(event, missing)) {
@@ -203,7 +205,8 @@ export class EventPreprocessor {
         targetInstance: event.targetInstance,
         ability: event.ability,
         stack: (event.stack === undefined ? baseData?.maxStack : event.stack - 1),
-        read: false
+        read: false,
+        merged: false
       });
 
       // missing buffs might also be reflected in ActorStats, so update them.

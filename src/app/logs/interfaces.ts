@@ -51,6 +51,7 @@ export interface IEventData {
   targetID: number;
   targetInstance: number;
   read: boolean;
+  merged: boolean;
 }
 
 export interface ICastData extends IEventData {
