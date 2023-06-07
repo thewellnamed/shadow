@@ -247,30 +247,16 @@ export class EventAnalyzer {
     }
 
     const events: IEventData[] = [];
-    let foundBuffAtCastEnd = false,
-      buffIndex = 0, nextBuff = this.buffData[buffIndex],
+    let buffIndex = 0, nextBuff = this.buffData[buffIndex],
       castIndex = 0, lastCast: ICastData|undefined = undefined, nextCast = this.castData[castIndex];
 
     do {
-      if (nextBuff && (!nextCast || this.buffHasPriority(nextBuff, nextCast, lastCast, foundBuffAtCastEnd))) {
+      if (nextBuff && (!nextCast || this.buffHasPriority(nextBuff, nextCast, lastCast))) {
         events.push(nextBuff);
-
-        // bit of a hack
-        // when there are multiple events at the same timestamp, try to avoid applying buffs triggered by casts
-        // to too many spells...
-        if (nextCast &&
-          nextBuff.timestamp === nextCast.timestamp &&
-          Buff.data[nextBuff.ability.guid]?.trigger === BuffTrigger.CAST_END) {
-          foundBuffAtCastEnd = true;
-        } else {
-          foundBuffAtCastEnd = false;
-        }
-
         nextBuff = this.buffData[++buffIndex];
       } else if (nextCast) {
         events.push(nextCast);
         lastCast = nextCast;
-        foundBuffAtCastEnd = false;
         nextCast = this.castData[++castIndex];
       }
     } while (nextBuff || nextCast);
@@ -279,7 +265,7 @@ export class EventAnalyzer {
   }
 
   // should buff be applied before this cast?
-  private buffHasPriority(buff: IBuffData, nextCast: ICastData, lastCast?: ICastData, previousCastEndBuff = false) {
+  private buffHasPriority(buff: IBuffData, nextCast: ICastData, lastCast?: ICastData) {
     const data = Buff.data[buff.ability.guid];
     switch (data?.trigger) {
       case BuffTrigger.CAST_END:
@@ -287,9 +273,8 @@ export class EventAnalyzer {
         // and is happening at the same time as nextCast,
         // then the buff applies to this cast only if the last cast shares the same timestamp
         // because of spell queueing
-        return !previousCastEndBuff &&
-          ((buff.timestamp < nextCast.timestamp) ||
-          (buff.timestamp === nextCast.timestamp && lastCast?.timestamp === buff.timestamp));
+        return (buff.timestamp < nextCast.timestamp) ||
+          (buff.timestamp === nextCast.timestamp && lastCast?.timestamp === buff.timestamp);
 
       case BuffTrigger.ON_USE:
         // On use abilities are generally off-CD and can be started at the same timestamp as the cast
