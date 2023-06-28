@@ -290,6 +290,18 @@ export class Buff {
     [AuraId.DRAGON_SOUL]: buff({
       trigger: BuffTrigger.CAST_END,
       maxStack: 10
+    }),
+
+    [AuraId.VOLATILE_POWER]: buff({
+      trigger: BuffTrigger.CAST_END,
+      maxStack: 8,
+      hasteRating: 57
+    }),
+
+    [AuraId.VOLATILE_POWER_HEROIC]: buff({
+      trigger: BuffTrigger.CAST_END,
+      maxStack: 8,
+      hasteRating: 64
     })
   }
 }
