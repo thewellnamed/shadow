@@ -6,6 +6,7 @@ export class Settings {
   public improvedMoonkinAura = true;
   public improvedRetAura = true;
   public wrathOfAir = true;
+  public t9bonus2pc = false;
   public auras: number[] = [];
 
   constructor(settings?: ISettings) {
@@ -15,6 +16,7 @@ export class Settings {
       this.improvedMoonkinAura = settings.improvedMoonkinAura;
       this.improvedRetAura = settings.improvedRetAura;
       this.wrathOfAir = settings.wrathOfAir;
+      this.t9bonus2pc = settings.t9bonus2pc;
       this.auras = settings.auras || [];
     }
   }
@@ -26,6 +28,7 @@ export class Settings {
       this.improvedRetAura === other.improvedRetAura &&
       this.wrathOfAir === other.wrathOfAir &&
       this.auras.length === other.auras.length &&
+      this.t9bonus2pc === other.t9bonus2pc &&
       this.auras.every((id) => other.auras.includes(id));
   }
 
@@ -40,5 +43,6 @@ export interface ISettings {
   improvedMoonkinAura: boolean;
   improvedRetAura: boolean;
   wrathOfAir: boolean;
+  t9bonus2pc: boolean;
   auras?: number[];
 }

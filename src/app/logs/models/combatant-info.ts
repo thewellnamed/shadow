@@ -27,7 +27,7 @@ export class CombatantInfo {
   }
 
   private evaluateBonuses() {
-    const bonuses: IBonusStats = {};
+    let bonuses: IBonusStats = {};
 
     // T9
     const t9ItemIds = [
@@ -39,15 +39,21 @@ export class CombatantInfo {
     ];
     const t9Pieces = this.gear.reduce((c, i) => c + (t9ItemIds.includes(i.id) ? 1 : 0), 0);
     if (t9Pieces >= 2) {
-      // 2pc T9 gives extra ticks to VT
-      bonuses[SpellId.VAMPIRIC_TOUCH] = {
-        maxDamageInstances: 7,
-        maxTicks: 7,
-        maxDuration: 21,
-      };
+      bonuses = Object.assign(bonuses, this.T9Bonus2pc);
     }
 
     return bonuses;
+  }
+
+  public get T9Bonus2pc() {
+    // 2pc T9 gives extra ticks to VT
+    return {
+      [SpellId.VAMPIRIC_TOUCH]: {
+        maxDamageInstances: 7,
+        maxTicks: 7,
+        maxDuration: 21,
+      }
+    };
   }
 }
 

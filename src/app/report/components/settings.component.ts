@@ -11,6 +11,7 @@ import { switchMap, withLatestFrom } from 'rxjs/operators';
 import { LogSummary } from 'src/app/logs/models/log-summary';
 import { LogsService } from 'src/app/logs/logs.service';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
+import { SpellId } from 'src/app/logs/models/spell-id.enum';
 
 @Component({
   selector: 'report-settings',
@@ -53,6 +54,7 @@ export class SettingsComponent implements OnInit {
       this.analysis = analysis;
       this.analysis.refresh(this.settingsSvc.get(this.playerId));
       this.logHasteRating = analysis.actorInfo?.stats?.hasteRating || analysis.settings.hasteRating || null;
+      const t9Bonus2pc = analysis.actorInfo?.bonuses?.hasOwnProperty(SpellId.VAMPIRIC_TOUCH);
 
       this.form = new FormGroup<ISettingsForm>({
         hasteRating: new FormControl(this.logHasteRating),
@@ -60,11 +62,13 @@ export class SettingsComponent implements OnInit {
         improvedMoonkinAura: new FormControl(analysis.settings.improvedMoonkinAura, { nonNullable: true }),
         improvedRetAura: new FormControl(analysis.settings.improvedRetAura, { nonNullable: true }),
         wrathOfAir: new FormControl(analysis.settings.wrathOfAir, { nonNullable: true }),
+        t9bonus2pc: new FormControl(t9Bonus2pc || analysis.settings.t9bonus2pc, { nonNullable: true }),
         moonkinAura: new FormControl(this.auraState(AuraId.MOONKIN_AURA), { nonNullable: true })
       });
 
       if (this.analysis.actorInfo?.initFromLog) {
         this.form.controls.hasteRating.disable();
+        this.form.controls.t9bonus2pc.disable();
         this.form.controls.moonkinAura.disable();
       }
     });
@@ -115,5 +119,6 @@ interface ISettingsForm {
   improvedMoonkinAura: FormControl<boolean>;
   improvedRetAura: FormControl<boolean>;
   wrathOfAir: FormControl<boolean>;
+  t9bonus2pc: FormControl<boolean>;
   moonkinAura: FormControl<boolean>;
 }

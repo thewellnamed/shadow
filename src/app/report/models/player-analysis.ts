@@ -134,6 +134,15 @@ export class PlayerAnalysis {
       this.actorInfo.stats = ActorStats.inferred(this.settings.hasteRating);
     }
 
+    // apply T9 2pc bonus from settings if missing from log
+    if (!this.actorInfo.initFromLog) {
+      if (this.settings.t9bonus2pc) {
+        this.actorInfo.bonuses = this.actorInfo.T9Bonus2pc;
+      } else {
+        this.actorInfo.bonuses = {};
+      }
+    }
+
     // analyze events and generate casts report
     const casts = new EventAnalyzer(this).createCasts();
     this.report = new CastsAnalyzer(this, casts).run();

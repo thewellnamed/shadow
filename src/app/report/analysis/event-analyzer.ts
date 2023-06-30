@@ -393,7 +393,9 @@ export class EventAnalyzer {
   }
 
   private setMultiInstanceDamage(cast: CastDetails) {
-    const spellData = Spell.dataBySpellId[cast.spellId]; // use base data for duration since haste can have errors
+    // get spellData without haste adjustments. Adjusting for haste tends to miss some ticks because the clock
+    // is fiddly
+    const spellData = Spell.get(cast.spellId, this.analysis);
     let i = 0;
     let instances: DamageInstance[] = [];
     let instancesById: {[id: number]: number} = {};

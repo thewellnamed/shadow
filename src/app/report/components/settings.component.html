@@ -36,6 +36,12 @@
       </mat-form-field>
     </div>
 
+    <div class="slide-toggle">
+      <mat-slide-toggle color="primary" formControlName="t9bonus2pc">T9 2pc Bonus</mat-slide-toggle>
+      <p class="mat-hint table-accent" *ngIf="analysis.actorInfo?.initFromLog">Found from combatant info.</p>
+      <p class="mat-hint table-accent" *ngIf="!analysis.actorInfo?.initFromLog">Adds 2 additional ticks to Vampiric Touch.</p>
+    </div>
+
     <h4>Auras</h4>
     <div class="aura-checkboxes">
       <mat-checkbox color="primary" class="aura" formControlName="moonkinAura">Moonkin/Ret Aura</mat-checkbox>
