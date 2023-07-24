@@ -45,8 +45,8 @@ export class HasteUtils {
     return baseTime / (1 + haste);
   }
 
-  public static duration(spellId: SpellId, haste: number) {
-    return Spell.dataBySpellId[spellId].maxDuration / (1 + haste);
+  public static duration(spell: ISpellData, haste: number) {
+    return spell.maxDuration / (1 + haste);
   }
 
   public static inferRating(hastePercent: number, baseCastTime: number, actualCastTime: number) {

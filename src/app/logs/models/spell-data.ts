@@ -1,7 +1,6 @@
 import { SpellId } from 'src/app/logs/models/spell-id.enum';
 import { HasteUtils } from 'src/app/report/models/haste';
-import { ISettings, Settings } from 'src/app/settings';
-import { CombatantInfo } from 'src/app/logs/models/combatant-info';
+import { ISettings } from 'src/app/settings';
 import { PlayerAnalysis } from 'src/app/report/models/player-analysis';
 
 export enum DamageType {
@@ -50,7 +49,7 @@ export class Spell {
 
     // apply haste adjustments if haste specified.
     if (currentHaste !== undefined && data.damageType === DamageType.DOT && data.dotHaste) {
-      data.maxDuration = HasteUtils.duration(id, currentHaste);
+      data.maxDuration = HasteUtils.duration(data, currentHaste);
     }
 
     return data;
